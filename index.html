@@ -501,6 +501,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+
     <!-- Main Logic Script -->
     <script>
         // ユーティリティ
@@ -696,9 +698,41 @@
                     news: state.news,
                     updatedAt: state.lastSavedAt || new Date().toISOString()
                 };
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+                const serialized = JSON.stringify(payload);
+                localStorage.setItem(STORAGE_KEY, serialized);
+
+                const url = new URL(window.location.href);
+                const encoded = typeof LZString !== 'undefined'
+                    ? LZString.compressToEncodedURIComponent(serialized)
+                    : encodeURIComponent(serialized);
+                url.searchParams.set('state', encoded);
+                window.history.replaceState({}, '', url.toString());
             } catch (e) {
                 console.warn('State save failed', e);
+            }
+        }
+
+        function loadStateFromUrl() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const encoded = params.get('state');
+                if (!encoded) return false;
+                const serialized = typeof LZString !== 'undefined'
+                    ? LZString.decompressFromEncodedURIComponent(encoded)
+                    : decodeURIComponent(encoded);
+                const parsed = JSON.parse(serialized);
+                if (parsed.schedule) state.schedule = parsed.schedule;
+                if (parsed.news) state.news = parsed.news;
+                if (parsed.updatedAt) state.lastSavedAt = parsed.updatedAt;
+                state.standingsDirty = true;
+                if (typeof refreshAllViews === 'function') {
+                    refreshAllViews();
+                    renderNews();
+                }
+                return true;
+            } catch (e) {
+                console.warn('State load from URL failed', e);
+                return false;
             }
         }
 
@@ -711,6 +745,7 @@
         }
 
         loadPersistedState();
+        loadStateFromUrl();
 
         function getTeamLogo(name) {
             const t = RAW_TEAMS.find(item => item.name === name);
