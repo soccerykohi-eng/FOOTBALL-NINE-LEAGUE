@@ -1127,6 +1127,26 @@
     </script>
 
     <script src="../firebase-config.js"></script>
+    <script>
+        window.__fnlSetTestStatus = function(text, online = false) {
+            const dot = document.getElementById('sync-dot-indicator');
+            const txt = document.getElementById('sync-text-status');
+            if (dot) dot.classList.toggle('online', online);
+            if (txt) txt.innerText = text;
+        };
+        window.__fnlTriggerFirebaseTestSave = async function() {
+            const statusEl = document.getElementById('firebase-test-status');
+            if (statusEl) statusEl.innerText = '保存中...';
+            console.log('Firebase test save clicked');
+            window.__fnlSetTestStatus('保存中...', false);
+        };
+        document.addEventListener('DOMContentLoaded', function() {
+            const button = document.querySelector('[data-firebase-test-save]');
+            if (button) {
+                button.addEventListener('click', window.__fnlTriggerFirebaseTestSave);
+            }
+        });
+    </script>
 
     <!-- 完全同期用 Firebase クラウドスクリプト -->
     <script type="module">
@@ -1157,8 +1177,7 @@
 
             setSyncStatus('Firebase 接続済み', true);
 
-            const testSaveButton = document.querySelector('[data-firebase-test-save]');
-            window.saveTestData = async () => {
+            window.__fnlFirebaseTestSave = async () => {
                 const statusEl = document.getElementById('firebase-test-status');
                 if (statusEl) statusEl.innerText = '保存中...';
                 try {
@@ -1176,11 +1195,17 @@
                 }
             };
 
-            if (testSaveButton) {
-                testSaveButton.addEventListener('click', () => {
-                    window.saveTestData();
-                });
-            }
+            window.__fnlTriggerFirebaseTestSave = async function() {
+                const statusEl = document.getElementById('firebase-test-status');
+                if (statusEl) statusEl.innerText = '保存中...';
+                console.log('Firebase test save clicked');
+                window.__fnlSetTestStatus('保存中...', false);
+                try {
+                    await window.__fnlFirebaseTestSave();
+                } catch (e) {
+                    console.error('保存エラー', e);
+                }
+            };
 
             const syncDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'bundle', 'main_data');
 
