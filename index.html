@@ -1242,6 +1242,7 @@
             const appId = typeof window !== 'undefined' && window.FNL_FIREBASE_APP_ID
                 ? window.FNL_FIREBASE_APP_ID
                 : (typeof __app_id !== 'undefined' ? __app_id : 'fnl-season1');
+            const syncDocRef = doc(db, 'shared', appId);
 
             const setSyncStatus = (text, online = false) => {
                 const dot = document.getElementById('sync-dot-indicator');
@@ -1250,6 +1251,7 @@
                 if (txt) txt.innerText = text;
             };
 
+            let cloudReady = false;
             setSyncStatus('Firebase 接続済み', true);
 
             window.__fnlFirebaseTestSave = async () => {
@@ -1286,21 +1288,17 @@
                 }
             };
 
-            const syncDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'bundle', 'main_data');
-
             // クラウドへのデータ書き込み関数をグローバル連携
             state.dbSaveFn = async () => {
                 const timestamp = state.lastSavedAt || new Date().toISOString();
                 state.lastSavedAt = timestamp;
                 saveStateToStorage();
 
+                if (!cloudReady) return;
+
                 try {
                     if (!auth.currentUser) {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await signInWithCustomToken(auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
+                        await signInAnonymously(auth);
                     }
                     await setDoc(syncDocRef, {
                         schedule: state.schedule,
@@ -1315,10 +1313,14 @@
             };
 
             const initCloud = async () => {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
+                try {
                     await signInAnonymously(auth);
+                    cloudReady = true;
+                    setSyncStatus('クラウド同期中', true);
+                } catch (e) {
+                    console.warn('Anonymous auth failed', e);
+                    cloudReady = false;
+                    setSyncStatus('ローカル保存済み', true);
                 }
             };
 
@@ -1328,8 +1330,10 @@
                     const txt = document.getElementById('sync-text-status');
                     if (dot) dot.classList.add('online');
                     if (txt) txt.innerText = 'クラウド同期中';
+                    cloudReady = true;
                 } else {
                     setSyncStatus('ローカル保存済み', true);
+                    cloudReady = false;
                 }
 
                 onSnapshot(syncDocRef, (snap) => {
