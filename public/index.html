@@ -1155,7 +1155,7 @@
                 if (txt) txt.innerText = text;
             };
 
-            setSyncStatus('Firebase 初期化中', false);
+            setSyncStatus('Firebase 接続済み', true);
 
             window.saveTestData = async () => {
                 const statusEl = document.getElementById('firebase-test-status');
@@ -1202,6 +1202,9 @@
                     const txt = document.getElementById('sync-text-status');
                     if (dot) dot.classList.add('online');
                     if (txt) txt.innerText = 'クラウド同期中';
+                } else {
+                    setSyncStatus('Firebase 接続済み', true);
+                }
 
                     // リアルタイムリスナー
                     onSnapshot(syncDocRef, (snap) => {
