@@ -1,0 +1,13 @@
+{
+  "name": "football-nine-league",
+  "version": "1.0.0",
+  "description": "FOOTBALL NINE LEAGUE - eFootball League Management Portal",
+  "main": "index.js",
+  "scripts": {
+    "start": "python3 -m http.server 8000 --directory ./public",
+    "dev": "python3 -m http.server 8000 --directory ./public"
+  },
+  "keywords": ["football", "league", "eFootball"],
+  "author": "FNL",
+  "license": "MIT"
+}
