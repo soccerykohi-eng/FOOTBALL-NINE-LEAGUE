@@ -672,6 +672,41 @@
             dbSaveFn: null
         };
 
+        const STORAGE_KEY = 'fnl-state-v1';
+
+        function loadPersistedState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const parsed = JSON.parse(raw);
+                if (parsed.schedule) state.schedule = parsed.schedule;
+                if (parsed.news) state.news = parsed.news;
+                state.standingsDirty = true;
+            } catch (e) {
+                console.warn('State restore failed', e);
+            }
+        }
+
+        function saveStateToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    schedule: state.schedule,
+                    news: state.news
+                }));
+            } catch (e) {
+                console.warn('State save failed', e);
+            }
+        }
+
+        function persistAppState() {
+            saveStateToStorage();
+            if (state.dbSaveFn) {
+                state.dbSaveFn();
+            }
+        }
+
+        loadPersistedState();
+
         function getTeamLogo(name) {
             const t = RAW_TEAMS.find(item => item.name === name);
             return t ? t.logo : makeSvgBadge('FNL', '#334155', '#0f172a', 'shield');
@@ -841,7 +876,7 @@
             if (confirm('このニュースを削除しますか？')) {
                 state.news = state.news.filter(n => n.id !== newsId);
                 renderNews();
-                if (state.dbSaveFn) state.dbSaveFn();
+                persistAppState();
                 document.getElementById('sheet-overlay').classList.remove('active');
             }
         };
@@ -892,7 +927,7 @@
                 category, title, content
             });
             renderNews();
-            if (state.dbSaveFn) state.dbSaveFn();
+            persistAppState();
             document.getElementById('sheet-overlay').classList.remove('active');
             navigateTo('news', 'ニュース');
         };
@@ -935,7 +970,7 @@
                 m.as = parseInt(asVal, 10);
                 state.standingsDirty = true;
                 refreshAllViews();
-                if (state.dbSaveFn) state.dbSaveFn();
+                persistAppState();
             }
             document.getElementById('sheet-overlay').classList.remove('active');
         };
@@ -946,7 +981,7 @@
                 m.hs = null; m.as = null;
                 state.standingsDirty = true;
                 refreshAllViews();
-                if (state.dbSaveFn) state.dbSaveFn();
+                persistAppState();
             }
             document.getElementById('sheet-overlay').classList.remove('active');
         };
@@ -1249,11 +1284,12 @@
                             if (data.schedule) state.schedule = data.schedule;
                             if (data.news) state.news = data.news;
                             state.standingsDirty = true;
+                            saveStateToStorage();
                             refreshAllViews();
                             renderNews();
                         } else {
                             // 初回のみマスターデータをクラウドに保存
-                            state.dbSaveFn();
+                            persistAppState();
                         }
                     }, err => {});
                 }
