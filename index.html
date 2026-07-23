@@ -1181,10 +1181,14 @@
                 const statusEl = document.getElementById('firebase-test-status');
                 if (statusEl) statusEl.innerText = '保存中...';
                 try {
-                    const docRef = await addDoc(collection(db, 'teams'), {
+                    const savePromise = addDoc(collection(db, 'teams'), {
                         teamName: 'FOOTBALL NINE LEAGUE テストチーム',
                         createdAt: new Date()
                     });
+                    const timeoutPromise = new Promise((_, reject) => {
+                        setTimeout(() => reject(new Error('Firebase save timed out')), 10000);
+                    });
+                    const docRef = await Promise.race([savePromise, timeoutPromise]);
                     if (statusEl) statusEl.innerText = `保存完了: ${docRef.id}`;
                     setSyncStatus('クラウド保存済み', true);
                     console.log('クラウド保存完了', docRef.id);
