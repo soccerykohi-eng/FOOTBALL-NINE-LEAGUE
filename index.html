@@ -1148,6 +1148,15 @@
                 ? window.FNL_FIREBASE_APP_ID
                 : (typeof __app_id !== 'undefined' ? __app_id : 'fnl-season1');
 
+            const setSyncStatus = (text, online = false) => {
+                const dot = document.getElementById('sync-dot-indicator');
+                const txt = document.getElementById('sync-text-status');
+                if (dot) dot.classList.toggle('online', online);
+                if (txt) txt.innerText = text;
+            };
+
+            setSyncStatus('Firebase 初期化中', false);
+
             window.saveTestData = async () => {
                 const statusEl = document.getElementById('firebase-test-status');
                 if (statusEl) statusEl.innerText = '保存中...';
@@ -1157,9 +1166,11 @@
                         createdAt: new Date()
                     });
                     if (statusEl) statusEl.innerText = `保存完了: ${docRef.id}`;
+                    setSyncStatus('クラウド保存済み', true);
                     console.log('クラウド保存完了', docRef.id);
                 } catch (e) {
                     if (statusEl) statusEl.innerText = '保存失敗';
+                    setSyncStatus('接続エラー', false);
                     console.error('保存エラー', e);
                 }
             };
