@@ -409,7 +409,7 @@
                 <button class="btn-secondary" onclick="openPostNewsSheet()">＋ 投稿</button>
             </div>
             <div class="card" style="margin-bottom: 0.8rem;">
-                <button class="btn-primary" onclick="saveTestData()" style="margin-bottom: 0.3rem;">🧪 Firebase テスト保存</button>
+                <button class="btn-primary" data-firebase-test-save style="margin-bottom: 0.3rem;">🧪 Firebase テスト保存</button>
                 <div id="firebase-test-status" style="font-size: 0.75rem; color: var(--text-muted);">未実行</div>
             </div>
             <div class="card" id="home-news-preview"></div>
@@ -1157,6 +1157,7 @@
 
             setSyncStatus('Firebase 接続済み', true);
 
+            const testSaveButton = document.querySelector('[data-firebase-test-save]');
             window.saveTestData = async () => {
                 const statusEl = document.getElementById('firebase-test-status');
                 if (statusEl) statusEl.innerText = '保存中...';
@@ -1174,6 +1175,12 @@
                     console.error('保存エラー', e);
                 }
             };
+
+            if (testSaveButton) {
+                testSaveButton.addEventListener('click', () => {
+                    window.saveTestData();
+                });
+            }
 
             const syncDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'bundle', 'main_data');
 
