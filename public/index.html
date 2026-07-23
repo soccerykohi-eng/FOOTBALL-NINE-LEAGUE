@@ -408,6 +408,10 @@
                 <div class="section-title">TOPICS</div>
                 <button class="btn-secondary" onclick="openPostNewsSheet()">＋ 投稿</button>
             </div>
+            <div class="card" style="margin-bottom: 0.8rem;">
+                <button class="btn-primary" onclick="saveTestData()" style="margin-bottom: 0.3rem;">🧪 Firebase テスト保存</button>
+                <div id="firebase-test-status" style="font-size: 0.75rem; color: var(--text-muted);">未実行</div>
+            </div>
             <div class="card" id="home-news-preview"></div>
         </section>
 
@@ -1128,7 +1132,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         try {
             const firebaseConfig = typeof window !== 'undefined' && window.FNL_FIREBASE_CONFIG
@@ -1143,6 +1147,22 @@
             const appId = typeof window !== 'undefined' && window.FNL_FIREBASE_APP_ID
                 ? window.FNL_FIREBASE_APP_ID
                 : (typeof __app_id !== 'undefined' ? __app_id : 'fnl-season1');
+
+            window.saveTestData = async () => {
+                const statusEl = document.getElementById('firebase-test-status');
+                if (statusEl) statusEl.innerText = '保存中...';
+                try {
+                    const docRef = await addDoc(collection(db, 'teams'), {
+                        teamName: 'FOOTBALL NINE LEAGUE テストチーム',
+                        createdAt: new Date()
+                    });
+                    if (statusEl) statusEl.innerText = `保存完了: ${docRef.id}`;
+                    console.log('クラウド保存完了', docRef.id);
+                } catch (e) {
+                    if (statusEl) statusEl.innerText = '保存失敗';
+                    console.error('保存エラー', e);
+                }
+            };
 
             const syncDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'bundle', 'main_data');
 
