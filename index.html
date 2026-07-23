@@ -669,7 +669,8 @@
             cachedStandings: null,
             standingsDirty: true,
             dbRef: null,
-            dbSaveFn: null
+            dbSaveFn: null,
+            lastSavedAt: null
         };
 
         const STORAGE_KEY = 'fnl-state-v1';
@@ -681,6 +682,7 @@
                 const parsed = JSON.parse(raw);
                 if (parsed.schedule) state.schedule = parsed.schedule;
                 if (parsed.news) state.news = parsed.news;
+                if (parsed.updatedAt) state.lastSavedAt = parsed.updatedAt;
                 state.standingsDirty = true;
             } catch (e) {
                 console.warn('State restore failed', e);
@@ -689,16 +691,19 @@
 
         function saveStateToStorage() {
             try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                const payload = {
                     schedule: state.schedule,
-                    news: state.news
-                }));
+                    news: state.news,
+                    updatedAt: state.lastSavedAt || new Date().toISOString()
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
             } catch (e) {
                 console.warn('State save failed', e);
             }
         }
 
         function persistAppState() {
+            state.lastSavedAt = state.lastSavedAt || new Date().toISOString();
             saveStateToStorage();
             if (state.dbSaveFn) {
                 state.dbSaveFn();
@@ -1250,13 +1255,27 @@
 
             // クラウドへのデータ書き込み関数をグローバル連携
             state.dbSaveFn = async () => {
-                if (!auth.currentUser) return;
                 try {
+                    if (!auth.currentUser) {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    }
+                    const timestamp = state.lastSavedAt || new Date().toISOString();
+                    state.lastSavedAt = timestamp;
                     await setDoc(syncDocRef, {
                         schedule: state.schedule,
-                        news: state.news
+                        news: state.news,
+                        updatedAt: timestamp
                     }, { merge: true });
-                } catch(e) {}
+                    setSyncStatus('クラウド同期済み', true);
+                    saveStateToStorage();
+                } catch (e) {
+                    setSyncStatus('同期エラー', false);
+                    console.error('Cloud save failed', e);
+                }
             };
 
             const initCloud = async () => {
@@ -1277,22 +1296,28 @@
                     setSyncStatus('Firebase 接続済み', true);
                 }
 
-                    // リアルタイムリスナー
-                    onSnapshot(syncDocRef, (snap) => {
-                        if (snap.exists()) {
-                            const data = snap.data();
-                            if (data.schedule) state.schedule = data.schedule;
-                            if (data.news) state.news = data.news;
-                            state.standingsDirty = true;
-                            saveStateToStorage();
-                            refreshAllViews();
-                            renderNews();
-                        } else {
-                            // 初回のみマスターデータをクラウドに保存
-                            persistAppState();
-                        }
-                    }, err => {});
-                }
+                onSnapshot(syncDocRef, (snap) => {
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        const remoteUpdatedAt = data.updatedAt ? new Date(data.updatedAt).getTime() : 0;
+                        const localUpdatedAt = state.lastSavedAt ? new Date(state.lastSavedAt).getTime() : 0;
+                        const shouldApplyRemote = !state.lastSavedAt || remoteUpdatedAt >= localUpdatedAt;
+
+                        if (data.schedule && shouldApplyRemote) state.schedule = data.schedule;
+                        if (data.news && shouldApplyRemote) state.news = data.news;
+                        if (data.updatedAt) state.lastSavedAt = data.updatedAt;
+                        state.standingsDirty = true;
+                        saveStateToStorage();
+                        refreshAllViews();
+                        renderNews();
+                        setSyncStatus('クラウド同期済み', true);
+                    } else {
+                        persistAppState();
+                    }
+                }, err => {
+                    setSyncStatus('同期エラー', false);
+                    console.error('Cloud listen error', err);
+                });
             });
 
             initCloud();
