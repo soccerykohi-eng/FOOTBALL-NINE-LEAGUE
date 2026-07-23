@@ -1122,6 +1122,8 @@
         }
     </script>
 
+    <script src="./firebase-config.js"></script>
+
     <!-- 完全同期用 Firebase クラウドスクリプト -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -1129,14 +1131,18 @@
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         try {
-            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-                apiKey: "dummy-key", authDomain: "fnl-league.firebaseapp.com", projectId: "fnl-league",
-                storageBucket: "fnl-league.appspot.com", messagingSenderId: "123456789", appId: "1:123456789:web:abcdef"
-            };
+            const firebaseConfig = typeof window !== 'undefined' && window.FNL_FIREBASE_CONFIG
+                ? window.FNL_FIREBASE_CONFIG
+                : (typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+                    apiKey: "dummy-key", authDomain: "fnl-league.firebaseapp.com", projectId: "fnl-league",
+                    storageBucket: "fnl-league.appspot.com", messagingSenderId: "123456789", appId: "1:123456789:web:abcdef"
+                });
             const app = initializeApp(firebaseConfig);
             const auth = getAuth(app);
             const db = getFirestore(app);
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'fnl-season1';
+            const appId = typeof window !== 'undefined' && window.FNL_FIREBASE_APP_ID
+                ? window.FNL_FIREBASE_APP_ID
+                : (typeof __app_id !== 'undefined' ? __app_id : 'fnl-season1');
 
             const syncDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'bundle', 'main_data');
 
