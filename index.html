@@ -697,28 +697,8 @@
                     updatedAt: state.lastSavedAt || new Date().toISOString()
                 };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-                const url = new URL(window.location.href);
-                url.searchParams.set('state', encodeURIComponent(JSON.stringify(payload)));
-                window.history.replaceState({}, '', url.toString());
             } catch (e) {
                 console.warn('State save failed', e);
-            }
-        }
-
-        function loadStateFromUrl() {
-            try {
-                const params = new URLSearchParams(window.location.search);
-                const encoded = params.get('state');
-                if (!encoded) return false;
-                const parsed = JSON.parse(decodeURIComponent(encoded));
-                if (parsed.schedule) state.schedule = parsed.schedule;
-                if (parsed.news) state.news = parsed.news;
-                if (parsed.updatedAt) state.lastSavedAt = parsed.updatedAt;
-                state.standingsDirty = true;
-                return true;
-            } catch (e) {
-                console.warn('State load from URL failed', e);
-                return false;
             }
         }
 
@@ -731,7 +711,6 @@
         }
 
         loadPersistedState();
-        loadStateFromUrl();
 
         function getTeamLogo(name) {
             const t = RAW_TEAMS.find(item => item.name === name);
