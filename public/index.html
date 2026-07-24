@@ -1201,30 +1201,10 @@
         }
     </script>
 
-    <script src="../firebase-config.js"></script>
-    <script>
-        window.__fnlSetTestStatus = function(text, online = false) {
-            const dot = document.getElementById('sync-dot-indicator');
-            const txt = document.getElementById('sync-text-status');
-            if (dot) dot.classList.toggle('online', online);
-            if (txt) txt.innerText = text;
-        };
-        window.__fnlTriggerFirebaseTestSave = async function() {
-            const statusEl = document.getElementById('firebase-test-status');
-            if (statusEl) statusEl.innerText = '保存中...';
-            console.log('Firebase test save clicked');
-            window.__fnlSetTestStatus('保存中...', false);
-        };
-        document.addEventListener('DOMContentLoaded', function() {
-            const button = document.querySelector('[data-firebase-test-save]');
-            if (button) {
-                button.addEventListener('click', window.__fnlTriggerFirebaseTestSave);
-            }
-        });
-    </script>
-
-    <!-- 完全同期用 Firebase クラウドスクリプト -->
-    <script type="module">
+    <script src="./firebase-config.js"></script>
+    <script type="module" src="./firebase-sync.js"></script>
+    <!-- Legacy Firebase script retained as inert source; the module above owns authentication and sync. -->
+    <script type="text/plain">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
