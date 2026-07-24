@@ -66,6 +66,13 @@
             cursor: pointer;
         }
 
+        .fnl-logo-header {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+
         .fnl-brand-text {
             display: flex;
             flex-direction: column;
@@ -222,7 +229,7 @@
         }
 
         .hero-logo-large {
-            width: 60px; height: 60px; margin: 0 auto 0.6rem; display: block;
+            width: 92px; height: 92px; margin: 0 auto 0.6rem; display: block; object-fit: contain; border-radius: 8px;
         }
 
         .hero-subtitle {
@@ -365,10 +372,7 @@
     <!-- ヘッダー -->
     <header>
         <div class="header-logo-wrap" onclick="navigateTo('home', 'HOME')">
-            <svg width="26" height="26" viewBox="0 0 300 300" fill="none">
-                <path d="M40 40H260V90H140V130H200L140 190H90V90H40V260H90V210H140L200 260H260V130L260 40Z" fill="#F2F0E8" fill-rule="evenodd"/>
-                <path d="M140 90L200 130H140V90Z" fill="#C6A664"/>
-            </svg>
+            <img class="fnl-logo-header" src="./fnl-logo.png" alt="FNL ロゴ">
             <div class="fnl-brand-text">
                 <span class="fnl-brand-title">FNL</span>
                 <span class="fnl-brand-sub">FOOTBALL NINE LEAGUE</span>
@@ -390,10 +394,7 @@
         <!-- PAGE 1: HOME -->
         <section id="page-home" class="page active">
             <div class="hero-banner">
-                <svg class="hero-logo-large" viewBox="0 0 300 300" fill="none">
-                    <path d="M40 40H260V90H140V130H200L140 190H90V90H40V260H90V210H140L200 260H260V130L260 40Z" fill="#F2F0E8" fill-rule="evenodd"/>
-                    <path d="M140 90L200 130H140V90Z" fill="#C6A664"/>
-                </svg>
+                <img class="hero-logo-large" src="./fnl-logo.png" alt="FNL ロゴ">
                 <div class="hero-subtitle">SEASON 1 - 2026</div>
                 <div class="hero-title">FOOTBALL NINE LEAGUE</div>
                 <p style="font-size: 0.75rem; color: var(--text-muted);">全9チーム公式ポータル</p>
