@@ -41,7 +41,8 @@
             color: var(--text-main);
             font-family: 'Noto Sans JP', sans-serif;
             line-height: 1.4;
-            padding-top: var(--header-height);
+            /* iPhoneのノッチ／ステータスバーと固定ヘッダーが重ならないようにする */
+            padding-top: calc(var(--header-height) + env(safe-area-inset-top, 0px));
             padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px) + 1.2rem);
             user-select: none;
             -webkit-user-select: none;
