@@ -1,0 +1,11 @@
+{
+  "name": "Football Nine League",
+  "short_name": "FNL",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#08090c",
+  "theme_color": "#08090c",
+  "icons": [
+    { "src": "./fnl-logo.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
