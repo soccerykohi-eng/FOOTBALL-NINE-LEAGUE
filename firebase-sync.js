@@ -47,11 +47,14 @@ function startListening() {
     applyingRemote = true;
     if (Array.isArray(remote.schedule)) state.schedule = remote.schedule;
     if (Array.isArray(remote.news)) state.news = remote.news;
+    if (remote.rosters && typeof remote.rosters === "object") state.rosters = remote.rosters;
+    if (remote.transferMarket && typeof remote.transferMarket === "object") state.transferMarket = remote.transferMarket;
     state.lastSavedAt = remoteUpdatedAt || state.lastSavedAt;
     state.standingsDirty = true;
     saveStateToStorage();
     refreshAllViews();
     renderNews();
+    renderTransferCenter?.();
     applyingRemote = false;
     setStatus("クラウド同期済み", true);
   }, (error) => {
@@ -69,6 +72,8 @@ state.dbSaveFn = async () => {
   await setDoc(leagueRef, {
     schedule: state.schedule,
     news: state.news,
+    rosters: state.rosters,
+    transferMarket: state.transferMarket,
     updatedAt,
     serverUpdatedAt: serverTimestamp()
   }, { merge: true });
