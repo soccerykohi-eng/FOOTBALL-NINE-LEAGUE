@@ -459,9 +459,9 @@
         <section id="page-transfer" class="page">
             <div class="section-header">
                 <div class="section-title">TRANSFER CENTER</div>
-                <button class="btn-secondary" onclick="openAddPlayerSheet()">＋ 選手登録</button>
+                <div style="display:flex;gap:0.4rem;"><button class="btn-secondary" onclick="openAddPlayerSheet()">＋ 選手登録</button><button class="btn-secondary" onclick="openMarketPlayerSheet()">＋ 移籍希望</button></div>
             </div>
-            <div class="market-note">現在は初期登録期間です。チーム別ログインの導入後、各クラブが自チームの選手名簿・放出予定を編集できるようになります。</div>
+            <div class="market-note">全員で自由に編集できる移籍センターです。名簿登録・放出・希望提出を済ませたら、ドラフトを自動確定できます。直前の変更は1回だけ戻せます。</div>
             <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.5rem; margin:0.8rem 0;" id="player-summary"></div>
             <div class="section-header" style="margin-top:1.1rem;">
                 <div class="section-title">PLAYER DATABASE</div>
@@ -470,8 +470,17 @@
             <div class="section-header" style="margin-top:1.2rem;">
                 <div class="section-title">MID-SEASON MARKET</div>
             </div>
-            <div class="market-note" style="margin-bottom:0.7rem;">リーグ一巡目終了後に実施。放出人数と同数まで補強可能で、指名順は順位の低いクラブからです。</div>
+            <div class="market-note" style="margin-bottom:0.7rem;">リーグ一巡目終了後に実施。放出人数と同数まで補強可能で、順位の低いクラブから希望順に自動指名します。</div>
             <div id="market-club-list"></div>
+            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">AVAILABLE PLAYERS</div></div>
+            <div id="available-player-list"></div>
+            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">DRAFT ROOM</div><button class="btn-secondary" onclick="openDraftBoardSheet()">希望を提出</button></div>
+            <div id="draft-club-list"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.7rem;"><button class="btn-primary" onclick="runAutomaticDraft()">⚡ ドラフトを自動確定</button><button class="btn-secondary" onclick="undoLastTransferChange()">↶ 直前を戻す</button></div>
+            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">DRAFT RESULTS</div></div>
+            <div id="draft-results-list"></div>
+            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">TRANSFER HISTORY</div></div>
+            <div id="transfer-history-list"></div>
         </section>
 
         <!-- PAGE 6: NEWS -->
@@ -1153,29 +1162,72 @@
         }
 
         // --- 選手名簿・移籍市場 ---
+        const cloneTransferData = value => JSON.parse(JSON.stringify(value));
+
+        function getMarket() {
+            if (!state.transferMarket || typeof state.transferMarket !== 'object') state.transferMarket = {};
+            const market = state.transferMarket;
+            if (!market.releasePlans || typeof market.releasePlans !== 'object') market.releasePlans = {};
+            if (!market.releasePlayerIds || typeof market.releasePlayerIds !== 'object') market.releasePlayerIds = {};
+            if (!market.freeAgents || !Array.isArray(market.freeAgents)) market.freeAgents = [];
+            if (!market.draftPreferences || typeof market.draftPreferences !== 'object') market.draftPreferences = {};
+            if (!market.draftResults || !Array.isArray(market.draftResults)) market.draftResults = [];
+            if (!market.history || !Array.isArray(market.history)) market.history = [];
+            return market;
+        }
+
         function getRoster(teamId) {
             if (!Array.isArray(state.rosters[teamId])) state.rosters[teamId] = [];
             return state.rosters[teamId];
         }
 
         function getRosterCounts(teamId) {
-            const roster = getRoster(teamId).filter(player => player.status !== 'released');
+            const roster = getRoster(teamId).filter(player => player.status !== 'released' && player.status !== 'transferred');
             return { total: roster.length, special: roster.filter(player => player.cardType === 'special').length, normal: roster.filter(player => player.cardType === 'normal').length };
         }
 
+        function getAvailablePlayers() {
+            const market = getMarket();
+            const released = RAW_TEAMS.flatMap(team => getRoster(team.id)
+                .filter(player => player.status === 'released')
+                .map(player => ({ id: `r_${team.id}_${player.id}`, source: 'released', sourceTeamId: team.id, sourcePlayerId: player.id, name: player.name, position: player.position, cardType: player.cardType })));
+            const freeAgents = market.freeAgents.filter(player => player.status !== 'signed').map(player => ({ ...player, source: 'free' }));
+            return [...released, ...freeAgents];
+        }
+
+        function takeTransferSnapshot(label) {
+            const market = getMarket();
+            const copy = cloneTransferData(market);
+            delete copy.lastSnapshot;
+            market.lastSnapshot = { label, createdAt: new Date().toISOString(), rosters: cloneTransferData(state.rosters), transferMarket: copy };
+        }
+
+        function addTransferHistory(title, detail) {
+            getMarket().history.unshift({ id: `h_${Date.now()}_${Math.random().toString(16).slice(2)}`, title, detail, createdAt: new Date().toISOString() });
+        }
+
+        function commitTransferChange() {
+            persistAppState();
+            renderTransferCenter();
+        }
+
         function renderTransferCenter() {
-            if (!state.transferMarket || typeof state.transferMarket !== 'object') state.transferMarket = { releasePlans: {} };
-            if (!state.transferMarket.releasePlans || typeof state.transferMarket.releasePlans !== 'object') state.transferMarket.releasePlans = {};
+            const market = getMarket();
             const summary = document.getElementById('player-summary');
             const rosterList = document.getElementById('roster-club-list');
             const marketList = document.getElementById('market-club-list');
-            if (!summary || !rosterList || !marketList) return;
+            const availableList = document.getElementById('available-player-list');
+            const draftList = document.getElementById('draft-club-list');
+            const resultList = document.getElementById('draft-results-list');
+            const historyList = document.getElementById('transfer-history-list');
+            if (!summary || !rosterList || !marketList || !availableList || !draftList || !resultList || !historyList) return;
             const allPlayers = RAW_TEAMS.flatMap(team => getRoster(team.id));
-            const registered = allPlayers.filter(player => player.status !== 'released');
+            const registered = allPlayers.filter(player => player.status !== 'released' && player.status !== 'transferred');
+            const candidates = getAvailablePlayers();
             summary.innerHTML = `
                 <div class="card" style="margin:0; padding:0.55rem; text-align:center;"><div style="font-size:0.62rem;color:var(--text-muted);">登録選手</div><div class="transfer-count">${registered.length}</div></div>
-                <div class="card" style="margin:0; padding:0.55rem; text-align:center;"><div style="font-size:0.62rem;color:var(--text-muted);">特別カード</div><div class="transfer-count">${registered.filter(player => player.cardType === 'special').length}</div></div>
-                <div class="card" style="margin:0; padding:0.55rem; text-align:center;"><div style="font-size:0.62rem;color:var(--text-muted);">ノーマル</div><div class="transfer-count">${registered.filter(player => player.cardType === 'normal').length}</div></div>`;
+                <div class="card" style="margin:0; padding:0.55rem; text-align:center;"><div style="font-size:0.62rem;color:var(--text-muted);">市場の選手</div><div class="transfer-count">${candidates.length}</div></div>
+                <div class="card" style="margin:0; padding:0.55rem; text-align:center;"><div style="font-size:0.62rem;color:var(--text-muted);">確定移籍</div><div class="transfer-count">${market.draftResults.length}</div></div>`;
             rosterList.innerHTML = RAW_TEAMS.map(team => {
                 const counts = getRosterCounts(team.id);
                 const ruleAlert = counts.total > 25 || counts.special > 18 || (counts.total >= 7 && counts.normal < 7);
@@ -1184,16 +1236,28 @@
             const standings = calculateStandings();
             marketList.innerHTML = standings.slice().reverse().map((standing, index) => {
                 const team = RAW_TEAMS.find(item => item.name === standing.name);
-                const releaseCount = Number(state.transferMarket.releasePlans[team.id] || 0);
-                return `<div class="transfer-club-card" onclick="openReleasePlanSheet('${team.id}')"><div style="width:20px;font-family:'Teko';font-size:1.25rem;color:var(--accent-gold);">${index + 1}</div><img src="${team.logo}" alt="${escapeHtml(team.name)}"><div><div style="font-weight:700;font-size:0.82rem;">${escapeHtml(team.name)}</div><div style="font-size:0.68rem;color:var(--text-muted);">放出予定 ${releaseCount}名 ・ 補強可能 ${releaseCount}名</div></div><div class="transfer-count">›</div></div>`;
+                const releaseCount = Number(market.releasePlans[team.id] || 0);
+                return `<div class="transfer-club-card" onclick="openReleasePlanSheet('${team.id}')"><div style="width:20px;font-family:'Teko';font-size:1.25rem;color:var(--accent-gold);">${index + 1}</div><img src="${team.logo}" alt="${escapeHtml(team.name)}"><div><div style="font-weight:700;font-size:0.82rem;">${escapeHtml(team.name)}</div><div style="font-size:0.68rem;color:var(--text-muted);">放出 ${releaseCount}名 ・ 指名枠 ${releaseCount}名</div></div><div class="transfer-count">›</div></div>`;
             }).join('');
+            availableList.innerHTML = candidates.length ? candidates.map(player => {
+                const sourceTeam = player.sourceTeamId ? RAW_TEAMS.find(team => team.id === player.sourceTeamId) : null;
+                return `<div class="card" style="margin-bottom:0.45rem;padding:0.65rem;"><b>${escapeHtml(player.name)}</b><div style="font-size:0.68rem;color:var(--text-muted);">${escapeHtml(player.position || 'ポジション未登録')} ・ ${player.cardType === 'special' ? '特別カード' : 'ノーマルカード'}${sourceTeam ? ` ・ ${escapeHtml(sourceTeam.name)}から放出` : ' ・ 加入希望'}</div></div>`;
+            }).join('') : `<div class="card" style="text-align:center;color:var(--text-muted);font-size:0.78rem;">現在、移籍市場に選手はいません</div>`;
+            draftList.innerHTML = standings.slice().reverse().map((standing, index) => {
+                const team = RAW_TEAMS.find(item => item.name === standing.name);
+                const preferences = market.draftPreferences[team.id] || [];
+                const releaseCount = Number(market.releasePlans[team.id] || 0);
+                return `<div class="transfer-club-card" onclick="openDraftBoardSheet('${team.id}')"><div style="width:20px;font-family:'Teko';font-size:1.25rem;color:var(--accent-gold);">${index + 1}</div><img src="${team.logo}" alt="${escapeHtml(team.name)}"><div><div style="font-weight:700;font-size:0.82rem;">${escapeHtml(team.name)}</div><div style="font-size:0.68rem;color:var(--text-muted);">希望提出 ${preferences.length}/${releaseCount || 0}名</div></div><div class="transfer-count">›</div></div>`;
+            }).join('');
+            resultList.innerHTML = market.draftResults.length ? market.draftResults.slice(0, 20).map((result, index) => `<div class="card" style="margin-bottom:0.45rem;padding:0.65rem;"><span style="color:var(--accent-gold);font-family:'Teko';font-size:1.1rem;">${index + 1}</span> <b>${escapeHtml(result.playerName)}</b><div style="font-size:0.68rem;color:var(--text-muted);">→ ${escapeHtml(result.teamName)} ・ ${escapeHtml(result.method)}</div></div>`).join('') : `<div class="card" style="text-align:center;color:var(--text-muted);font-size:0.78rem;">まだドラフトは確定していません</div>`;
+            historyList.innerHTML = market.history.length ? market.history.slice(0, 12).map(item => `<div class="card" style="margin-bottom:0.45rem;padding:0.65rem;"><b>${escapeHtml(item.title)}</b><div style="font-size:0.68rem;color:var(--text-muted);">${escapeHtml(item.detail || '')}</div></div>`).join('') : `<div class="card" style="text-align:center;color:var(--text-muted);font-size:0.78rem;">移籍履歴はまだありません</div>`;
         }
 
         window.openRosterSheet = function(teamId) {
             const team = RAW_TEAMS.find(item => item.id === teamId);
             if (!team) return;
             const counts = getRosterCounts(teamId);
-            const players = getRoster(teamId).filter(player => player.status !== 'released');
+            const players = getRoster(teamId).filter(player => player.status !== 'released' && player.status !== 'transferred');
             const playerRows = players.length ? players.map(player => `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.55rem 0;border-bottom:1px solid var(--border-color);"><div style="flex:1;"><b>${escapeHtml(player.name)}</b><div style="font-size:0.68rem;color:var(--text-muted);">${escapeHtml(player.position || 'ポジション未登録')} ・ ${player.cardType === 'special' ? '特別カード' : 'ノーマルカード'}</div></div><button class="btn-secondary" onclick="removePlayer('${teamId}','${player.id}')">削除</button></div>`).join('') : `<div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.8rem;">登録選手はまだいません</div>`;
             document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:0.8rem;"><img src="${team.logo}" class="team-logo-lg" style="width:52px;height:52px;"><h3>${escapeHtml(team.name)}</h3><div style="font-size:0.72rem;color:var(--text-muted);">登録 ${counts.total}/25 ・ 特別 ${counts.special}/18 ・ ノーマル ${counts.normal}</div></div>${playerRows}<button class="btn-primary" style="margin-top:0.9rem;" onclick="openAddPlayerSheet('${teamId}')">＋ このチームに選手を登録</button>`;
             document.getElementById('sheet-overlay').classList.add('active');
@@ -1201,7 +1265,7 @@
 
         window.openAddPlayerSheet = function(defaultTeamId = '') {
             const teamOptions = RAW_TEAMS.map(team => `<option value="${team.id}" ${team.id === defaultTeamId ? 'selected' : ''}>${escapeHtml(team.name)}</option>`).join('');
-            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:1rem;"><h3>選手を登録</h3><p style="font-size:0.72rem;color:var(--text-muted);">現在は運営による初期登録用です</p></div><div class="form-group"><label class="form-label">所属チーム</label><select id="player-team" class="form-select">${teamOptions}</select></div><div class="form-group"><label class="form-label">選手名</label><input id="player-name" class="form-input" maxlength="40" placeholder="例：L. Messi"></div><div class="form-group"><label class="form-label">ポジション</label><select id="player-position" class="form-select"><option>GK</option><option>CB</option><option>SB</option><option>DMF</option><option>CMF</option><option>OMF</option><option>WG</option><option>ST</option><option value="">未登録</option></select></div><div class="form-group"><label class="form-label">カード種別</label><select id="player-card-type" class="form-select"><option value="normal">ノーマルカード</option><option value="special">特別カード</option></select></div><button class="btn-primary" onclick="savePlayerToRoster()">登録して全員に同期</button>`;
+            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:1rem;"><h3>選手を登録</h3><p style="font-size:0.72rem;color:var(--text-muted);">チームの選手名簿を全員で更新できます</p></div><div class="form-group"><label class="form-label">所属チーム</label><select id="player-team" class="form-select">${teamOptions}</select></div><div class="form-group"><label class="form-label">選手名</label><input id="player-name" class="form-input" maxlength="40" placeholder="例：L. Messi"></div><div class="form-group"><label class="form-label">ポジション</label><select id="player-position" class="form-select"><option>GK</option><option>CB</option><option>SB</option><option>DMF</option><option>CMF</option><option>OMF</option><option>WG</option><option>ST</option><option value="">未登録</option></select></div><div class="form-group"><label class="form-label">カード種別</label><select id="player-card-type" class="form-select"><option value="normal">ノーマルカード</option><option value="special">特別カード</option></select></div><button class="btn-primary" onclick="savePlayerToRoster()">登録して全員に同期</button>`;
             document.getElementById('sheet-overlay').classList.add('active');
         };
 
@@ -1214,27 +1278,147 @@
             const counts = getRosterCounts(teamId);
             if (counts.total >= 25) return alert('登録人数は25名までです。');
             if (cardType === 'special' && counts.special >= 18) return alert('特別カード選手は18名までです。');
+            takeTransferSnapshot('選手登録');
             getRoster(teamId).push({ id: `p_${Date.now()}`, name, position, cardType, status: 'active', appearances: 0 });
-            persistAppState(); renderTransferCenter(); document.getElementById('sheet-overlay').classList.remove('active');
+            addTransferHistory('選手登録', `${name} を ${RAW_TEAMS.find(team => team.id === teamId).name} に登録`);
+            commitTransferChange();
+            document.getElementById('sheet-overlay').classList.remove('active');
         };
 
         window.removePlayer = function(teamId, playerId) {
             if (!confirm('この選手を名簿から削除しますか？')) return;
+            const player = getRoster(teamId).find(item => item.id === playerId);
+            takeTransferSnapshot('選手削除');
             state.rosters[teamId] = getRoster(teamId).filter(player => player.id !== playerId);
-            persistAppState(); renderTransferCenter(); openRosterSheet(teamId);
+            addTransferHistory('選手削除', `${player?.name || '選手'} を名簿から削除`);
+            commitTransferChange();
+            openRosterSheet(teamId);
         };
 
         window.openReleasePlanSheet = function(teamId) {
             const team = RAW_TEAMS.find(item => item.id === teamId);
             if (!team) return;
-            const selected = Number(state.transferMarket.releasePlans[teamId] || 0);
-            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:1rem;"><img src="${team.logo}" class="team-logo-lg" style="width:52px;height:52px;"><h3>${escapeHtml(team.name)}</h3></div><div class="market-note" style="margin-bottom:0.8rem;">規約により「放出なし／1名／2名／3名」を選択でき、放出人数と同数の補強が可能です。</div><div class="form-group"><label class="form-label">放出予定人数</label><select id="release-plan-count" class="form-select"><option value="0" ${selected === 0 ? 'selected' : ''}>放出なし</option><option value="1" ${selected === 1 ? 'selected' : ''}>1名放出</option><option value="2" ${selected === 2 ? 'selected' : ''}>2名放出</option><option value="3" ${selected === 3 ? 'selected' : ''}>3名放出</option></select></div><button class="btn-primary" onclick="saveReleasePlan('${teamId}')">予定を保存して全員に同期</button>`;
+            const market = getMarket();
+            const selectedIds = market.releasePlayerIds[teamId] || [];
+            const players = getRoster(teamId).filter(player => player.status !== 'transferred' && (player.status !== 'released' || selectedIds.includes(player.id)));
+            const playerRows = players.length ? players.map(player => `<label style="display:flex;gap:0.55rem;align-items:center;padding:0.55rem 0;border-bottom:1px solid var(--border-color);"><input type="checkbox" data-release-player value="${player.id}" ${selectedIds.includes(player.id) ? 'checked' : ''}><span><b>${escapeHtml(player.name)}</b><br><small style="color:var(--text-muted);">${escapeHtml(player.position || 'ポジション未登録')} ・ ${player.cardType === 'special' ? '特別' : 'ノーマル'}</small></span></label>`).join('') : `<div style="text-align:center;color:var(--text-muted);padding:0.8rem;">登録選手がいません</div>`;
+            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:1rem;"><img src="${team.logo}" class="team-logo-lg" style="width:52px;height:52px;"><h3>${escapeHtml(team.name)}</h3></div><div class="market-note" style="margin-bottom:0.8rem;">放出する選手を0〜3名選択してください。選択した選手が移籍市場に出て、同数の指名枠ができます。</div>${playerRows}<button class="btn-primary" style="margin-top:0.9rem;" onclick="saveReleasePlan('${teamId}')">放出リストを保存</button>`;
             document.getElementById('sheet-overlay').classList.add('active');
         };
 
         window.saveReleasePlan = function(teamId) {
-            state.transferMarket.releasePlans[teamId] = Number(document.getElementById('release-plan-count').value);
-            persistAppState(); renderTransferCenter(); document.getElementById('sheet-overlay').classList.remove('active');
+            const ids = [...document.querySelectorAll('[data-release-player]:checked')].map(element => element.value);
+            if (ids.length > 3) return alert('放出できるのは3名までです。');
+            const market = getMarket();
+            takeTransferSnapshot('放出リスト更新');
+            const previous = new Set(market.releasePlayerIds[teamId] || []);
+            getRoster(teamId).forEach(player => {
+                if (ids.includes(player.id)) player.status = 'released';
+                else if (previous.has(player.id) && player.status === 'released') player.status = 'active';
+            });
+            market.releasePlayerIds[teamId] = ids;
+            market.releasePlans[teamId] = ids.length;
+            market.draftPreferences[teamId] = (market.draftPreferences[teamId] || []).slice(0, ids.length);
+            addTransferHistory('放出リスト更新', `${RAW_TEAMS.find(team => team.id === teamId).name}：${ids.length}名放出`);
+            commitTransferChange();
+            document.getElementById('sheet-overlay').classList.remove('active');
+        };
+
+        window.openMarketPlayerSheet = function() {
+            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:1rem;"><h3>移籍希望選手を登録</h3><p style="font-size:0.72rem;color:var(--text-muted);">加入希望の選手を市場へ登録します</p></div><div class="form-group"><label class="form-label">選手名</label><input id="market-player-name" class="form-input" maxlength="40" placeholder="例：L. Messi"></div><div class="form-group"><label class="form-label">ポジション</label><select id="market-player-position" class="form-select"><option>GK</option><option>CB</option><option>SB</option><option>DMF</option><option>CMF</option><option>OMF</option><option>WG</option><option>ST</option><option value="">未登録</option></select></div><div class="form-group"><label class="form-label">カード種別</label><select id="market-player-card-type" class="form-select"><option value="normal">ノーマルカード</option><option value="special">特別カード</option></select></div><button class="btn-primary" onclick="saveMarketPlayer()">市場に登録して全員に同期</button>`;
+            document.getElementById('sheet-overlay').classList.add('active');
+        };
+
+        window.saveMarketPlayer = function() {
+            const name = document.getElementById('market-player-name').value.trim();
+            if (!name) return alert('選手名を入力してください。');
+            takeTransferSnapshot('移籍希望選手登録');
+            getMarket().freeAgents.push({ id: `m_${Date.now()}`, name, position: document.getElementById('market-player-position').value, cardType: document.getElementById('market-player-card-type').value, status: 'available' });
+            addTransferHistory('移籍市場に登録', `${name} が加入希望として登録`);
+            commitTransferChange();
+            document.getElementById('sheet-overlay').classList.remove('active');
+        };
+
+        window.openDraftBoardSheet = function(defaultTeamId = '') {
+            const market = getMarket();
+            const teamId = defaultTeamId || RAW_TEAMS[0].id;
+            const team = RAW_TEAMS.find(item => item.id === teamId);
+            const slots = Number(market.releasePlans[teamId] || 0);
+            const preferences = market.draftPreferences[teamId] || [];
+            const candidates = getAvailablePlayers().filter(player => player.sourceTeamId !== teamId);
+            const options = RAW_TEAMS.map(item => `<option value="${item.id}" ${item.id === teamId ? 'selected' : ''}>${escapeHtml(item.name)}</option>`).join('');
+            const candidateRows = candidates.length ? candidates.map(player => {
+                const selectedRank = preferences.indexOf(player.id) + 1;
+                return `<div style="display:flex;gap:0.55rem;align-items:center;padding:0.55rem 0;border-bottom:1px solid var(--border-color);"><select class="form-select" data-draft-choice data-player-id="${player.id}" style="width:78px;padding:0.35rem;"><option value="">希望外</option>${Array.from({ length: slots }, (_, index) => `<option value="${index + 1}" ${selectedRank === index + 1 ? 'selected' : ''}>第${index + 1}希望</option>`).join('')}</select><div><b>${escapeHtml(player.name)}</b><div style="font-size:0.68rem;color:var(--text-muted);">${escapeHtml(player.position || 'ポジション未登録')} ・ ${player.cardType === 'special' ? '特別' : 'ノーマル'}</div></div></div>`;
+            }).join('') : `<div style="text-align:center;padding:0.8rem;color:var(--text-muted);">移籍市場に選手がいません</div>`;
+            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:0.8rem;"><h3>ドラフト希望提出</h3><p style="font-size:0.72rem;color:var(--text-muted);">放出人数と同じ ${slots} 名まで、希望順位を選びます</p></div><div class="form-group"><label class="form-label">チーム</label><select id="draft-team" class="form-select" onchange="openDraftBoardSheet(this.value)">${options}</select></div>${slots ? candidateRows : `<div class="market-note">先に「MID-SEASON MARKET」で放出選手を選択してください。放出人数が指名枠になります。</div>`}${slots ? `<button class="btn-primary" style="margin-top:0.9rem;" onclick="saveDraftPreferences('${teamId}')">希望を保存して全員に同期</button>` : ''}`;
+            document.getElementById('sheet-overlay').classList.add('active');
+        };
+
+        window.saveDraftPreferences = function(teamId) {
+            const entries = [...document.querySelectorAll('[data-draft-choice]')].map(element => ({ id: element.dataset.playerId, rank: Number(element.value) })).filter(entry => entry.rank);
+            const slots = Number(getMarket().releasePlans[teamId] || 0);
+            if (entries.length > slots) return alert(`希望は${slots}名までです。`);
+            if (new Set(entries.map(entry => entry.rank)).size !== entries.length) return alert('同じ希望順位は1つだけ選んでください。');
+            takeTransferSnapshot('ドラフト希望提出');
+            getMarket().draftPreferences[teamId] = entries.sort((a, b) => a.rank - b.rank).map(entry => entry.id);
+            addTransferHistory('ドラフト希望提出', `${RAW_TEAMS.find(team => team.id === teamId).name} が${entries.length}名を提出`);
+            commitTransferChange();
+            document.getElementById('sheet-overlay').classList.remove('active');
+        };
+
+        window.runAutomaticDraft = function() {
+            const market = getMarket();
+            const candidates = getAvailablePlayers();
+            const activeTeams = RAW_TEAMS.filter(team => Number(market.releasePlans[team.id] || 0) > 0);
+            if (!activeTeams.length) return alert('放出リストを登録したチームがありません。');
+            if (!candidates.length) return alert('移籍市場に選手がいません。');
+            if (!confirm('現在の希望をもとにドラフトを自動確定します。続けますか？')) return;
+            takeTransferSnapshot('ドラフト自動確定');
+            const order = calculateStandings().slice().reverse().map(standing => RAW_TEAMS.find(team => team.name === standing.name));
+            const assigned = new Set();
+            const results = [];
+            let changed = true;
+            while (changed) {
+                changed = false;
+                order.forEach(team => {
+                    const slots = Number(market.releasePlans[team.id] || 0);
+                    if (results.filter(result => result.teamId === team.id).length >= slots) return;
+                    const counts = getRosterCounts(team.id);
+                    const choice = (market.draftPreferences[team.id] || []).map(id => candidates.find(player => player.id === id)).find(player => player && !assigned.has(player.id) && player.sourceTeamId !== team.id && counts.total < 25 && (player.cardType !== 'special' || counts.special < 18));
+                    if (!choice) return;
+                    assigned.add(choice.id);
+                    if (choice.source === 'released') {
+                        const source = getRoster(choice.sourceTeamId).find(player => player.id === choice.sourcePlayerId);
+                        if (source) source.status = 'transferred';
+                    } else {
+                        const freeAgent = market.freeAgents.find(player => player.id === choice.id);
+                        if (freeAgent) freeAgent.status = 'signed';
+                    }
+                    getRoster(team.id).push({ id: `p_${Date.now()}_${results.length}`, name: choice.name, position: choice.position || '', cardType: choice.cardType || 'normal', status: 'active', appearances: 0 });
+                    results.push({ id: `d_${Date.now()}_${results.length}`, playerName: choice.name, teamId: team.id, teamName: team.name, method: '希望順・順位順で自動確定' });
+                    changed = true;
+                });
+            }
+            if (!results.length) {
+                alert('条件に合う希望がありません。希望順位・登録上限を確認してください。');
+                return;
+            }
+            market.draftResults = [...results, ...market.draftResults];
+            results.forEach(result => addTransferHistory('移籍確定', `${result.playerName} → ${result.teamName}`));
+            commitTransferChange();
+            alert(`${results.length}件の移籍を確定しました。`);
+        };
+
+        window.undoLastTransferChange = function() {
+            const snapshot = getMarket().lastSnapshot;
+            if (!snapshot) return alert('戻せる直前の変更はありません。');
+            if (!confirm(`「${snapshot.label}」の前に戻しますか？`)) return;
+            state.rosters = cloneTransferData(snapshot.rosters);
+            state.transferMarket = cloneTransferData(snapshot.transferMarket);
+            getMarket().lastSnapshot = null;
+            addTransferHistory('変更を取り消し', `${snapshot.label} を元に戻しました`);
+            commitTransferChange();
         };
 
         function renderRules() {
