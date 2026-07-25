@@ -36,6 +36,11 @@
             touch-action: manipulation;
         }
 
+        html {
+            min-height: 100%;
+            background: var(--bg-body);
+        }
+
         body {
             background-color: var(--bg-body);
             color: var(--text-main);
@@ -47,6 +52,8 @@
             user-select: none;
             -webkit-user-select: none;
             overflow-x: hidden;
+            min-height: 100dvh;
+            overscroll-behavior-y: none;
         }
 
         /* ヘッダー */
@@ -148,6 +155,8 @@
             padding: 0.8rem;
             max-width: 600px;
             margin: 0 auto;
+            /* 短いページでも画面の高さを保ち、iOSで固定ナビが跳ねないようにする */
+            min-height: calc(100dvh - var(--header-height) - var(--nav-height) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
         }
 
         .page {
@@ -324,6 +333,8 @@
             padding-bottom: env(safe-area-inset-bottom, 0px);
             background: #12151d; border-top: 1px solid var(--border-color);
             display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+            transform: translate3d(0, 0, 0);
+            -webkit-transform: translate3d(0, 0, 0);
         }
 
         .nav-item {
@@ -847,7 +858,8 @@
                 const matchedNav = document.querySelector(`#bottom-nav-element .nav-item[data-page="${pageId}"]`);
                 if (matchedNav) matchedNav.classList.add('active');
             }
-            window.scrollTo(0, 0);
+            // ページ切替後に高さが変わっても、Safariのスクロール位置を確実に先頭へ戻す
+            requestAnimationFrame(() => window.scrollTo(0, 0));
         };
 
         // --- LINE 共有 ---
