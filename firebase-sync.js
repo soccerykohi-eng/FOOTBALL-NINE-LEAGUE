@@ -37,6 +37,9 @@ function startListening() {
     if (Array.isArray(remote.news)) state.news = remote.news;
     if (remote.rosters && typeof remote.rosters === "object") state.rosters = remote.rosters;
     if (remote.transferMarket && typeof remote.transferMarket === "object") state.transferMarket = remote.transferMarket;
+    if (Array.isArray(remote.activityLog)) state.activityLog = remote.activityLog;
+    if (Array.isArray(remote.seasonArchive)) state.seasonArchive = remote.seasonArchive;
+    if (Object.prototype.hasOwnProperty.call(remote, "lastMatchSnapshot")) state.lastMatchSnapshot = remote.lastMatchSnapshot;
     state.lastSavedAt = remoteUpdatedAt || state.lastSavedAt;
     state.standingsDirty = true;
     saveStateToStorage();
@@ -62,6 +65,9 @@ state.dbSaveFn = async () => {
     news: state.news,
     rosters: state.rosters,
     transferMarket: state.transferMarket,
+    activityLog: state.activityLog,
+    seasonArchive: state.seasonArchive,
+    lastMatchSnapshot: state.lastMatchSnapshot,
     updatedAt,
     serverUpdatedAt: serverTimestamp()
   }, { merge: true });

@@ -354,6 +354,26 @@
         .transfer-club-card img { width:36px; height:36px; object-fit:contain; border-radius:6px; }
         .transfer-count { margin-left:auto; color:var(--accent-gold-light); font-family:'Teko'; font-size:1.25rem; font-weight:700; }
         .market-note { font-size:0.72rem; color:var(--text-muted); line-height:1.5; padding:0.7rem; background:rgba(198,166,100,0.08); border:1px solid rgba(198,166,100,0.22); border-radius:8px; }
+        .dashboard-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.5rem; margin:0.8rem 0 1.2rem; }
+        .metric-card { min-width:0; padding:0.7rem 0.45rem; text-align:center; background:linear-gradient(145deg,var(--bg-card),#171b25); border:1px solid var(--border-color); border-radius:9px; }
+        .metric-label { color:var(--text-muted); font-size:0.58rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .metric-value { margin-top:0.18rem; color:var(--accent-gold-light); font-family:'Teko',sans-serif; font-size:1.25rem; line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .tab-bar { display:grid; grid-template-columns:repeat(3,1fr); gap:0.35rem; padding:0.25rem; margin-bottom:0.75rem; background:var(--bg-card); border:1px solid var(--border-color); border-radius:9px; }
+        .tab-button { border:0; border-radius:7px; padding:0.55rem 0.35rem; background:transparent; color:var(--text-muted); font:700 0.72rem 'Noto Sans JP',sans-serif; cursor:pointer; }
+        .tab-button.active { color:#111318; background:var(--accent-gold); }
+        .stats-pane { display:none; }
+        .stats-pane.active { display:block; }
+        .ranking-row,.event-row,.activity-row { display:flex; align-items:center; gap:0.55rem; padding:0.65rem 0; border-bottom:1px solid var(--border-color); }
+        .ranking-row:last-child,.event-row:last-child,.activity-row:last-child { border-bottom:0; }
+        .ranking-position { width:24px; color:var(--accent-gold); font:700 1.15rem 'Teko',sans-serif; text-align:center; }
+        .ranking-main { min-width:0; flex:1; }
+        .ranking-name { font-size:0.78rem; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .ranking-team,.activity-detail { color:var(--text-muted); font-size:0.62rem; }
+        .ranking-number { color:var(--accent-gold-light); font:700 1.35rem 'Teko',sans-serif; }
+        .match-detail-summary { display:flex; flex-wrap:wrap; gap:0.35rem; margin-top:0.55rem; }
+        .detail-chip { padding:0.2rem 0.45rem; border-radius:999px; color:var(--text-muted); background:rgba(255,255,255,0.04); font-size:0.6rem; }
+        .action-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:0.45rem; margin-top:0.7rem; }
+        .empty-state { padding:1rem; text-align:center; color:var(--text-muted); font-size:0.74rem; }
 
         /* モーダルシート */
         .sheet-overlay {
@@ -422,6 +442,8 @@
                 <div class="hero-title">FOOTBALL NINE LEAGUE</div>
                 <p style="font-size: 0.75rem; color: var(--text-muted);">全9チーム公式ポータル</p>
             </div>
+            <div id="home-dashboard" class="dashboard-grid"></div>
+            <div id="home-alert"></div>
 
             <div class="section-header">
                 <div class="section-title">NEXT / LATEST MATCH</div>
@@ -433,17 +455,41 @@
                 <button class="btn-secondary" onclick="openPostNewsSheet()">＋ 投稿</button>
             </div>
             <div class="card" id="home-news-preview"></div>
+            <div class="section-header" style="margin-top:1.2rem;">
+                <div class="section-title">RECENT ACTIVITY</div>
+                <button class="btn-secondary" onclick="undoLastMatchChange()">↶ 戻す</button>
+            </div>
+            <div class="card" id="home-activity-list"></div>
         </section>
 
         <!-- PAGE 2: STANDINGS -->
         <section id="page-standings" class="page">
             <div class="section-header">
-                <div class="section-title">LEAGUE TABLE</div>
+                <div class="section-title">RECORDS</div>
                 <button class="line-share-btn" onclick="generateLineStandingsShareText()">
                     📲 順位表共有
                 </button>
             </div>
-            <div class="card" id="standings-card"></div>
+            <div class="tab-bar">
+                <button class="tab-button active" data-stats-tab="teams" onclick="switchStatsView('teams',this)">チーム順位</button>
+                <button class="tab-button" data-stats-tab="players" onclick="switchStatsView('players',this)">選手ランキング</button>
+                <button class="tab-button" data-stats-tab="seasons" onclick="switchStatsView('seasons',this)">シーズン記録</button>
+            </div>
+            <div class="stats-pane active" id="stats-pane-teams"><div class="card" id="standings-card"></div></div>
+            <div class="stats-pane" id="stats-pane-players">
+                <div class="section-header"><div class="section-title">GOALS</div></div>
+                <div class="card" id="goals-ranking"></div>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">ASSISTS</div></div>
+                <div class="card" id="assists-ranking"></div>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">MOM / CARDS</div></div>
+                <div class="card" id="mom-ranking"></div>
+            </div>
+            <div class="stats-pane" id="stats-pane-seasons">
+                <div class="market-note" style="margin-bottom:0.7rem;">現在の順位・選手記録をシーズンの記録として保存できます。試合データは削除されません。</div>
+                <button class="btn-primary" onclick="archiveCurrentSeason()">Season 1 の記録を保存</button>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">HISTORY</div></div>
+                <div class="card" id="season-archive-list"></div>
+            </div>
         </section>
 
         <!-- PAGE 3: MATCHES -->
@@ -473,6 +519,7 @@
                 <div style="display:flex;gap:0.4rem;"><button class="btn-secondary" onclick="openAddPlayerSheet()">＋ 選手登録</button><button class="btn-secondary" onclick="openMarketPlayerSheet()">＋ 移籍希望</button></div>
             </div>
             <div class="market-note">全員で自由に編集できる移籍センターです。名簿登録・放出・希望提出を済ませたら、ドラフトを自動確定できます。直前の変更は1回だけ戻せます。</div>
+            <div id="market-phase-banner" style="margin-top:0.55rem;"></div>
             <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.5rem; margin:0.8rem 0;" id="player-summary"></div>
             <div class="section-header" style="margin-top:1.1rem;">
                 <div class="section-title">PLAYER DATABASE</div>
@@ -721,6 +768,9 @@
             news: JSON.parse(JSON.stringify(INITIAL_NEWS)),
             rosters: {},
             transferMarket: { releasePlans: {} },
+            activityLog: [],
+            seasonArchive: [],
+            lastMatchSnapshot: null,
             currentFilterMw: 1,
             cachedStandings: null,
             standingsDirty: true,
@@ -740,6 +790,9 @@
                 if (parsed.news) state.news = parsed.news;
                 if (parsed.rosters) state.rosters = parsed.rosters;
                 if (parsed.transferMarket) state.transferMarket = parsed.transferMarket;
+                if (Array.isArray(parsed.activityLog)) state.activityLog = parsed.activityLog;
+                if (Array.isArray(parsed.seasonArchive)) state.seasonArchive = parsed.seasonArchive;
+                if (Object.prototype.hasOwnProperty.call(parsed, 'lastMatchSnapshot')) state.lastMatchSnapshot = parsed.lastMatchSnapshot;
                 if (parsed.updatedAt) state.lastSavedAt = parsed.updatedAt;
                 state.standingsDirty = true;
             } catch (e) {
@@ -754,6 +807,9 @@
                     news: state.news,
                     rosters: state.rosters,
                     transferMarket: state.transferMarket,
+                    activityLog: state.activityLog,
+                    seasonArchive: state.seasonArchive,
+                    lastMatchSnapshot: state.lastMatchSnapshot,
                     updatedAt: state.lastSavedAt || new Date().toISOString()
                 };
                 const serialized = JSON.stringify(payload);
@@ -779,6 +835,9 @@
                 if (parsed.news) state.news = parsed.news;
                 if (parsed.rosters) state.rosters = parsed.rosters;
                 if (parsed.transferMarket) state.transferMarket = parsed.transferMarket;
+                if (Array.isArray(parsed.activityLog)) state.activityLog = parsed.activityLog;
+                if (Array.isArray(parsed.seasonArchive)) state.seasonArchive = parsed.seasonArchive;
+                if (Object.prototype.hasOwnProperty.call(parsed, 'lastMatchSnapshot')) state.lastMatchSnapshot = parsed.lastMatchSnapshot;
                 if (parsed.updatedAt) state.lastSavedAt = parsed.updatedAt;
                 state.standingsDirty = true;
                 if (typeof refreshAllViews === 'function') {
@@ -1029,15 +1088,64 @@
             navigateTo('news', 'ニュース');
         };
 
-        // --- スコア入力 ---
+        // --- 試合センター ---
+        function ensureMatchDetails(match) {
+            if (!match.details || typeof match.details !== 'object') match.details = {};
+            if (!Array.isArray(match.details.events)) match.details.events = [];
+            if (typeof match.details.comment !== 'string') match.details.comment = '';
+            return match.details;
+        }
+
+        function cloneMatch(match) {
+            return JSON.parse(JSON.stringify(match));
+        }
+
+        function takeMatchSnapshot(match, label) {
+            state.lastMatchSnapshot = { matchId: match.id, label, match: cloneMatch(match), createdAt: new Date().toISOString() };
+        }
+
+        function addActivity(title, detail) {
+            if (!Array.isArray(state.activityLog)) state.activityLog = [];
+            state.activityLog.unshift({ id: `a_${Date.now()}`, title, detail, createdAt: new Date().toISOString() });
+            state.activityLog = state.activityLog.slice(0, 30);
+        }
+
+        function getRosterNamesByTeamName(teamName) {
+            const team = RAW_TEAMS.find(item => item.name === teamName);
+            if (!team || !Array.isArray(state.rosters[team.id])) return [];
+            return state.rosters[team.id]
+                .filter(player => player.status !== 'released' && player.status !== 'transferred' && player.name)
+                .map(player => player.name);
+        }
+
+        function playerDatalist(id, names) {
+            return `<datalist id="${id}">${[...new Set(names)].map(name => `<option value="${escapeHtml(name)}"></option>`).join('')}</datalist>`;
+        }
+
+        function renderMatchEventsForSheet(match) {
+            const details = ensureMatchDetails(match);
+            if (!details.events.length) return `<div class="empty-state">得点・カード記録はまだありません</div>`;
+            const labels = { goal: '⚽ 得点', yellow: '🟨 警告', red: '🟥 退場' };
+            return details.events.slice().sort((a,b) => Number(a.minute || 0) - Number(b.minute || 0)).map(event => `
+                <div class="event-row">
+                    <div class="ranking-main">
+                        <div class="ranking-name">${labels[event.type] || '記録'} ${escapeHtml(event.player || '')} ${event.minute ? `${event.minute}'` : ''}</div>
+                        <div class="ranking-team">${escapeHtml(event.team || '')}${event.assist ? ` ・ AS ${escapeHtml(event.assist)}` : ''}</div>
+                    </div>
+                    <button class="btn-secondary" onclick="deleteMatchEvent('${match.id}','${event.id}')">削除</button>
+                </div>`).join('');
+        }
+
         window.openScoreInputSheet = function(mId) {
             const m = state.schedule.find(item => item.id === mId);
             if (!m) return;
+            const details = ensureMatchDetails(m);
+            const allPlayers = [...getRosterNamesByTeamName(m.h), ...getRosterNamesByTeamName(m.a)];
             const body = document.getElementById('sheet-body');
             body.innerHTML = `
                 <div style="text-align:center; margin-bottom:0.8rem;">
                     <span style="color:var(--accent-gold); font-weight:bold;">MATCHWEEK ${m.mw}</span>
-                    <h3 style="margin-top:0.2rem;">スコア入力</h3>
+                    <h3 style="margin-top:0.2rem;">MATCH CENTER</h3>
                 </div>
                 <div style="display:flex; justify-content:space-around; align-items:center; margin:1.2rem 0;">
                     <div style="text-align:center;">
@@ -1050,7 +1158,29 @@
                         <input type="number" id="input-as" class="form-input" inputmode="numeric" pattern="[0-9]*" min="0" max="20" style="width:60px; font-size:1.5rem; text-align:center; font-weight:bold;" value="${m.as !== null ? m.as : ''}">
                     </div>
                 </div>
-                <button class="btn-primary" onclick="saveScoreToCloud('${m.id}')">保存して全員に同期</button>
+                <div class="form-group">
+                    <label class="form-label">MOM</label>
+                    <select id="input-motm-team" class="form-select" style="margin-bottom:0.4rem;"><option value="${escapeHtml(m.h)}" ${details.motm?.team === m.h ? 'selected' : ''}>${escapeHtml(m.h)}</option><option value="${escapeHtml(m.a)}" ${details.motm?.team === m.a ? 'selected' : ''}>${escapeHtml(m.a)}</option></select>
+                    <input id="input-motm" class="form-input" list="match-player-list" maxlength="40" placeholder="選手名" value="${escapeHtml(details.motm?.name || '')}">
+                    ${playerDatalist('match-player-list', allPlayers)}
+                </div>
+                <div class="action-grid">
+                    <div class="form-group"><label class="form-label">${escapeHtml(m.h)} 出場選手</label><textarea id="input-home-appearances" class="form-textarea" placeholder="選手名を「、」で区切る">${escapeHtml((details.appearances?.home || []).join('、'))}</textarea></div>
+                    <div class="form-group"><label class="form-label">${escapeHtml(m.a)} 出場選手</label><textarea id="input-away-appearances" class="form-textarea" placeholder="選手名を「、」で区切る">${escapeHtml((details.appearances?.away || []).join('、'))}</textarea></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">試合コメント</label>
+                    <textarea id="input-match-comment" class="form-textarea" maxlength="500" placeholder="試合の展開やメモ">${escapeHtml(details.comment || '')}</textarea>
+                </div>
+                <button class="btn-primary" onclick="saveScoreToCloud('${m.id}')">結果・MOM・コメントを保存</button>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">MATCH EVENTS</div></div>
+                <div class="card">${renderMatchEventsForSheet(m)}</div>
+                <div class="action-grid">
+                    <button class="btn-secondary" onclick="openMatchEventSheet('${m.id}','goal')">＋ 得点</button>
+                    <button class="btn-secondary" onclick="openMatchEventSheet('${m.id}','yellow')">＋ カード</button>
+                    <button class="btn-secondary" onclick="generateMatchShareText('${m.id}')">📲 試合共有</button>
+                    <button class="btn-secondary" onclick="undoLastMatchChange()">↶ 直前を戻す</button>
+                </div>
                 ${m.hs !== null ? `<button class="btn-danger" onclick="clearScoreInCloud('${m.id}')">スコアを取り消す</button>` : ''}
             `;
             document.getElementById('sheet-overlay').classList.add('active');
@@ -1063,8 +1193,19 @@
 
             const m = state.schedule.find(item => item.id === mId);
             if (m) {
+                takeMatchSnapshot(m, '試合結果の更新');
                 m.hs = parseInt(hsVal, 10);
                 m.as = parseInt(asVal, 10);
+                const details = ensureMatchDetails(m);
+                details.comment = document.getElementById('input-match-comment')?.value.trim() || '';
+                const motmName = document.getElementById('input-motm')?.value.trim() || '';
+                details.motm = motmName ? { name: motmName, team: document.getElementById('input-motm-team')?.value || '' } : null;
+                const parsePlayers = value => [...new Set(String(value || '').split(/[,、\n]/).map(name => name.trim()).filter(Boolean))];
+                details.appearances = {
+                    home: parsePlayers(document.getElementById('input-home-appearances')?.value),
+                    away: parsePlayers(document.getElementById('input-away-appearances')?.value)
+                };
+                addActivity('試合結果を更新', `MW${m.mw} ${m.h} ${m.hs}-${m.as} ${m.a}`);
                 state.standingsDirty = true;
                 refreshAllViews();
                 persistAppState();
@@ -1075,7 +1216,9 @@
         window.clearScoreInCloud = function(mId) {
             const m = state.schedule.find(item => item.id === mId);
             if (m) {
+                takeMatchSnapshot(m, 'スコアの取り消し');
                 m.hs = null; m.as = null;
+                addActivity('スコアを取り消し', `MW${m.mw} ${m.h} vs ${m.a}`);
                 state.standingsDirty = true;
                 refreshAllViews();
                 persistAppState();
@@ -1083,11 +1226,224 @@
             document.getElementById('sheet-overlay').classList.remove('active');
         };
 
+        window.openMatchEventSheet = function(mId, type = 'goal') {
+            const m = state.schedule.find(item => item.id === mId);
+            if (!m) return;
+            const labels = { goal: '得点', yellow: 'イエローカード', red: 'レッドカード' };
+            const body = document.getElementById('sheet-body');
+            const names = [...getRosterNamesByTeamName(m.h), ...getRosterNamesByTeamName(m.a)];
+            body.innerHTML = `
+                <div style="text-align:center;margin-bottom:1rem;"><h3>${labels[type] || '試合記録'}を追加</h3></div>
+                <div class="form-group"><label class="form-label">種類</label><select id="event-type" class="form-select" onchange="toggleAssistField()"><option value="goal" ${type === 'goal' ? 'selected' : ''}>得点</option><option value="yellow" ${type === 'yellow' ? 'selected' : ''}>イエローカード</option><option value="red" ${type === 'red' ? 'selected' : ''}>レッドカード</option></select></div>
+                <div class="form-group"><label class="form-label">チーム</label><select id="event-team" class="form-select"><option>${escapeHtml(m.h)}</option><option>${escapeHtml(m.a)}</option></select></div>
+                <div class="form-group"><label class="form-label">選手</label><input id="event-player" class="form-input" list="event-player-list" maxlength="40" placeholder="選手名">${playerDatalist('event-player-list', names)}</div>
+                <div class="form-group" id="assist-field"><label class="form-label">アシスト（なしでも可）</label><input id="event-assist" class="form-input" list="event-player-list" maxlength="40" placeholder="選手名"></div>
+                <div class="form-group"><label class="form-label">時間（任意）</label><input id="event-minute" class="form-input" type="number" inputmode="numeric" min="1" max="120" placeholder="例：67"></div>
+                <button class="btn-primary" onclick="saveMatchEvent('${m.id}')">記録して全員に同期</button>
+                <button class="btn-secondary" style="width:100%;margin-top:0.5rem;" onclick="openScoreInputSheet('${m.id}')">試合センターへ戻る</button>`;
+            window.toggleAssistField();
+        };
+
+        window.toggleAssistField = function() {
+            const field = document.getElementById('assist-field');
+            if (field) field.style.display = document.getElementById('event-type')?.value === 'goal' ? 'block' : 'none';
+        };
+
+        window.saveMatchEvent = function(mId) {
+            const m = state.schedule.find(item => item.id === mId);
+            const player = document.getElementById('event-player')?.value.trim();
+            if (!m || !player) return;
+            takeMatchSnapshot(m, '試合記録の追加');
+            const type = document.getElementById('event-type').value;
+            ensureMatchDetails(m).events.push({
+                id: `e_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+                type,
+                team: document.getElementById('event-team').value,
+                player,
+                assist: type === 'goal' ? document.getElementById('event-assist')?.value.trim() || '' : '',
+                minute: Number(document.getElementById('event-minute')?.value || 0)
+            });
+            addActivity('試合記録を追加', `${player} ・ MW${m.mw} ${m.h} vs ${m.a}`);
+            refreshAllViews();
+            persistAppState();
+            openScoreInputSheet(m.id);
+        };
+
+        window.deleteMatchEvent = function(mId, eventId) {
+            const m = state.schedule.find(item => item.id === mId);
+            if (!m) return;
+            takeMatchSnapshot(m, '試合記録の削除');
+            const details = ensureMatchDetails(m);
+            details.events = details.events.filter(event => event.id !== eventId);
+            addActivity('試合記録を削除', `MW${m.mw} ${m.h} vs ${m.a}`);
+            refreshAllViews();
+            persistAppState();
+            openScoreInputSheet(m.id);
+        };
+
+        window.undoLastMatchChange = function() {
+            const snapshot = state.lastMatchSnapshot;
+            if (!snapshot?.matchId || !snapshot.match) {
+                alert('戻せる試合変更はありません。');
+                return;
+            }
+            const index = state.schedule.findIndex(match => match.id === snapshot.matchId);
+            if (index < 0) return;
+            state.schedule[index] = cloneMatch(snapshot.match);
+            state.lastMatchSnapshot = null;
+            addActivity('直前の変更を復元', snapshot.label || '試合データ');
+            state.standingsDirty = true;
+            refreshAllViews();
+            persistAppState();
+            document.getElementById('sheet-overlay').classList.remove('active');
+        };
+
+        window.generateMatchShareText = function(mId) {
+            const m = state.schedule.find(item => item.id === mId);
+            if (!m) return;
+            const details = ensureMatchDetails(m);
+            const score = m.hs !== null && m.as !== null ? `${m.hs} - ${m.as}` : 'VS';
+            const goals = details.events.filter(event => event.type === 'goal').map(event => `${event.player}${event.minute ? ` ${event.minute}'` : ''}`).join(' / ');
+            let text = `⚽ FNL MATCHWEEK ${m.mw}\n${m.h} ${score} ${m.a}`;
+            if (goals) text += `\n得点: ${goals}`;
+            if (details.motm?.name) text += `\nMOM: ${details.motm.name}`;
+            if (details.comment) text += `\n${details.comment}`;
+            text += '\n#FNL #eFootball';
+            executeShare(`FNL MW${m.mw} 試合結果`, text);
+        };
+
+        function resolvePlayerTeam(match, playerName, fallback = '') {
+            if (!playerName) return fallback;
+            if (getRosterNamesByTeamName(match.h).includes(playerName)) return match.h;
+            if (getRosterNamesByTeamName(match.a).includes(playerName)) return match.a;
+            return fallback;
+        }
+
+        function calculatePlayerStats() {
+            const map = new Map();
+            const get = (name, team = '') => {
+                const safeName = String(name || '').trim();
+                if (!safeName) return null;
+                const key = `${team}|${safeName}`;
+                if (!map.has(key)) map.set(key, { name: safeName, team, appearances: 0, goals: 0, assists: 0, motm: 0, yellow: 0, red: 0 });
+                return map.get(key);
+            };
+            state.schedule.forEach(match => {
+                const details = ensureMatchDetails(match);
+                (details.appearances?.home || []).forEach(name => { const stat = get(name, match.h); if (stat) stat.appearances += 1; });
+                (details.appearances?.away || []).forEach(name => { const stat = get(name, match.a); if (stat) stat.appearances += 1; });
+                details.events.forEach(event => {
+                    const stat = get(event.player, event.team || '');
+                    if (!stat) return;
+                    if (event.type === 'goal') stat.goals += 1;
+                    if (event.type === 'yellow') stat.yellow += 1;
+                    if (event.type === 'red') stat.red += 1;
+                    if (event.type === 'goal' && event.assist) {
+                        const assist = get(event.assist, event.team || '');
+                        if (assist) assist.assists += 1;
+                    }
+                });
+                if (details.motm?.name) {
+                    const team = details.motm.team || resolvePlayerTeam(match, details.motm.name);
+                    const motm = get(details.motm.name, team);
+                    if (motm) motm.motm += 1;
+                }
+            });
+            return [...map.values()];
+        }
+
+        function renderRankingRows(players, valueRenderer) {
+            if (!players.length) return `<div class="empty-state">試合センターで選手記録を入力すると表示されます</div>`;
+            return players.slice(0, 10).map((player, index) => `
+                <div class="ranking-row">
+                    <div class="ranking-position">${index + 1}</div>
+                    <div class="ranking-main"><div class="ranking-name">${escapeHtml(player.name)}</div><div class="ranking-team">${escapeHtml(player.team || '所属未設定')} ・ 出場 ${player.appearances}</div></div>
+                    <div class="ranking-number">${valueRenderer(player)}</div>
+                </div>`).join('');
+        }
+
+        function renderPlayerRankings() {
+            const stats = calculatePlayerStats();
+            const goals = [...stats].filter(player => player.goals).sort((a,b) => b.goals - a.goals || b.assists - a.assists);
+            const assists = [...stats].filter(player => player.assists).sort((a,b) => b.assists - a.assists || b.goals - a.goals);
+            const awards = [...stats].filter(player => player.motm || player.yellow || player.red).sort((a,b) => b.motm - a.motm || (b.yellow + b.red) - (a.yellow + a.red));
+            const goalsWrap = document.getElementById('goals-ranking');
+            const assistsWrap = document.getElementById('assists-ranking');
+            const momWrap = document.getElementById('mom-ranking');
+            if (goalsWrap) goalsWrap.innerHTML = renderRankingRows(goals, player => `${player.goals}`);
+            if (assistsWrap) assistsWrap.innerHTML = renderRankingRows(assists, player => `${player.assists}`);
+            if (momWrap) momWrap.innerHTML = renderRankingRows(awards, player => `⭐${player.motm} <span style="font-size:0.72rem;color:var(--text-muted);">🟨${player.yellow} 🟥${player.red}</span>`);
+        }
+
+        window.switchStatsView = function(view, button) {
+            document.querySelectorAll('.stats-pane').forEach(pane => pane.classList.remove('active'));
+            document.querySelectorAll('[data-stats-tab]').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(`stats-pane-${view}`)?.classList.add('active');
+            button?.classList.add('active');
+        };
+
+        function renderSeasonArchive() {
+            const wrap = document.getElementById('season-archive-list');
+            if (!wrap) return;
+            wrap.innerHTML = state.seasonArchive.length
+                ? state.seasonArchive.map(item => `<div class="ranking-row" onclick="openSeasonArchiveDetail('${item.id}')"><div class="ranking-main"><div class="ranking-name">${escapeHtml(item.name)}</div><div class="ranking-team">優勝 ${escapeHtml(item.champion || '-')} ・ ${escapeHtml(item.savedAt || '')}</div></div><div class="ranking-number">›</div></div>`).join('')
+                : `<div class="empty-state">保存されたシーズン記録はありません</div>`;
+        }
+
+        window.archiveCurrentSeason = function() {
+            const id = 'season-1-2026';
+            const existing = state.seasonArchive.findIndex(item => item.id === id);
+            if (existing >= 0 && !confirm('Season 1 の保存記録を最新内容で更新しますか？')) return;
+            const standings = JSON.parse(JSON.stringify(calculateStandings()));
+            const players = JSON.parse(JSON.stringify(calculatePlayerStats()));
+            const item = { id, name: 'FNL Season 1 - 2026', champion: standings[0]?.name || '', savedAt: new Date().toLocaleDateString('ja-JP'), standings, players };
+            if (existing >= 0) state.seasonArchive[existing] = item;
+            else state.seasonArchive.unshift(item);
+            addActivity('シーズン記録を保存', item.name);
+            renderSeasonArchive();
+            renderHomeDashboard();
+            persistAppState();
+        };
+
+        window.openSeasonArchiveDetail = function(id) {
+            const item = state.seasonArchive.find(entry => entry.id === id);
+            if (!item) return;
+            const topScorer = [...(item.players || [])].sort((a,b) => b.goals - a.goals)[0];
+            document.getElementById('sheet-body').innerHTML = `
+                <div style="text-align:center;margin-bottom:1rem;"><div class="hero-subtitle">${escapeHtml(item.name)}</div><h3 style="font-family:'Teko';font-size:1.8rem;">SEASON ARCHIVE</h3></div>
+                <div class="dashboard-grid"><div class="metric-card"><div class="metric-label">CHAMPION</div><div class="metric-value">${escapeHtml(item.champion || '-')}</div></div><div class="metric-card"><div class="metric-label">TOP SCORER</div><div class="metric-value">${escapeHtml(topScorer?.name || '-')}</div></div><div class="metric-card"><div class="metric-label">GOALS</div><div class="metric-value">${topScorer?.goals || 0}</div></div></div>
+                <div class="card">${(item.standings || []).map(team => `<div class="ranking-row"><div class="ranking-position">${team.rank}</div><div class="ranking-main"><div class="ranking-name">${escapeHtml(team.name)}</div><div class="ranking-team">${team.w}勝 ${team.d}分 ${team.l}敗 ・ 得失点 ${team.gd > 0 ? '+' : ''}${team.gd}</div></div><div class="ranking-number">${team.pts}</div></div>`).join('')}</div>`;
+            document.getElementById('sheet-overlay').classList.add('active');
+        };
+
+        function renderHomeDashboard() {
+            const standings = calculateStandings();
+            const stats = calculatePlayerStats().sort((a,b) => b.goals - a.goals || b.assists - a.assists);
+            const played = state.schedule.filter(match => match.hs !== null && match.as !== null).length;
+            const dashboard = document.getElementById('home-dashboard');
+            if (dashboard) dashboard.innerHTML = `
+                <div class="metric-card"><div class="metric-label">現在の首位</div><div class="metric-value">${escapeHtml(standings[0]?.name || '-')}</div></div>
+                <div class="metric-card"><div class="metric-label">得点ランキング</div><div class="metric-value">${escapeHtml(stats[0]?.name || '-')}</div></div>
+                <div class="metric-card"><div class="metric-label">消化試合</div><div class="metric-value">${played} / ${state.schedule.length}</div></div>`;
+            const next = state.schedule.find(match => match.hs === null || match.as === null);
+            const alertWrap = document.getElementById('home-alert');
+            if (alertWrap) alertWrap.innerHTML = next
+                ? `<div class="market-note" style="margin-bottom:1rem;"><b style="color:var(--accent-gold-light);">NEXT MATCH</b><br>MW${next.mw} ${escapeHtml(next.h)} vs ${escapeHtml(next.a)}</div>`
+                : `<div class="market-note" style="margin-bottom:1rem;">全試合が終了しました。シーズン記録を確認できます。</div>`;
+            const activityWrap = document.getElementById('home-activity-list');
+            if (activityWrap) activityWrap.innerHTML = state.activityLog.length
+                ? state.activityLog.slice(0, 6).map(item => `<div class="activity-row"><div class="ranking-main"><div class="ranking-name">${escapeHtml(item.title)}</div><div class="activity-detail">${escapeHtml(item.detail || '')}</div></div></div>`).join('')
+                : `<div class="empty-state">更新履歴はまだありません</div>`;
+        }
+
         // --- 描画更新 ---
         function refreshAllViews() {
             renderStandings();
+            renderPlayerRankings();
+            renderSeasonArchive();
             renderMatches(state.currentFilterMw);
             renderHomeFeaturedMatch();
+            renderHomeDashboard();
             renderTeams();
             renderTransferCenter();
         }
@@ -1118,6 +1474,9 @@
                 const awayLogo = getTeamLogo(m.a);
                 const isPlayed = m.hs !== null && m.as !== null;
                 const scoreText = isPlayed ? `${m.hs} - ${m.as}` : 'VS';
+                const details = ensureMatchDetails(m);
+                const goalCount = details.events.filter(event => event.type === 'goal').length;
+                const cardCount = details.events.filter(event => event.type === 'yellow' || event.type === 'red').length;
                 html += `
                     <div class="match-card-mobile">
                         <div class="match-main-row">
@@ -1128,7 +1487,8 @@
                                 <div class="match-team-box away"><img src="${awayLogo}" class="team-logo-img"><span>${escapeHtml(m.a)}</span></div>
                             </div>
                         </div>
-                        <button class="edit-score-btn" onclick="openScoreInputSheet('${m.id}')">✏️ 結果入力・更新</button>
+                        ${(goalCount || cardCount || details.motm?.name) ? `<div class="match-detail-summary">${goalCount ? `<span class="detail-chip">⚽ ${goalCount}件</span>` : ''}${cardCount ? `<span class="detail-chip">カード ${cardCount}件</span>` : ''}${details.motm?.name ? `<span class="detail-chip">⭐ ${escapeHtml(details.motm.name)}</span>` : ''}</div>` : ''}
+                        <button class="edit-score-btn" onclick="openScoreInputSheet('${m.id}')">MATCH CENTERを開く</button>
                     </div>
                 `;
             });
@@ -1154,7 +1514,7 @@
                         <div class="match-team-box away"><img src="${awayLogo}" class="team-logo-img"><span>${escapeHtml(target.a)}</span></div>
                     </div>
                 </div>
-                <button class="edit-score-btn" onclick="openScoreInputSheet('${target.id}')">✏️ スコアを入力する</button>
+                <button class="edit-score-btn" onclick="openScoreInputSheet('${target.id}')">MATCH CENTERを開く</button>
             `;
         }
 
@@ -1185,6 +1545,7 @@
             if (!market.draftPreferences || typeof market.draftPreferences !== 'object') market.draftPreferences = {};
             if (!market.draftResults || !Array.isArray(market.draftResults)) market.draftResults = [];
             if (!market.history || !Array.isArray(market.history)) market.history = [];
+            if (!market.phase) market.phase = 'registration';
             return market;
         }
 
@@ -1232,7 +1593,10 @@
             const draftList = document.getElementById('draft-club-list');
             const resultList = document.getElementById('draft-results-list');
             const historyList = document.getElementById('transfer-history-list');
+            const phaseBanner = document.getElementById('market-phase-banner');
             if (!summary || !rosterList || !marketList || !availableList || !draftList || !resultList || !historyList) return;
+            const phaseLabels = { registration: '選手登録期間', market: '移籍希望受付中', draft: 'ドラフト準備中', completed: '移籍確定' };
+            if (phaseBanner) phaseBanner.innerHTML = `<div class="card" style="padding:0.6rem;display:flex;align-items:center;gap:0.6rem;"><div style="flex:1;"><div style="font-size:0.58rem;color:var(--text-muted);">CURRENT PHASE</div><b style="color:var(--accent-gold-light);font-size:0.8rem;">${phaseLabels[market.phase] || phaseLabels.registration}</b></div><select class="form-select" style="width:auto;padding:0.4rem;" onchange="setTransferPhase(this.value)"><option value="registration" ${market.phase === 'registration' ? 'selected' : ''}>選手登録</option><option value="market" ${market.phase === 'market' ? 'selected' : ''}>移籍受付</option><option value="draft" ${market.phase === 'draft' ? 'selected' : ''}>ドラフト</option><option value="completed" ${market.phase === 'completed' ? 'selected' : ''}>確定</option></select></div>`;
             const allPlayers = RAW_TEAMS.flatMap(team => getRoster(team.id));
             const registered = allPlayers.filter(player => player.status !== 'released' && player.status !== 'transferred');
             const candidates = getAvailablePlayers();
@@ -1264,6 +1628,15 @@
             resultList.innerHTML = market.draftResults.length ? market.draftResults.slice(0, 20).map((result, index) => `<div class="card" style="margin-bottom:0.45rem;padding:0.65rem;"><span style="color:var(--accent-gold);font-family:'Teko';font-size:1.1rem;">${index + 1}</span> <b>${escapeHtml(result.playerName)}</b><div style="font-size:0.68rem;color:var(--text-muted);">→ ${escapeHtml(result.teamName)} ・ ${escapeHtml(result.method)}</div></div>`).join('') : `<div class="card" style="text-align:center;color:var(--text-muted);font-size:0.78rem;">まだドラフトは確定していません</div>`;
             historyList.innerHTML = market.history.length ? market.history.slice(0, 12).map(item => `<div class="card" style="margin-bottom:0.45rem;padding:0.65rem;"><b>${escapeHtml(item.title)}</b><div style="font-size:0.68rem;color:var(--text-muted);">${escapeHtml(item.detail || '')}</div></div>`).join('') : `<div class="card" style="text-align:center;color:var(--text-muted);font-size:0.78rem;">移籍履歴はまだありません</div>`;
         }
+
+        window.setTransferPhase = function(phase) {
+            const market = getMarket();
+            const labels = { registration: '選手登録期間', market: '移籍希望受付中', draft: 'ドラフト準備中', completed: '移籍確定' };
+            takeTransferSnapshot('移籍期間の変更');
+            market.phase = labels[phase] ? phase : 'registration';
+            addTransferHistory('移籍期間を変更', labels[market.phase]);
+            commitTransferChange();
+        };
 
         window.openRosterSheet = function(teamId) {
             const team = RAW_TEAMS.find(item => item.id === teamId);
@@ -1539,7 +1912,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=3'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=4'));
     }
 </script>
 </html>
