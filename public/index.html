@@ -1180,9 +1180,9 @@
             return `<div class="appearance-picker">${players.map(name => `<label class="appearance-option"><input type="checkbox" data-appearance="${side}" value="${escapeHtml(name)}" ${selectedNames.includes(name) ? 'checked' : ''}><span>${escapeHtml(name)}</span></label>`).join('')}</div>`;
         }
 
-        function matchEventPlayerOptions(teamName, placeholder = '選手を選択') {
+        function matchEventPlayerOptions(teamName, placeholder = '選手を選択', selectedName = '') {
             const players = getRosterNamesByTeamName(teamName);
-            return `<option value="">${placeholder}</option>${players.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('')}`;
+            return `<option value="">${placeholder}</option>${players.map(name => `<option value="${escapeHtml(name)}" ${name === selectedName ? 'selected' : ''}>${escapeHtml(name)}</option>`).join('')}`;
         }
 
         function renderMatchEventsForSheet(match) {
@@ -1223,9 +1223,8 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">MOM</label>
-                    <select id="input-motm-team" class="form-select" style="margin-bottom:0.4rem;"><option value="${escapeHtml(m.h)}" ${details.motm?.team === m.h ? 'selected' : ''}>${escapeHtml(m.h)}</option><option value="${escapeHtml(m.a)}" ${details.motm?.team === m.a ? 'selected' : ''}>${escapeHtml(m.a)}</option></select>
-                    <input id="input-motm" class="form-input" list="match-player-list" maxlength="40" placeholder="選手名" value="${escapeHtml(details.motm?.name || '')}">
-                    ${playerDatalist('match-player-list', allPlayers)}
+                    <select id="input-motm-team" class="form-select" style="margin-bottom:0.4rem;" onchange="updateMotmPlayerOptions()"><option value="${escapeHtml(m.h)}" ${details.motm?.team === m.h ? 'selected' : ''}>${escapeHtml(m.h)}</option><option value="${escapeHtml(m.a)}" ${details.motm?.team === m.a ? 'selected' : ''}>${escapeHtml(m.a)}</option></select>
+                    <select id="input-motm" class="form-select">${matchEventPlayerOptions(details.motm?.team || m.h, 'MOMを選択', details.motm?.name || '')}</select>
                 </div>
                 <div class="action-grid">
                     <div class="form-group"><label class="form-label">${escapeHtml(m.h)} 出場選手</label>${renderAppearancePicker(m.h, 'home', details.appearances?.home || [])}</div>
@@ -1319,6 +1318,12 @@
             const assist = document.getElementById('event-assist');
             if (player) player.innerHTML = matchEventPlayerOptions(teamName);
             if (assist) assist.innerHTML = matchEventPlayerOptions(teamName, 'アシストなし');
+        };
+
+        window.updateMotmPlayerOptions = function() {
+            const teamName = document.getElementById('input-motm-team')?.value;
+            const motm = document.getElementById('input-motm');
+            if (teamName && motm) motm.innerHTML = matchEventPlayerOptions(teamName, 'MOMを選択');
         };
 
         window.saveMatchEvent = function(mId) {
@@ -2402,7 +2407,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=8'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=9'));
     }
 </script>
 </html>
