@@ -1049,9 +1049,7 @@
                 return;
             }
 
-            let html = '';
-            state.news.forEach(n => {
-                html += `
+            const renderNewsItems = items => items.map(n => `
                     <div class="news-item" onclick="openNewsDetailSheet('${n.id}')">
                         <div class="news-meta">
                             <span class="news-date">${escapeHtml(n.date)}</span>
@@ -1060,10 +1058,9 @@
                         </div>
                         <div class="news-title">${escapeHtml(n.title)}</div>
                     </div>
-                `;
-            });
-            homeWrap.innerHTML = html;
-            fullWrap.innerHTML = html;
+                `).join('');
+            homeWrap.innerHTML = renderNewsItems(state.news.slice(0, 3));
+            fullWrap.innerHTML = renderNewsItems(state.news);
         }
 
         window.openNewsDetailSheet = function(newsId) {
@@ -2466,7 +2463,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=14'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=15'));
     }
 </script>
 </html>
