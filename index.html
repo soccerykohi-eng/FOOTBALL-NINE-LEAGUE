@@ -455,17 +455,17 @@
             <div id="home-dashboard" class="dashboard-grid"></div>
 
             <div class="section-header">
-                <div class="section-title">NEXT / LATEST MATCH</div>
+                <div class="section-title">次の試合／最新結果</div>
             </div>
             <div class="match-card-mobile" style="background: var(--bg-card); border-color: rgba(198, 166, 100, 0.4);" id="home-featured-match"></div>
 
             <div class="section-header" style="margin-top: 1.2rem;">
-                <div class="section-title">TOPICS</div>
+                <div class="section-title">トピックス</div>
                 <button class="btn-secondary" onclick="openPostNewsSheet()">＋ 投稿</button>
             </div>
             <div class="card" id="home-news-preview"></div>
             <div class="section-header" style="margin-top:1.2rem;">
-                <div class="section-title">RECENT ACTIVITY</div>
+                <div class="section-title">最近の更新</div>
                 <button class="btn-secondary" onclick="undoLastMatchChange()">↶ 戻す</button>
             </div>
             <div class="card" id="home-activity-list"></div>
@@ -474,7 +474,7 @@
         <!-- PAGE 2: STANDINGS -->
         <section id="page-standings" class="page">
             <div class="section-header">
-                <div class="section-title">RECORDS</div>
+                <div class="section-title">個人記録</div>
                 <button class="line-share-btn" onclick="generateLineStandingsShareText()">
                     📲 順位表共有
                 </button>
@@ -486,11 +486,11 @@
             </div>
             <div class="stats-pane active" id="stats-pane-teams"><div class="card" id="standings-card"></div></div>
             <div class="stats-pane" id="stats-pane-players">
-                <div class="section-header"><div class="section-title">GOALS</div></div>
+                <div class="section-header"><div class="section-title">得点ランキング</div></div>
                 <div class="card" id="goals-ranking"></div>
-                <div class="section-header" style="margin-top:1rem;"><div class="section-title">ASSISTS</div></div>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">アシストランキング</div></div>
                 <div class="card" id="assists-ranking"></div>
-                <div class="section-header" style="margin-top:1rem;"><div class="section-title">MOM / CARDS</div></div>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">MOM／カード</div></div>
                 <div class="card" id="mom-ranking"></div>
             </div>
             <div class="stats-pane" id="stats-pane-seasons">
@@ -498,7 +498,7 @@
                 <button class="btn-primary" id="archive-season-button" onclick="archiveCurrentSeason()">Season 1 の記録を保存</button>
                 <button class="btn-secondary" style="width:100%;margin-top:0.5rem;" onclick="openNextSeasonSheet()">次のシーズンを開始</button>
                 <div id="undo-season-transition"></div>
-                <div class="section-header" style="margin-top:1rem;"><div class="section-title">HISTORY</div></div>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">シーズン履歴</div></div>
                 <div class="card" id="season-archive-list"></div>
             </div>
         </section>
@@ -506,7 +506,7 @@
         <!-- PAGE 3: MATCHES -->
         <section id="page-matches" class="page">
             <div class="section-header">
-                <div class="section-title">FIXTURES & RESULTS</div>
+                <div class="section-title">日程・結果</div>
                 <button class="line-share-btn" onclick="generateLineMatchweekShareText()">
                     📲 節結果共有
                 </button>
@@ -518,7 +518,7 @@
         <!-- PAGE 4: TEAMS -->
         <section id="page-teams" class="page">
             <div class="section-header">
-                <div class="section-title">CLUBS</div>
+                <div class="section-title">チーム一覧</div>
             </div>
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem;" id="teams-grid"></div>
         </section>
@@ -526,7 +526,7 @@
         <!-- PAGE 5: TRANSFER / PLAYERS -->
         <section id="page-transfer" class="page">
             <div class="section-header">
-                <div class="section-title">TRANSFER CENTER</div>
+                <div class="section-title">移籍センター</div>
                 <div style="display:flex;gap:0.4rem;"><button class="btn-secondary" onclick="openAddPlayerSheet()">＋ 選手登録</button><button class="btn-secondary" onclick="openMarketPlayerSheet()">＋ 移籍希望</button></div>
             </div>
             <div class="market-note">全員で自由に編集できる移籍センターです。名簿登録・放出・希望提出を済ませたら、ドラフトを自動確定できます。直前の変更は1回だけ戻せます。</div>
@@ -541,43 +541,43 @@
             </div>
             <div class="transfer-pane active" id="transfer-pane-rosters">
             <div class="section-header" style="margin-top:1.1rem;">
-                <div class="section-title">PLAYER DATABASE</div>
+                <div class="section-title">選手名簿</div>
             </div>
             <div id="roster-club-list"></div>
             </div>
             <div class="transfer-pane" id="transfer-pane-midseason">
             <div class="section-header" style="margin-top:1.2rem;">
-                <div class="section-title">MID-SEASON MARKET</div>
+                <div class="section-title">シーズン中間市場</div>
             </div>
             <div class="market-note" style="margin-bottom:0.7rem;">リーグ一巡目終了後に実施。放出人数と同数まで補強可能で、順位の低いクラブから希望順に自動指名します。</div>
             <div id="market-club-list"></div>
-            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">AVAILABLE PLAYERS</div></div>
+            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">移籍市場の選手</div></div>
             <div id="available-player-list"></div>
-            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">DRAFT ROOM</div><button class="btn-secondary" onclick="openDraftBoardSheet()">希望を提出</button></div>
+            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">ドラフト希望</div><button class="btn-secondary" onclick="openDraftBoardSheet()">希望を提出</button></div>
             <div id="draft-club-list"></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.7rem;"><button class="btn-primary" onclick="runAutomaticDraft()">⚡ ドラフトを自動確定</button><button class="btn-secondary" onclick="undoLastTransferChange()">↶ 直前を戻す</button></div>
-            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">DRAFT RESULTS</div></div>
+            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">ドラフト結果</div></div>
             <div id="draft-results-list"></div>
             </div>
             <div class="transfer-pane" id="transfer-pane-trades">
-            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">TRADE BOARD</div><button class="btn-secondary" onclick="openTradeListingSheet()">＋ トレード可能選手</button></div>
+            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">トレード可能選手</div><button class="btn-secondary" onclick="openTradeListingSheet()">＋ トレード可能選手</button></div>
             <div class="market-note" style="margin-bottom:0.7rem;">トレード可能な選手を公表し、他チームが交換選手を提示できます。提示した側と公表した側の合意で成立し、名簿へ自動反映されます。</div>
             <div id="trade-listing-list"></div>
-            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">TRADE OFFERS</div></div>
+            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">トレード提案</div></div>
             <div id="trade-offer-list"></div>
             </div>
             <div class="transfer-pane" id="transfer-pane-endseason">
-            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">END-SEASON MARKET</div></div>
+            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">シーズン終了市場</div></div>
             <div class="market-note" style="margin-bottom:0.7rem;">プロテクト選手を公表後、1巡目は非公開提出・重複時は自動抽選。2巡目以降は表示された指名順で、未獲得の選手だけを指名できます。</div>
             <div id="end-market-status"></div>
-            <div class="section-header" style="margin-top:1rem;"><div class="section-title">PROTECTED PLAYERS</div><button class="btn-secondary" onclick="openProtectionSheet()">プロテクト登録</button></div>
+            <div class="section-header" style="margin-top:1rem;"><div class="section-title">プロテクト選手</div><button class="btn-secondary" onclick="openProtectionSheet()">プロテクト登録</button></div>
             <div id="protection-list"></div>
-            <div class="section-header" style="margin-top:1rem;"><div class="section-title">END-SEASON DRAFT</div><button class="btn-secondary" onclick="openRoundOnePickSheet()">1巡目を提出</button></div>
+            <div class="section-header" style="margin-top:1rem;"><div class="section-title">シーズン終了ドラフト</div><button class="btn-secondary" onclick="openRoundOnePickSheet()">1巡目を提出</button></div>
             <div id="end-draft-list"></div>
             <div id="end-draft-actions" style="margin-top:0.7rem;"></div>
             </div>
             <div class="transfer-pane" id="transfer-pane-history">
-            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">TRANSFER HISTORY</div></div>
+            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">移籍履歴</div></div>
             <div id="transfer-history-list"></div>
             </div>
         </section>
@@ -585,7 +585,7 @@
         <!-- PAGE 6: NEWS -->
         <section id="page-news" class="page">
             <div class="section-header">
-                <div class="section-title">NEWS</div>
+                <div class="section-title">ニュース</div>
                 <button class="btn-secondary" onclick="openPostNewsSheet()">＋ 投稿</button>
             </div>
             <div class="card" id="full-news-list"></div>
@@ -594,7 +594,7 @@
         <!-- PAGE 7: RULES -->
         <section id="page-rules" class="page">
             <div class="section-header">
-                <div class="section-title">LEAGUE REGULATIONS</div>
+                <div class="section-title">リーグ規約</div>
             </div>
             <div id="rules-accordion-container"></div>
         </section>
@@ -1252,7 +1252,7 @@
                     <textarea id="input-match-comment" class="form-textarea" maxlength="500" placeholder="試合の展開やメモ">${escapeHtml(details.comment || '')}</textarea>
                 </div>
                 <button class="btn-primary" onclick="saveScoreToCloud('${m.id}')">結果・MOM・コメントを保存</button>
-                <div class="section-header" style="margin-top:1rem;"><div class="section-title">MATCH EVENTS</div></div>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">試合記録</div></div>
                 <div class="card">${renderMatchEventsForSheet(m)}</div>
                 <div class="action-grid">
                     <button class="btn-secondary" onclick="openMatchEventSheet('${m.id}','goal')">＋ 得点</button>
@@ -2406,9 +2406,9 @@
                 <div class="section-header" style="margin-top:0.7rem;"><div class="section-title">選手成績（得点順）</div></div>
                 <div class="market-note" style="margin-bottom:0.55rem;">各選手の出場試合数・得点・アシストを表示しています。</div>
                 <div class="card">${playerRows}</div>
-                <div class="section-header" style="margin-top:1rem;"><div class="section-title">RECENT RESULTS</div></div>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">直近の試合結果</div></div>
                 <div class="card">${matchRows}</div>
-                <div class="section-header" style="margin-top:1rem;"><div class="section-title">CLUB NEWS</div></div>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">クラブニュース</div></div>
                 <div class="card">${newsRows}</div>
             `;
             document.getElementById('sheet-overlay').classList.add('active');
@@ -2464,7 +2464,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=16'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=17'));
     }
 </script>
 </html>
