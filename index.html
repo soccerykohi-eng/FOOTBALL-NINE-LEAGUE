@@ -1807,7 +1807,7 @@
             resultList.innerHTML = market.draftResults.length ? market.draftResults.slice(0, 20).map((result, index) => `<div class="card" style="margin-bottom:0.45rem;padding:0.65rem;"><span style="color:var(--accent-gold);font-family:'Teko';font-size:1.1rem;">${index + 1}</span> <b>${escapeHtml(result.playerName)}</b><div style="font-size:0.68rem;color:var(--text-muted);">→ ${escapeHtml(result.teamName)} ・ ${escapeHtml(result.method)}</div></div>`).join('') : `<div class="card" style="text-align:center;color:var(--text-muted);font-size:0.78rem;">まだドラフトは確定していません</div>`;
             renderTradeMarket(tradeListingList, tradeOfferList);
             renderEndSeasonMarket(protectionList, endMarketStatus, endDraftList, endDraftActions);
-            historyList.innerHTML = market.history.length ? market.history.slice(0, 12).map(item => `<div class="card" style="margin-bottom:0.45rem;padding:0.65rem;"><b>${escapeHtml(item.title)}</b><div style="font-size:0.68rem;color:var(--text-muted);">${escapeHtml(item.detail || '')}</div></div>`).join('') : `<div class="card" style="text-align:center;color:var(--text-muted);font-size:0.78rem;">移籍履歴はまだありません</div>`;
+            historyList.innerHTML = market.history.length ? market.history.slice(0, 5).map(item => `<div class="card" style="margin-bottom:0.45rem;padding:0.65rem;"><b>${escapeHtml(item.title)}</b><div style="font-size:0.68rem;color:var(--text-muted);">${escapeHtml(item.detail || '')}</div></div>`).join('') : `<div class="card" style="text-align:center;color:var(--text-muted);font-size:0.78rem;">移籍履歴はまだありません</div>`;
         }
 
         window.setTransferPhase = function(phase) {
@@ -2402,7 +2402,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=7'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=8'));
     }
 </script>
 </html>
