@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fnl-app-v13';
+const CACHE_NAME = 'fnl-app-v14';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './fnl-logo.png'];
 
 self.addEventListener('install', event => {

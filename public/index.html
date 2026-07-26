@@ -1451,7 +1451,7 @@
 
         function renderRankingRows(players, valueRenderer) {
             if (!players.length) return `<div class="empty-state">試合センターで選手記録を入力すると表示されます</div>`;
-            return players.slice(0, 10).map((player, index) => `
+            return players.slice(0, 5).map((player, index) => `
                 <div class="ranking-row">
                     <div class="ranking-position">${index + 1}</div>
                     <div class="ranking-main"><div class="ranking-name">${escapeHtml(player.name)}</div><div class="ranking-team">${escapeHtml(player.team || '所属未設定')} ・ 出場 ${player.appearances}</div></div>
@@ -2466,7 +2466,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=13'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=14'));
     }
 </script>
 </html>
