@@ -438,7 +438,7 @@
         <section id="page-home" class="page active">
             <div class="hero-banner">
                 <img class="hero-logo-large" src="./fnl-logo.png" alt="FNL ロゴ">
-                <div class="hero-subtitle">SEASON 1 - 2026</div>
+                <div class="hero-subtitle" id="current-season-label">SEASON 1 - 2026</div>
                 <div class="hero-title">FOOTBALL NINE LEAGUE</div>
                 <p style="font-size: 0.75rem; color: var(--text-muted);">全9チーム公式ポータル</p>
             </div>
@@ -486,7 +486,9 @@
             </div>
             <div class="stats-pane" id="stats-pane-seasons">
                 <div class="market-note" style="margin-bottom:0.7rem;">現在の順位・選手記録をシーズンの記録として保存できます。試合データは削除されません。</div>
-                <button class="btn-primary" onclick="archiveCurrentSeason()">Season 1 の記録を保存</button>
+                <button class="btn-primary" id="archive-season-button" onclick="archiveCurrentSeason()">Season 1 の記録を保存</button>
+                <button class="btn-secondary" style="width:100%;margin-top:0.5rem;" onclick="openNextSeasonSheet()">次のシーズンを開始</button>
+                <div id="undo-season-transition"></div>
                 <div class="section-header" style="margin-top:1rem;"><div class="section-title">HISTORY</div></div>
                 <div class="card" id="season-archive-list"></div>
             </div>
@@ -770,6 +772,8 @@
             transferMarket: { releasePlans: {} },
             activityLog: [],
             seasonArchive: [],
+            seasonInfo: { number: 1, year: 2026 },
+            previousSeasonSnapshot: null,
             lastMatchSnapshot: null,
             currentFilterMw: 1,
             cachedStandings: null,
@@ -792,6 +796,8 @@
                 if (parsed.transferMarket) state.transferMarket = parsed.transferMarket;
                 if (Array.isArray(parsed.activityLog)) state.activityLog = parsed.activityLog;
                 if (Array.isArray(parsed.seasonArchive)) state.seasonArchive = parsed.seasonArchive;
+                if (parsed.seasonInfo && typeof parsed.seasonInfo === 'object') state.seasonInfo = parsed.seasonInfo;
+                if (Object.prototype.hasOwnProperty.call(parsed, 'previousSeasonSnapshot')) state.previousSeasonSnapshot = parsed.previousSeasonSnapshot;
                 if (Object.prototype.hasOwnProperty.call(parsed, 'lastMatchSnapshot')) state.lastMatchSnapshot = parsed.lastMatchSnapshot;
                 if (parsed.updatedAt) state.lastSavedAt = parsed.updatedAt;
                 state.standingsDirty = true;
@@ -809,6 +815,8 @@
                     transferMarket: state.transferMarket,
                     activityLog: state.activityLog,
                     seasonArchive: state.seasonArchive,
+                    seasonInfo: state.seasonInfo,
+                    previousSeasonSnapshot: state.previousSeasonSnapshot,
                     lastMatchSnapshot: state.lastMatchSnapshot,
                     updatedAt: state.lastSavedAt || new Date().toISOString()
                 };
@@ -837,6 +845,8 @@
                 if (parsed.transferMarket) state.transferMarket = parsed.transferMarket;
                 if (Array.isArray(parsed.activityLog)) state.activityLog = parsed.activityLog;
                 if (Array.isArray(parsed.seasonArchive)) state.seasonArchive = parsed.seasonArchive;
+                if (parsed.seasonInfo && typeof parsed.seasonInfo === 'object') state.seasonInfo = parsed.seasonInfo;
+                if (Object.prototype.hasOwnProperty.call(parsed, 'previousSeasonSnapshot')) state.previousSeasonSnapshot = parsed.previousSeasonSnapshot;
                 if (Object.prototype.hasOwnProperty.call(parsed, 'lastMatchSnapshot')) state.lastMatchSnapshot = parsed.lastMatchSnapshot;
                 if (parsed.updatedAt) state.lastSavedAt = parsed.updatedAt;
                 state.standingsDirty = true;
@@ -924,7 +934,8 @@
         // --- LINE 共有 ---
         window.generateLineStandingsShareText = function() {
             const standings = calculateStandings();
-            let text = `🏆 【FNL Season 1】 最新順位表 🏆\n---------------------\n`;
+            const info = state.seasonInfo || { number: 1 };
+            let text = `🏆 【FNL Season ${info.number}】 最新順位表 🏆\n---------------------\n`;
             standings.forEach(t => {
                 const gdStr = t.gd > 0 ? `+${t.gd}` : `${t.gd}`;
                 text += `${t.rank}位: ${t.name} (勝点${t.pts} / 試${t.p} / 差${gdStr})\n`;
@@ -936,7 +947,8 @@
         window.generateLineMatchweekShareText = function() {
             const mwNum = typeof state.currentFilterMw === 'number' ? state.currentFilterMw : 1;
             const mwMatches = state.schedule.filter(m => m.mw === mwNum);
-            let text = `⚽ 【FNL Season 1】 MATCHWEEK ${mwNum} 結果速報 ⚽\n---------------------\n`;
+            const info = state.seasonInfo || { number: 1 };
+            let text = `⚽ 【FNL Season ${info.number}】 MATCHWEEK ${mwNum} 結果速報 ⚽\n---------------------\n`;
             mwMatches.forEach(m => {
                 const scoreText = (m.hs !== null && m.as !== null) ? `${m.hs} - ${m.as}` : `VS (未消化)`;
                 text += `・${m.h} ${scoreText} ${m.a}\n`;
@@ -1386,22 +1398,100 @@
             const wrap = document.getElementById('season-archive-list');
             if (!wrap) return;
             wrap.innerHTML = state.seasonArchive.length
-                ? state.seasonArchive.map(item => `<div class="ranking-row" onclick="openSeasonArchiveDetail('${item.id}')"><div class="ranking-main"><div class="ranking-name">${escapeHtml(item.name)}</div><div class="ranking-team">優勝 ${escapeHtml(item.champion || '-')} ・ ${escapeHtml(item.savedAt || '')}</div></div><div class="ranking-number">›</div></div>`).join('')
+                ? state.seasonArchive.map(item => `<div class="ranking-row"><div class="ranking-main" onclick="openSeasonArchiveDetail('${item.id}')"><div class="ranking-name">${escapeHtml(item.name)}</div><div class="ranking-team">優勝 ${escapeHtml(item.champion || '-')} ・ ${escapeHtml(item.savedAt || '')}</div></div><button class="btn-secondary" onclick="deleteSeasonArchive('${item.id}')">保存を取り消す</button></div>`).join('')
                 : `<div class="empty-state">保存されたシーズン記録はありません</div>`;
+            const info = state.seasonInfo || { number: 1, year: 2026 };
+            const label = document.getElementById('current-season-label');
+            const button = document.getElementById('archive-season-button');
+            if (label) label.textContent = `SEASON ${info.number} - ${info.year}`;
+            if (button) button.textContent = `Season ${info.number} の記録を保存`;
+            const undoWrap = document.getElementById('undo-season-transition');
+            if (undoWrap) undoWrap.innerHTML = state.previousSeasonSnapshot
+                ? `<button class="btn-danger" onclick="undoSeasonTransition()">直前のシーズン更新を取り消す</button>` : '';
         }
 
-        window.archiveCurrentSeason = function() {
-            const id = 'season-1-2026';
-            const existing = state.seasonArchive.findIndex(item => item.id === id);
-            if (existing >= 0 && !confirm('Season 1 の保存記録を最新内容で更新しますか？')) return;
+        function createCurrentSeasonArchive() {
+            const info = state.seasonInfo || { number: 1, year: 2026 };
+            const id = `season-${info.number}-${info.year}`;
             const standings = JSON.parse(JSON.stringify(calculateStandings()));
             const players = JSON.parse(JSON.stringify(calculatePlayerStats()));
-            const item = { id, name: 'FNL Season 1 - 2026', champion: standings[0]?.name || '', savedAt: new Date().toLocaleDateString('ja-JP'), standings, players };
+            return { id, name: `FNL Season ${info.number} - ${info.year}`, champion: standings[0]?.name || '', savedAt: new Date().toLocaleDateString('ja-JP'), standings, players };
+        }
+
+        window.archiveCurrentSeason = function(skipConfirmation = false) {
+            const item = createCurrentSeasonArchive();
+            const id = item.id;
+            const existing = state.seasonArchive.findIndex(item => item.id === id);
+            if (!skipConfirmation && existing >= 0 && !confirm(`${item.name} の保存記録を最新内容で更新しますか？`)) return false;
             if (existing >= 0) state.seasonArchive[existing] = item;
             else state.seasonArchive.unshift(item);
             addActivity('シーズン記録を保存', item.name);
             renderSeasonArchive();
             renderHomeDashboard();
+            if (!skipConfirmation) persistAppState();
+            return true;
+        };
+
+        window.deleteSeasonArchive = function(id) {
+            const item = state.seasonArchive.find(entry => entry.id === id);
+            if (!item || !confirm(`${item.name} の保存記録を取り消しますか？`)) return;
+            state.seasonArchive = state.seasonArchive.filter(entry => entry.id !== id);
+            addActivity('シーズン記録の保存を取り消し', item.name);
+            renderSeasonArchive();
+            renderHomeDashboard();
+            persistAppState();
+        };
+
+        window.openNextSeasonSheet = function() {
+            const info = state.seasonInfo || { number: 1, year: 2026 };
+            document.getElementById('sheet-body').innerHTML = `
+                <div style="text-align:center;margin-bottom:1rem;"><h3>次のシーズンを開始</h3></div>
+                <div class="market-note" style="margin-bottom:0.8rem;">現在の記録を自動保存して試合結果・選手成績を初期化します。チーム、エンブレム、選手名簿、ニュースは引き継ぎます。</div>
+                <div class="form-group"><label class="form-label">シーズン番号</label><input id="next-season-number" class="form-input" type="number" min="1" value="${Number(info.number) + 1}"></div>
+                <div class="form-group"><label class="form-label">開催年</label><input id="next-season-year" class="form-input" type="number" min="2026" value="${Number(info.year) + 1}"></div>
+                <button class="btn-primary" onclick="startNextSeason()">記録を保存して次シーズンへ進む</button>`;
+            document.getElementById('sheet-overlay').classList.add('active');
+        };
+
+        window.startNextSeason = function() {
+            const number = Number(document.getElementById('next-season-number')?.value);
+            const year = Number(document.getElementById('next-season-year')?.value);
+            if (!Number.isInteger(number) || number < 1 || !Number.isInteger(year) || year < 2026) return;
+            state.previousSeasonSnapshot = {
+                seasonInfo: JSON.parse(JSON.stringify(state.seasonInfo)),
+                schedule: JSON.parse(JSON.stringify(state.schedule)),
+                seasonArchive: JSON.parse(JSON.stringify(state.seasonArchive)),
+                transferMarket: JSON.parse(JSON.stringify(state.transferMarket))
+            };
+            window.archiveCurrentSeason(true);
+            state.seasonInfo = { number, year };
+            state.schedule = JSON.parse(JSON.stringify(INITIAL_SCHEDULE));
+            const market = getMarket();
+            market.phase = 'registration';
+            market.releasePlans = {};
+            market.releasePlayerIds = {};
+            market.draftPreferences = {};
+            market.draftResults = [];
+            state.lastMatchSnapshot = null;
+            state.standingsDirty = true;
+            addActivity('新しいシーズンを開始', `Season ${number} - ${year}`);
+            document.getElementById('sheet-overlay').classList.remove('active');
+            refreshAllViews();
+            persistAppState();
+            navigateTo('home', 'HOME');
+        };
+
+        window.undoSeasonTransition = function() {
+            const snapshot = state.previousSeasonSnapshot;
+            if (!snapshot || !confirm('直前のシーズン更新を取り消して、以前の試合結果へ戻しますか？')) return;
+            state.seasonInfo = snapshot.seasonInfo;
+            state.schedule = snapshot.schedule;
+            state.seasonArchive = snapshot.seasonArchive;
+            state.transferMarket = snapshot.transferMarket;
+            state.previousSeasonSnapshot = null;
+            state.standingsDirty = true;
+            addActivity('シーズン更新を取り消し', `Season ${state.seasonInfo.number} - ${state.seasonInfo.year}`);
+            refreshAllViews();
             persistAppState();
         };
 
@@ -1912,7 +2002,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=4'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=5'));
     }
 </script>
 </html>

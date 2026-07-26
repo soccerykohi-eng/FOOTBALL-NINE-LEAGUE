@@ -39,6 +39,8 @@ function startListening() {
     if (remote.transferMarket && typeof remote.transferMarket === "object") state.transferMarket = remote.transferMarket;
     if (Array.isArray(remote.activityLog)) state.activityLog = remote.activityLog;
     if (Array.isArray(remote.seasonArchive)) state.seasonArchive = remote.seasonArchive;
+    if (remote.seasonInfo && typeof remote.seasonInfo === "object") state.seasonInfo = remote.seasonInfo;
+    if (Object.prototype.hasOwnProperty.call(remote, "previousSeasonSnapshot")) state.previousSeasonSnapshot = remote.previousSeasonSnapshot;
     if (Object.prototype.hasOwnProperty.call(remote, "lastMatchSnapshot")) state.lastMatchSnapshot = remote.lastMatchSnapshot;
     state.lastSavedAt = remoteUpdatedAt || state.lastSavedAt;
     state.standingsDirty = true;
@@ -67,6 +69,8 @@ state.dbSaveFn = async () => {
     transferMarket: state.transferMarket,
     activityLog: state.activityLog,
     seasonArchive: state.seasonArchive,
+    seasonInfo: state.seasonInfo,
+    previousSeasonSnapshot: state.previousSeasonSnapshot,
     lastMatchSnapshot: state.lastMatchSnapshot,
     updatedAt,
     serverUpdatedAt: serverTimestamp()
