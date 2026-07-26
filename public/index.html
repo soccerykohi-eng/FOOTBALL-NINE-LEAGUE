@@ -512,9 +512,10 @@
         <section id="page-matches" class="page">
             <div class="section-header">
                 <div class="section-title">日程・結果</div>
-                <button class="line-share-btn" onclick="generateLineMatchweekShareText()">
-                    📲 節結果共有
-                </button>
+                <div style="display:flex;gap:0.4rem;align-items:center;">
+                    <button id="schedule-assignment-button" class="btn-secondary" style="display:none;" onclick="openScheduleAssignmentSheet()">A〜I 抽選結果</button>
+                    <button class="line-share-btn" onclick="generateLineMatchweekShareText()">節結果共有</button>
+                </div>
             </div>
             <div class="filter-scroll" id="matches-filter-bar"></div>
             <div id="matches-list"></div>
@@ -777,6 +778,49 @@
             { id: 'm_71', mw: 18, h: 'Manchester Cow', a: 'MGR United', hs: null, as: null },
             { id: 'm_72', mw: 18, h: 'Kasuga United', a: 'FC ARG', hs: null, as: null }
         ];
+
+        // 次シーズン以降は、9クラブをA〜Iへ抽選してこの日程へ展開する
+        const SEASON_SCHEDULE_TEMPLATE = [
+            { mw: 1, matches: [['B','A'], ['C','D'], ['E','F'], ['G','H']] },
+            { mw: 2, matches: [['D','I'], ['F','A'], ['H','B'], ['E','G']] },
+            { mw: 3, matches: [['A','I'], ['C','F'], ['E','H'], ['B','G']] },
+            { mw: 4, matches: [['A','C'], ['E','B'], ['D','H'], ['I','G']] },
+            { mw: 5, matches: [['A','G'], ['C','H'], ['D','B'], ['I','F']] },
+            { mw: 6, matches: [['D','G'], ['I','C'], ['F','H'], ['A','E']] },
+            { mw: 7, matches: [['I','E'], ['F','G'], ['A','D'], ['C','B']] },
+            { mw: 8, matches: [['C','E'], ['D','F'], ['I','B'], ['A','H']] },
+            { mw: 9, matches: [['C','G'], ['D','E'], ['F','B'], ['I','H']] },
+            { mw: 10, matches: [['A','B'], ['C','D'], ['F','E'], ['H','G']] },
+            { mw: 11, matches: [['I','D'], ['A','F'], ['H','B'], ['E','G']] },
+            { mw: 12, matches: [['A','I'], ['C','F'], ['E','H'], ['B','G']] },
+            { mw: 13, matches: [['A','C'], ['E','B'], ['D','H'], ['I','G']] },
+            { mw: 14, matches: [['A','G'], ['C','H'], ['D','B'], ['I','F']] },
+            { mw: 15, matches: [['D','G'], ['I','C'], ['F','H'], ['A','E']] },
+            { mw: 16, matches: [['I','E'], ['F','G'], ['A','D'], ['C','B']] },
+            { mw: 17, matches: [['C','E'], ['D','F'], ['I','B'], ['A','H']] },
+            { mw: 18, matches: [['C','G'], ['D','E'], ['F','B'], ['I','H']] }
+        ];
+
+        function createRandomSeasonSchedule(seasonNumber) {
+            const slots = ['A','B','C','D','E','F','G','H','I'];
+            const shuffledTeams = RAW_TEAMS.map(team => team.name);
+            for (let index = shuffledTeams.length - 1; index > 0; index--) {
+                const swapIndex = Math.floor(Math.random() * (index + 1));
+                [shuffledTeams[index], shuffledTeams[swapIndex]] = [shuffledTeams[swapIndex], shuffledTeams[index]];
+            }
+            const assignment = Object.fromEntries(slots.map((slot, index) => [slot, shuffledTeams[index]]));
+            const schedule = SEASON_SCHEDULE_TEMPLATE.flatMap(({ mw, matches }) =>
+                matches.map(([homeSlot, awaySlot], index) => ({
+                    id: `s${seasonNumber}_mw${mw}_${index + 1}`,
+                    mw,
+                    h: assignment[homeSlot],
+                    a: assignment[awaySlot],
+                    hs: null,
+                    as: null
+                }))
+            );
+            return { assignment, schedule };
+        }
 
         const INITIAL_NEWS = [
             {
@@ -1523,7 +1567,8 @@
             const id = `season-${info.number}-${info.year}`;
             const standings = JSON.parse(JSON.stringify(calculateStandings()));
             const players = JSON.parse(JSON.stringify(calculatePlayerStats()));
-            return { id, name: `FNL Season ${info.number} - ${info.year}`, champion: standings[0]?.name || '', savedAt: new Date().toLocaleDateString('ja-JP'), standings, players };
+            const scheduleAssignment = JSON.parse(JSON.stringify(info.scheduleAssignment || {}));
+            return { id, name: `FNL Season ${info.number} - ${info.year}`, champion: standings[0]?.name || '', savedAt: new Date().toLocaleDateString('ja-JP'), standings, players, scheduleAssignment };
         }
 
         window.archiveCurrentSeason = function(skipConfirmation = false) {
@@ -1554,10 +1599,10 @@
             const info = state.seasonInfo || { number: 1, year: 2026 };
             document.getElementById('sheet-body').innerHTML = `
                 <div style="text-align:center;margin-bottom:1rem;"><h3>次のシーズンを開始</h3></div>
-                <div class="market-note" style="margin-bottom:0.8rem;">現在の記録を自動保存して試合結果・選手成績を初期化します。チーム、エンブレム、選手名簿、ニュースは引き継ぎます。</div>
+                <div class="market-note" style="margin-bottom:0.8rem;">現在の記録を自動保存して試合結果・選手成績を初期化します。9チームをA〜Iへランダムに割り当て、全18マッチウィークの日程を自動生成します。チーム、エンブレム、選手名簿、ニュースは引き継ぎます。</div>
                 <div class="form-group"><label class="form-label">シーズン番号</label><input id="next-season-number" class="form-input" type="number" min="1" value="${Number(info.number) + 1}"></div>
                 <div class="form-group"><label class="form-label">開催年</label><input id="next-season-year" class="form-input" type="number" min="2026" value="${Number(info.year) + 1}"></div>
-                <button class="btn-primary" onclick="startNextSeason()">記録を保存して次シーズンへ進む</button>`;
+                <button class="btn-primary" onclick="startNextSeason()">抽選して次シーズンを開始</button>`;
             document.getElementById('sheet-overlay').classList.add('active');
         };
 
@@ -1572,8 +1617,9 @@
                 transferMarket: JSON.parse(JSON.stringify(state.transferMarket))
             };
             window.archiveCurrentSeason(true);
-            state.seasonInfo = { number, year };
-            state.schedule = JSON.parse(JSON.stringify(INITIAL_SCHEDULE));
+            const generatedSeason = createRandomSeasonSchedule(number);
+            state.seasonInfo = { number, year, scheduleAssignment: generatedSeason.assignment };
+            state.schedule = generatedSeason.schedule;
             const market = getMarket();
             market.periodMilestones = {};
             market.releasePlans = {};
@@ -1587,11 +1633,28 @@
             market.endDraft = { phase: 'protection', roundOnePicks: {}, roundOneResults: [], waiverResults: [], waiverRound: 2, waiverTurnIndex: 0 };
             state.lastMatchSnapshot = null;
             state.standingsDirty = true;
-            addActivity('新しいシーズンを開始', `Season ${number} - ${year}`);
+            addActivity('新しいシーズンを開始', `Season ${number} - ${year} ・ 日程抽選完了`);
             document.getElementById('sheet-overlay').classList.remove('active');
             refreshAllViews();
             persistAppState();
             navigateTo('home', 'HOME');
+        };
+
+        window.openScheduleAssignmentSheet = function() {
+            const info = state.seasonInfo || {};
+            const assignment = info.scheduleAssignment || {};
+            const slots = ['A','B','C','D','E','F','G','H','I'];
+            if (!slots.every(slot => assignment[slot])) return;
+            document.getElementById('sheet-body').innerHTML = `
+                <div style="text-align:center;margin-bottom:1rem;">
+                    <div class="hero-subtitle">SEASON ${Number(info.number) || 1} - ${Number(info.year) || 2026}</div>
+                    <h3>A〜I 日程抽選結果</h3>
+                </div>
+                <div class="card">${slots.map(slot => {
+                    const teamName = assignment[slot];
+                    return `<div class="ranking-row"><div class="ranking-position">${slot}</div><div class="ranking-main"><div class="ranking-name">${escapeHtml(teamName)}</div></div><img src="${getTeamLogo(teamName)}" class="team-logo-img" alt=""></div>`;
+                }).join('')}</div>`;
+            document.getElementById('sheet-overlay').classList.add('active');
         };
 
         window.undoSeasonTransition = function() {
@@ -1662,6 +1725,11 @@
             state.currentFilterMw = filter;
             const list = document.getElementById('matches-list');
             if (!list) return;
+            const assignmentButton = document.getElementById('schedule-assignment-button');
+            if (assignmentButton) {
+                const assignment = state.seasonInfo?.scheduleAssignment || {};
+                assignmentButton.style.display = ['A','B','C','D','E','F','G','H','I'].every(slot => assignment[slot]) ? '' : 'none';
+            }
 
             let mwNum = typeof filter === 'number' ? filter : (filter === 'all' ? 1 : parseInt(filter.replace('mw',''), 10) || 1);
             const mwMatches = state.schedule.filter(m => m.mw === mwNum);
@@ -2600,7 +2668,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=23'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=24'));
     }
 </script>
 </html>
