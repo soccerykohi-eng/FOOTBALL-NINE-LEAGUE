@@ -599,8 +599,12 @@
         <section id="page-news" class="page">
             <div class="section-header">
                 <div class="section-title">ニュース</div>
-                <button class="btn-secondary" onclick="openPostNewsSheet()">＋ 投稿</button>
+                <div style="display:flex;gap:0.4rem;">
+                    <button id="news-notification-button" class="btn-secondary" onclick="toggleNewsNotifications()">通知を受け取る</button>
+                    <button class="btn-secondary" onclick="openPostNewsSheet()">＋ 投稿</button>
+                </div>
             </div>
+            <div id="news-notification-note" class="market-note" style="margin-bottom:0.7rem;">ニュースが公開されたときだけ通知します。</div>
             <div class="card" id="full-news-list"></div>
         </section>
 
@@ -1001,8 +1005,9 @@
             state.lastSavedAt = state.lastSavedAt || new Date().toISOString();
             saveStateToStorage();
             if (state.dbSaveFn) {
-                state.dbSaveFn();
+                return state.dbSaveFn();
             }
+            return Promise.resolve();
         }
 
         loadPersistedState();
@@ -1264,7 +1269,9 @@
                 sourceName: sourceTeam?.name || 'FNL運営'
             });
             renderNews();
-            persistAppState();
+            Promise.resolve(persistAppState())
+                .then(() => window.notifyNewsPublished?.(newsId))
+                .catch(error => console.error('News publish sync failed', error));
             document.getElementById('sheet-overlay').classList.remove('active');
             navigateTo('news', 'ニュース');
         };
@@ -2984,7 +2991,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=25'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=26'));
     }
 </script>
 </html>

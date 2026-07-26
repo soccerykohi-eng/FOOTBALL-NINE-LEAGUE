@@ -8,3 +8,8 @@ window.FNL_FIREBASE_CONFIG = {
 };
 
 window.FNL_FIREBASE_APP_ID = "fnl-season1";
+
+window.FNL_NOTIFICATION_CONFIG = {
+  workerUrl: "https://fnl-news-notifications.soccerykohi.workers.dev",
+  vapidKey: "BAj1hHspScnG1UHbTxikehpgkMfHXNCm1OvV_L_XRZ_u7aJ68xtwvq0pZ8EWZQqkE84tujQFHLU1HFDzOpwAqOg"
+};
