@@ -1642,7 +1642,7 @@
             const list = calculateStandings();
             let html = `<table class="mobile-table"><thead><tr><th>#</th><th style="text-align:left">チーム</th><th>試</th><th>勝</th><th>差</th><th>点</th></tr></thead><tbody>`;
             list.forEach(t => {
-                html += `<tr onclick="openTeamSheet('${escapeHtml(t.name)}')"><td class="rank-num">${t.rank}</td><td class="team-col"><img src="${t.logo}" class="team-logo-img"><span>${escapeHtml(t.name)}</span></td><td>${t.p}</td><td>${t.w}</td><td>${t.gd > 0 ? '+'+t.gd : t.gd}</td><td class="pts-badge">${t.pts}</td></tr>`;
+                html += `<tr onclick="openStandingsTeamSheet('${escapeHtml(t.name)}')"><td class="rank-num">${t.rank}</td><td class="team-col"><img src="${t.logo}" class="team-logo-img"><span>${escapeHtml(t.name)}</span></td><td>${t.p}</td><td>${t.w}</td><td>${t.gd > 0 ? '+'+t.gd : t.gd}</td><td class="pts-badge">${t.pts}</td></tr>`;
             });
             html += `</tbody></table>`;
             card.innerHTML = html;
@@ -2351,6 +2351,32 @@
             }
         };
 
+        window.openStandingsTeamSheet = function(name) {
+            const team = calculateStandings().find(item => item.name === name);
+            if (!team) return;
+            document.getElementById('sheet-body').innerHTML = `
+                <div style="text-align:center;">
+                    <img src="${team.logo}" class="team-logo-lg" style="width:64px;height:64px;" alt="${escapeHtml(team.name)}">
+                    <h3 style="font-family:'Teko';font-size:1.8rem;line-height:1;margin-top:0.2rem;">${escapeHtml(team.name)}</h3>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="metric-card"><div class="metric-label">順位</div><div class="metric-value">${team.rank}位</div></div>
+                    <div class="metric-card"><div class="metric-label">勝点</div><div class="metric-value">${team.pts}</div></div>
+                    <div class="metric-card"><div class="metric-label">試合数</div><div class="metric-value">${team.p}</div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.45rem;margin-bottom:0.55rem;">
+                    <div class="metric-card"><div class="metric-label">勝</div><div class="metric-value" style="color:var(--accent-green);">${team.w}</div></div>
+                    <div class="metric-card"><div class="metric-label">分</div><div class="metric-value">${team.d}</div></div>
+                    <div class="metric-card"><div class="metric-label">負</div><div class="metric-value" style="color:var(--accent-red);">${team.l}</div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.45rem;">
+                    <div class="metric-card"><div class="metric-label">総得点</div><div class="metric-value">${team.gf}</div></div>
+                    <div class="metric-card"><div class="metric-label">総失点</div><div class="metric-value">${team.ga}</div></div>
+                    <div class="metric-card"><div class="metric-label">得失点差</div><div class="metric-value">${team.gd > 0 ? '+' + team.gd : team.gd}</div></div>
+                </div>`;
+            document.getElementById('sheet-overlay').classList.add('active');
+        };
+
         window.openTeamSheet = function(name) {
             const raw = RAW_TEAMS.find(item => item.name === name);
             if (!raw) return;
@@ -2446,7 +2472,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=10'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=11'));
     }
 </script>
 </html>
