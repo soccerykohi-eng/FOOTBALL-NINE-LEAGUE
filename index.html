@@ -453,7 +453,6 @@
                 <p style="font-size: 0.75rem; color: var(--text-muted);">全9チーム公式ポータル</p>
             </div>
             <div id="home-dashboard" class="dashboard-grid"></div>
-            <div id="home-alert"></div>
 
             <div class="section-header">
                 <div class="section-title">NEXT / LATEST MATCH</div>
@@ -1613,11 +1612,6 @@
                 <div class="metric-card"><div class="metric-label">現在の首位</div><div class="metric-value">${escapeHtml(standings[0]?.name || '-')}</div></div>
                 <div class="metric-card"><div class="metric-label">得点ランキング</div><div class="metric-value">${escapeHtml(stats[0]?.name || '-')}</div></div>
                 <div class="metric-card"><div class="metric-label">消化試合</div><div class="metric-value">${played} / ${state.schedule.length}</div></div>`;
-            const next = state.schedule.find(match => match.hs === null || match.as === null);
-            const alertWrap = document.getElementById('home-alert');
-            if (alertWrap) alertWrap.innerHTML = next
-                ? `<div class="market-note" style="margin-bottom:1rem;"><b style="color:var(--accent-gold-light);">NEXT MATCH</b><br>MW${next.mw} ${escapeHtml(next.h)} vs ${escapeHtml(next.a)}</div>`
-                : `<div class="market-note" style="margin-bottom:1rem;">全試合が終了しました。シーズン記録を確認できます。</div>`;
             const activityWrap = document.getElementById('home-activity-list');
             if (activityWrap) activityWrap.innerHTML = state.activityLog.length
                 ? state.activityLog.slice(0, 5).map(item => `<div class="activity-row"><div class="ranking-main"><div class="ranking-name">${escapeHtml(item.title)}</div><div class="activity-detail">${escapeHtml(item.detail || '')}</div></div></div>`).join('')
@@ -2472,7 +2466,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=12'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=13'));
     }
 </script>
 </html>
