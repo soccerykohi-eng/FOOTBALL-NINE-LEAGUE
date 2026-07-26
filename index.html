@@ -1306,12 +1306,24 @@
                 .map(player => player.name);
         }
 
+        function getAppearancePickerNames(teamName) {
+            const appearancesByName = new Map(
+                calculatePlayerStats()
+                    .filter(player => player.team === teamName)
+                    .map(player => [player.name, player.appearances])
+            );
+            return getRosterNamesByTeamName(teamName).sort((left, right) =>
+                (appearancesByName.get(right) || 0) - (appearancesByName.get(left) || 0)
+                || left.localeCompare(right, 'ja')
+            );
+        }
+
         function playerDatalist(id, names) {
             return `<datalist id="${id}">${[...new Set(names)].map(name => `<option value="${escapeHtml(name)}"></option>`).join('')}</datalist>`;
         }
 
         function renderAppearancePicker(teamName, side, selectedNames = []) {
-            const players = getRosterNamesByTeamName(teamName);
+            const players = getAppearancePickerNames(teamName);
             if (!players.length) return `<div class="empty-state">先に「移籍」ページで選手を登録してください</div>`;
             return `<div class="appearance-picker">${players.map(name => `<label class="appearance-option"><input type="checkbox" data-appearance="${side}" value="${escapeHtml(name)}" ${selectedNames.includes(name) ? 'checked' : ''}><span>${escapeHtml(name)}</span></label>`).join('')}</div>`;
         }
