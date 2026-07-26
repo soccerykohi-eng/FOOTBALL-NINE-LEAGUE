@@ -10,7 +10,7 @@
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="apple-touch-icon" href="./fnl-logo.png">
     <title>FOOTBALL NINE LEAGUE Mobile Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&family=Teko:wght@600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-body: #08090c;
@@ -139,9 +139,10 @@
         }
 
         .current-page-title {
+            font-family: 'M PLUS 1p', 'Noto Sans JP', sans-serif;
             font-size: 0.72rem;
             color: var(--accent-gold);
-            font-weight: 700;
+            font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 1px;
             background: rgba(198, 166, 100, 0.1);
@@ -176,14 +177,17 @@
         }
 
         .section-title {
-            font-family: 'Teko', sans-serif;
-            font-size: 1.5rem;
-            letter-spacing: 0.5px;
+            font-family: 'M PLUS 1p', 'Noto Sans JP', sans-serif;
+            font-size: 1.22rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            font-feature-settings: "palt";
             color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 8px;
-            line-height: 1;
+            line-height: 1.2;
+            text-shadow: 0 2px 12px rgba(198, 166, 100, 0.12);
         }
 
         .section-title::before {
@@ -2481,7 +2485,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=19'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=20'));
     }
 </script>
 </html>
