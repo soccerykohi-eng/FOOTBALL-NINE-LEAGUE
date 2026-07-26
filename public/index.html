@@ -935,7 +935,7 @@
         window.generateLineStandingsShareText = function() {
             const standings = calculateStandings();
             const info = state.seasonInfo || { number: 1 };
-            let text = `🏆 【FNL Season ${info.number}】 最新順位表 🏆\n---------------------\n`;
+            let text = `【FNL Season ${info.number}】最新順位表\n---------------------\n`;
             standings.forEach(t => {
                 const gdStr = t.gd > 0 ? `+${t.gd}` : `${t.gd}`;
                 text += `${t.rank}位: ${t.name} (勝点${t.pts} / 試${t.p} / 差${gdStr})\n`;
@@ -948,7 +948,7 @@
             const mwNum = typeof state.currentFilterMw === 'number' ? state.currentFilterMw : 1;
             const mwMatches = state.schedule.filter(m => m.mw === mwNum);
             const info = state.seasonInfo || { number: 1 };
-            let text = `⚽ 【FNL Season ${info.number}】 MATCHWEEK ${mwNum} 結果速報 ⚽\n---------------------\n`;
+            let text = `【FNL Season ${info.number}】MATCHWEEK ${mwNum} 結果速報\n---------------------\n`;
             mwMatches.forEach(m => {
                 const scoreText = (m.hs !== null && m.as !== null) ? `${m.hs} - ${m.as}` : `VS (未消化)`;
                 text += `・${m.h} ${scoreText} ${m.a}\n`;
@@ -1316,7 +1316,7 @@
             const details = ensureMatchDetails(m);
             const score = m.hs !== null && m.as !== null ? `${m.hs} - ${m.as}` : 'VS';
             const goals = details.events.filter(event => event.type === 'goal').map(event => `${event.player}${event.minute ? ` ${event.minute}'` : ''}`).join(' / ');
-            let text = `⚽ FNL MATCHWEEK ${m.mw}\n${m.h} ${score} ${m.a}`;
+            let text = `FNL MATCHWEEK ${m.mw}\n${m.h} ${score} ${m.a}`;
             if (goals) text += `\n得点: ${goals}`;
             if (details.motm?.name) text += `\nMOM: ${details.motm.name}`;
             if (details.comment) text += `\n${details.comment}`;
