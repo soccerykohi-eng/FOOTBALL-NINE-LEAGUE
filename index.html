@@ -1809,8 +1809,14 @@
             const endDraftActions = document.getElementById('end-draft-actions');
             const phaseBanner = document.getElementById('market-phase-banner');
             if (!summary || !rosterList || !marketList || !availableList || !draftList || !resultList || !historyList) return;
-            const phaseLabels = { registration: '選手登録期間', market: '移籍希望受付中', draft: 'ドラフト準備中', completed: '移籍確定' };
-            if (phaseBanner) phaseBanner.innerHTML = `<div class="card" style="padding:0.6rem;display:flex;align-items:center;gap:0.6rem;"><div style="flex:1;"><div style="font-size:0.58rem;color:var(--text-muted);">CURRENT PHASE</div><b style="color:var(--accent-gold-light);font-size:0.8rem;">${phaseLabels[market.phase] || phaseLabels.registration}</b></div><select class="form-select" style="width:auto;padding:0.4rem;" onchange="setTransferPhase(this.value)"><option value="registration" ${market.phase === 'registration' ? 'selected' : ''}>選手登録</option><option value="market" ${market.phase === 'market' ? 'selected' : ''}>移籍受付</option><option value="draft" ${market.phase === 'draft' ? 'selected' : ''}>ドラフト</option><option value="completed" ${market.phase === 'completed' ? 'selected' : ''}>確定</option></select></div>`;
+            const phaseInfo = {
+                registration: { label: '事前準備', description: '各チームの選手名簿を登録・更新する段階です。' },
+                market: { label: '放出・移籍受付中', description: '放出予定、移籍可能選手、トレード提案を登録する段階です。' },
+                draft: { label: '中間ドラフト実施中', description: '各チームが希望選手を提出し、指名を確定する段階です。' },
+                completed: { label: '中間移籍市場終了', description: '中間移籍市場の手続きが完了した状態です。' }
+            };
+            const currentPhase = phaseInfo[market.phase] || phaseInfo.registration;
+            if (phaseBanner) phaseBanner.innerHTML = `<div class="card" style="padding:0.7rem;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:0.7rem;"><div><div style="font-size:0.6rem;color:var(--text-muted);">中間移籍市場の進行状況</div><b style="display:block;color:var(--accent-gold-light);font-size:0.82rem;margin-top:0.12rem;">${currentPhase.label}</b><div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.2rem;line-height:1.45;">${currentPhase.description}</div></div><select class="form-select" aria-label="中間移籍市場の進行状況を変更" style="width:auto;max-width:9rem;padding:0.4rem;" onchange="setTransferPhase(this.value)"><option value="registration" ${market.phase === 'registration' ? 'selected' : ''}>事前準備</option><option value="market" ${market.phase === 'market' ? 'selected' : ''}>放出・移籍受付</option><option value="draft" ${market.phase === 'draft' ? 'selected' : ''}>中間ドラフト</option><option value="completed" ${market.phase === 'completed' ? 'selected' : ''}>市場終了</option></select></div>`;
             const allPlayers = RAW_TEAMS.flatMap(team => getRoster(team.id));
             const registered = allPlayers.filter(player => player.status !== 'released' && player.status !== 'transferred');
             const candidates = getAvailablePlayers();
@@ -1847,7 +1853,7 @@
 
         window.setTransferPhase = function(phase) {
             const market = getMarket();
-            const labels = { registration: '選手登録期間', market: '移籍希望受付中', draft: 'ドラフト準備中', completed: '移籍確定' };
+            const labels = { registration: '事前準備', market: '放出・移籍受付中', draft: '中間ドラフト実施中', completed: '中間移籍市場終了' };
             takeTransferSnapshot('移籍期間の変更');
             market.phase = labels[phase] ? phase : 'registration';
             addTransferHistory('移籍期間を変更', labels[market.phase]);
@@ -2174,8 +2180,14 @@
             if (!protectionWrap || !statusWrap || !draftWrap || !actionWrap) return;
             const market = getMarket();
             const draft = market.endDraft;
-            const phaseLabels = { protection: 'プロテクト登録中', round1: '1巡目・非公開提出中', waiver: `${draft.waiverRound}巡目・順番指名中`, completed: '終了時ドラフト完了' };
-            statusWrap.innerHTML = `<div class="card" style="padding:0.65rem;margin-bottom:0.7rem;"><div style="font-size:0.6rem;color:var(--text-muted);">CURRENT STATUS</div><b style="color:var(--accent-gold-light);">${phaseLabels[draft.phase] || phaseLabels.protection}</b></div>`;
+            const phaseInfo = {
+                protection: { label: 'プロテクト登録中', description: '各チームがプロテクトする選手を登録する段階です。' },
+                round1: { label: '1巡目・非公開提出中', description: '各チームが1巡目の希望選手を非公開で提出する段階です。' },
+                waiver: { label: `${draft.waiverRound}巡目・順番指名中`, description: '画面に表示されたチームが順番に選手を指名する段階です。' },
+                completed: { label: '終了時ドラフト完了', description: 'シーズン終了移籍市場の手続きが完了した状態です。' }
+            };
+            const currentPhase = phaseInfo[draft.phase] || phaseInfo.protection;
+            statusWrap.innerHTML = `<div class="card" style="padding:0.7rem;margin-bottom:0.7rem;"><div style="font-size:0.6rem;color:var(--text-muted);">シーズン終了市場の進行状況</div><b style="display:block;color:var(--accent-gold-light);margin-top:0.12rem;">${currentPhase.label}</b><div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.2rem;line-height:1.45;">${currentPhase.description}</div></div>`;
             protectionWrap.innerHTML = RAW_TEAMS.map(team => {
                 const ids = getValidProtectionIds(team.id);
                 const names = ids.map(id => getRoster(team.id).find(player => player.id === id)?.name).filter(Boolean);
@@ -2499,7 +2511,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=21'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=22'));
     }
 </script>
 </html>
