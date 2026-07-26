@@ -784,7 +784,7 @@
                 content: 'Football Nine League (FNL) Season 1 の全18節公式スケジュールおよび対戦結果、公式規約を公開いたしました。'
             },
             {
-                id: 'n_2', date: '2026.07.20', category: '運営',
+                id: 'n_2', date: '2026.07.20', category: '試合情報',
                 title: 'FNL Season 1 全18節の公式対戦カード決定',
                 content: '全9クラブによる総当たり2巡（全18マッチウィーク）の対戦カードがすべて決定いたしました。'
             }
@@ -1042,6 +1042,16 @@
             return 'FNL運営';
         }
 
+        function getNewsCategoryLabel(item) {
+            const legacyLabels = {
+                '結果速報': '試合結果',
+                'プレビュー': '試合情報',
+                '運営': '規約・運営'
+            };
+            const category = item?.category || 'お知らせ';
+            return legacyLabels[category] || category;
+        }
+
         function renderNews() {
             const homeWrap = document.getElementById('home-news-preview');
             const fullWrap = document.getElementById('full-news-list');
@@ -1057,7 +1067,7 @@
                     <div class="news-item" onclick="openNewsDetailSheet('${n.id}')">
                         <div class="news-meta">
                             <span class="news-date">${escapeHtml(n.date)}</span>
-                            <span class="news-category">${escapeHtml(n.category || 'お知らせ')}</span>
+                            <span class="news-category">${escapeHtml(getNewsCategoryLabel(n))}</span>
                             <span class="news-date">${escapeHtml(getNewsSourceLabel(n))}</span>
                         </div>
                         <div class="news-title">${escapeHtml(n.title)}</div>
@@ -1075,7 +1085,7 @@
             body.innerHTML = `
                 <div style="margin-bottom: 1rem;">
                     <div style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem;">
-                        <span class="news-category">${escapeHtml(item.category || 'お知らせ')}</span>
+                        <span class="news-category">${escapeHtml(getNewsCategoryLabel(item))}</span>
                         <span class="news-date">${escapeHtml(item.date)}</span>
                         <span class="news-date">${escapeHtml(getNewsSourceLabel(item))}</span>
                     </div>
@@ -1107,9 +1117,13 @@
                     <label class="form-label">カテゴリー</label>
                     <select id="post-category" class="form-select">
                         <option value="お知らせ">お知らせ</option>
-                        <option value="結果速報">結果速報</option>
-                        <option value="プレビュー">プレビュー</option>
-                        <option value="運営">運営</option>
+                        <option value="試合情報">試合情報</option>
+                        <option value="試合結果">試合結果</option>
+                        <option value="移籍情報">移籍情報</option>
+                        <option value="チーム情報">チーム情報</option>
+                        <option value="選手情報">選手情報</option>
+                        <option value="大会・イベント">大会・イベント</option>
+                        <option value="規約・運営">規約・運営</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -2411,7 +2425,7 @@
                 return `<div class="ranking-row"><div style="width:32px;color:${color};font:700 0.9rem 'Teko',sans-serif;">${result}</div><div class="ranking-main"><div class="ranking-name">MW${match.mw} vs ${escapeHtml(opponent)}</div><div class="ranking-team">${isHome ? 'HOME' : 'AWAY'}</div></div><div class="ranking-number">${own}-${other}</div></div>`;
             }).join('') || `<div class="empty-state">確定した試合結果はまだありません</div>`;
             const teamNews = state.news.filter(item => item.sourceType === 'team' && item.sourceTeamId === raw.id).slice(0, 3);
-            const newsRows = teamNews.map(item => `<div class="news-item" onclick="openNewsDetailSheet('${item.id}')"><div class="news-meta"><span class="news-date">${escapeHtml(item.date)}</span><span class="news-category">${escapeHtml(item.category || 'お知らせ')}</span></div><div class="news-title">${escapeHtml(item.title)}</div></div>`).join('') || `<div class="empty-state">${escapeHtml(raw.name)} メディアからのニュースはまだありません</div>`;
+            const newsRows = teamNews.map(item => `<div class="news-item" onclick="openNewsDetailSheet('${item.id}')"><div class="news-meta"><span class="news-date">${escapeHtml(item.date)}</span><span class="news-category">${escapeHtml(getNewsCategoryLabel(item))}</span></div><div class="news-title">${escapeHtml(item.title)}</div></div>`).join('') || `<div class="empty-state">${escapeHtml(raw.name)} メディアからのニュースはまだありません</div>`;
 
             const body = document.getElementById('sheet-body');
             body.innerHTML = `
@@ -2485,7 +2499,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=20'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=21'));
     }
 </script>
 </html>
