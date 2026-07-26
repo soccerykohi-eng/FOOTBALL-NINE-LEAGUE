@@ -1034,6 +1034,11 @@
         };
 
         // --- ニュース ---
+        function getNewsSourceLabel(item) {
+            if (item?.sourceType === 'team') return item.sourceName || RAW_TEAMS.find(team => team.id === item.sourceTeamId)?.name || 'クラブメディア';
+            return 'FNL運営';
+        }
+
         function renderNews() {
             const homeWrap = document.getElementById('home-news-preview');
             const fullWrap = document.getElementById('full-news-list');
@@ -1052,6 +1057,7 @@
                         <div class="news-meta">
                             <span class="news-date">${escapeHtml(n.date)}</span>
                             <span class="news-category">${escapeHtml(n.category || 'お知らせ')}</span>
+                            <span class="news-date">${escapeHtml(getNewsSourceLabel(n))}</span>
                         </div>
                         <div class="news-title">${escapeHtml(n.title)}</div>
                     </div>
@@ -1071,6 +1077,7 @@
                     <div style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem;">
                         <span class="news-category">${escapeHtml(item.category || 'お知らせ')}</span>
                         <span class="news-date">${escapeHtml(item.date)}</span>
+                        <span class="news-date">${escapeHtml(getNewsSourceLabel(item))}</span>
                     </div>
                     <h2 style="font-size:1.1rem; font-weight:700; line-height:1.4; color:var(--text-main);">${escapeHtml(item.title)}</h2>
                 </div>
@@ -1106,6 +1113,13 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">発信元</label>
+                    <select id="post-source" class="form-select">
+                        <option value="official">FNL運営</option>
+                        ${RAW_TEAMS.map(team => `<option value="team:${team.id}">${escapeHtml(team.name)} メディア</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
                     <label class="form-label">投稿日</label>
                     <input type="text" id="post-date" class="form-input" value="${todayStr}">
                 </div>
@@ -1127,12 +1141,19 @@
             const date = document.getElementById('post-date').value.trim();
             const title = document.getElementById('post-title').value.trim();
             const content = document.getElementById('post-content').value.trim();
+            const sourceValue = document.getElementById('post-source')?.value || 'official';
             if (!title || !content) return;
+
+            const sourceTeamId = sourceValue.startsWith('team:') ? sourceValue.slice(5) : '';
+            const sourceTeam = RAW_TEAMS.find(team => team.id === sourceTeamId);
 
             const newsId = 'n_' + Date.now();
             state.news.unshift({
                 id: newsId, date: date || new Date().toISOString().split('T')[0].replace(/-/g, '.'),
-                category, title, content
+                category, title, content,
+                sourceType: sourceTeam ? 'team' : 'official',
+                sourceTeamId: sourceTeam?.id || '',
+                sourceName: sourceTeam?.name || 'FNL運営'
             });
             renderNews();
             persistAppState();
@@ -2331,28 +2352,46 @@
         };
 
         window.openTeamSheet = function(name) {
-            const list = calculateStandings();
-            const t = list.find(item => item.name === name);
             const raw = RAW_TEAMS.find(item => item.name === name);
-            if (!t || !raw) return;
+            if (!raw) return;
+
+            const teamPlayers = activeRosterPlayers(raw.id).map(player => {
+                const recorded = calculatePlayerStats().find(stat => stat.team === name && stat.name === player.name) || {};
+                return { name: player.name, goals: recorded.goals || 0, assists: recorded.assists || 0, appearances: recorded.appearances || 0 };
+            });
+            const goalLeader = [...teamPlayers].sort((a, b) => b.goals - a.goals || b.appearances - a.appearances)[0];
+            const appearanceLeader = [...teamPlayers].sort((a, b) => b.appearances - a.appearances || b.goals - a.goals)[0];
+            const playerRows = [...teamPlayers].sort((a, b) => b.goals - a.goals || b.appearances - a.appearances).slice(0, 5).map((player, index) => `<div class="ranking-row"><div class="ranking-position">${index + 1}</div><div class="ranking-main"><div class="ranking-name">${escapeHtml(player.name)}</div><div class="ranking-team">出場 ${player.appearances} ・ アシスト ${player.assists}</div></div><div class="ranking-number">${player.goals}</div></div>`).join('') || `<div class="empty-state">登録選手がいません</div>`;
+            const recentMatches = state.schedule.filter(match => (match.h === name || match.a === name) && match.hs !== null && match.as !== null).sort((a, b) => b.mw - a.mw).slice(0, 3);
+            const matchRows = recentMatches.map(match => {
+                const isHome = match.h === name;
+                const own = isHome ? match.hs : match.as;
+                const other = isHome ? match.as : match.hs;
+                const opponent = isHome ? match.a : match.h;
+                const result = own > other ? 'WIN' : own < other ? 'LOSE' : 'DRAW';
+                const color = result === 'WIN' ? 'var(--accent-green)' : result === 'LOSE' ? 'var(--accent-red)' : 'var(--text-muted)';
+                return `<div class="ranking-row"><div style="width:32px;color:${color};font:700 0.9rem 'Teko',sans-serif;">${result}</div><div class="ranking-main"><div class="ranking-name">MW${match.mw} vs ${escapeHtml(opponent)}</div><div class="ranking-team">${isHome ? 'HOME' : 'AWAY'}</div></div><div class="ranking-number">${own}-${other}</div></div>`;
+            }).join('') || `<div class="empty-state">確定した試合結果はまだありません</div>`;
+            const teamNews = state.news.filter(item => item.sourceType === 'team' && item.sourceTeamId === raw.id).slice(0, 3);
+            const newsRows = teamNews.map(item => `<div class="news-item" onclick="openNewsDetailSheet('${item.id}')"><div class="news-meta"><span class="news-date">${escapeHtml(item.date)}</span><span class="news-category">${escapeHtml(item.category || 'お知らせ')}</span></div><div class="news-title">${escapeHtml(item.title)}</div></div>`).join('') || `<div class="empty-state">${escapeHtml(raw.name)} メディアからのニュースはまだありません</div>`;
 
             const body = document.getElementById('sheet-body');
             body.innerHTML = `
                 <div style="text-align:center;">
-                    <img src="${t.logo}" class="team-logo-lg" style="width:64px; height:64px;" alt="${escapeHtml(t.name)}">
-                    <h3 style="font-family:'Teko'; font-size:1.8rem; line-height:1; margin-top:0.2rem;">${escapeHtml(t.name)}</h3>
+                    <img src="${raw.logo}" class="team-logo-lg" style="width:64px; height:64px;" alt="${escapeHtml(raw.name)}">
+                    <h3 style="font-family:'Teko'; font-size:1.8rem; line-height:1; margin-top:0.2rem;">${escapeHtml(raw.name)}</h3>
                 </div>
-                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.4rem; text-align:center; background:var(--bg-body); padding:0.6rem; border-radius:8px; margin-bottom:0.8rem;">
-                    <div><div style="font-size:0.62rem; color:var(--text-muted);">順位</div><div style="font-family:'Teko'; font-size:1.4rem; color:var(--accent-gold); font-weight:bold;">${t.rank}位</div></div>
-                    <div><div style="font-size:0.62rem; color:var(--text-muted);">勝点</div><div style="font-family:'Teko'; font-size:1.4rem; color:var(--accent-gold-light); font-weight:bold;">${t.pts}</div></div>
-                    <div><div style="font-size:0.62rem; color:var(--text-muted);">試合数</div><div style="font-family:'Teko'; font-size:1.4rem; font-weight:bold;">${t.p}</div></div>
-                    <div><div style="font-size:0.62rem; color:var(--text-muted);">勝</div><div style="font-family:'Teko'; font-size:1.4rem; color:var(--accent-green); font-weight:bold;">${t.w}</div></div>
-                    <div><div style="font-size:0.62rem; color:var(--text-muted);">分</div><div style="font-family:'Teko'; font-size:1.4rem; font-weight:bold;">${t.d}</div></div>
-                    <div><div style="font-size:0.62rem; color:var(--text-muted);">負</div><div style="font-family:'Teko'; font-size:1.4rem; color:var(--accent-red); font-weight:bold;">${t.l}</div></div>
-                    <div><div style="font-size:0.62rem; color:var(--text-muted);">総得点</div><div style="font-family:'Teko'; font-size:1.4rem; font-weight:bold;">${t.gf}</div></div>
-                    <div><div style="font-size:0.62rem; color:var(--text-muted);">総失点</div><div style="font-family:'Teko'; font-size:1.4rem; font-weight:bold;">${t.ga}</div></div>
-                    <div><div style="font-size:0.62rem; color:var(--text-muted);">得失点</div><div style="font-family:'Teko'; font-size:1.4rem; font-weight:bold;">${t.gd > 0 ? '+' + t.gd : t.gd}</div></div>
+                <div class="dashboard-grid">
+                    <div class="metric-card"><div class="metric-label">チーム得点王</div><div class="metric-value">${escapeHtml(goalLeader?.name || '-')}</div><div style="font-size:0.65rem;color:var(--text-muted);">${goalLeader?.goals || 0} 得点</div></div>
+                    <div class="metric-card"><div class="metric-label">最多出場</div><div class="metric-value">${escapeHtml(appearanceLeader?.name || '-')}</div><div style="font-size:0.65rem;color:var(--text-muted);">${appearanceLeader?.appearances || 0} 試合</div></div>
+                    <div class="metric-card"><div class="metric-label">登録選手</div><div class="metric-value">${teamPlayers.length}</div><div style="font-size:0.65rem;color:var(--text-muted);">名簿登録中</div></div>
                 </div>
+                <div class="section-header" style="margin-top:0.7rem;"><div class="section-title">PLAYER STATS</div></div>
+                <div class="card">${playerRows}</div>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">RECENT RESULTS</div></div>
+                <div class="card">${matchRows}</div>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">CLUB NEWS</div></div>
+                <div class="card">${newsRows}</div>
             `;
             document.getElementById('sheet-overlay').classList.add('active');
         };
@@ -2407,7 +2446,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=9'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=10'));
     }
 </script>
 </html>
