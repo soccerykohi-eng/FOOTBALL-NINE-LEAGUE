@@ -1144,6 +1144,11 @@
             return `<div class="appearance-picker">${players.map(name => `<label class="appearance-option"><input type="checkbox" data-appearance="${side}" value="${escapeHtml(name)}" ${selectedNames.includes(name) ? 'checked' : ''}><span>${escapeHtml(name)}</span></label>`).join('')}</div>`;
         }
 
+        function matchEventPlayerOptions(teamName, placeholder = '選手を選択') {
+            const players = getRosterNamesByTeamName(teamName);
+            return `<option value="">${placeholder}</option>${players.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('')}`;
+        }
+
         function renderMatchEventsForSheet(match) {
             const details = ensureMatchDetails(match);
             if (!details.events.length) return `<div class="empty-state">得点・カード記録はまだありません</div>`;
@@ -1253,13 +1258,12 @@
             if (!m) return;
             const labels = { goal: '得点', yellow: 'イエローカード', red: 'レッドカード' };
             const body = document.getElementById('sheet-body');
-            const names = [...getRosterNamesByTeamName(m.h), ...getRosterNamesByTeamName(m.a)];
             body.innerHTML = `
                 <div style="text-align:center;margin-bottom:1rem;"><h3>${labels[type] || '試合記録'}を追加</h3></div>
                 <div class="form-group"><label class="form-label">種類</label><select id="event-type" class="form-select" onchange="toggleAssistField()"><option value="goal" ${type === 'goal' ? 'selected' : ''}>得点</option><option value="yellow" ${type === 'yellow' ? 'selected' : ''}>イエローカード</option><option value="red" ${type === 'red' ? 'selected' : ''}>レッドカード</option></select></div>
-                <div class="form-group"><label class="form-label">チーム</label><select id="event-team" class="form-select"><option>${escapeHtml(m.h)}</option><option>${escapeHtml(m.a)}</option></select></div>
-                <div class="form-group"><label class="form-label">選手</label><input id="event-player" class="form-input" list="event-player-list" maxlength="40" placeholder="選手名">${playerDatalist('event-player-list', names)}</div>
-                <div class="form-group" id="assist-field"><label class="form-label">アシスト（なしでも可）</label><input id="event-assist" class="form-input" list="event-player-list" maxlength="40" placeholder="選手名"></div>
+                <div class="form-group"><label class="form-label">チーム</label><select id="event-team" class="form-select" onchange="updateMatchEventPlayerOptions('${m.id}')"><option>${escapeHtml(m.h)}</option><option>${escapeHtml(m.a)}</option></select></div>
+                <div class="form-group"><label class="form-label">選手</label><select id="event-player" class="form-select">${matchEventPlayerOptions(m.h)}</select></div>
+                <div class="form-group" id="assist-field"><label class="form-label">アシスト（なしでも可）</label><select id="event-assist" class="form-select">${matchEventPlayerOptions(m.h, 'アシストなし')}</select></div>
                 <div class="form-group"><label class="form-label">時間（任意）</label><input id="event-minute" class="form-input" type="number" inputmode="numeric" min="1" max="120" placeholder="例：67"></div>
                 <button class="btn-primary" onclick="saveMatchEvent('${m.id}')">記録して全員に同期</button>
                 <button class="btn-secondary" style="width:100%;margin-top:0.5rem;" onclick="openScoreInputSheet('${m.id}')">試合センターへ戻る</button>`;
@@ -1269,6 +1273,16 @@
         window.toggleAssistField = function() {
             const field = document.getElementById('assist-field');
             if (field) field.style.display = document.getElementById('event-type')?.value === 'goal' ? 'block' : 'none';
+        };
+
+        window.updateMatchEventPlayerOptions = function(mId) {
+            const match = state.schedule.find(item => item.id === mId);
+            const teamName = document.getElementById('event-team')?.value;
+            if (!match || !teamName) return;
+            const player = document.getElementById('event-player');
+            const assist = document.getElementById('event-assist');
+            if (player) player.innerHTML = matchEventPlayerOptions(teamName);
+            if (assist) assist.innerHTML = matchEventPlayerOptions(teamName, 'アシストなし');
         };
 
         window.saveMatchEvent = function(mId) {
