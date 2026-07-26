@@ -1620,7 +1620,7 @@
                 : `<div class="market-note" style="margin-bottom:1rem;">全試合が終了しました。シーズン記録を確認できます。</div>`;
             const activityWrap = document.getElementById('home-activity-list');
             if (activityWrap) activityWrap.innerHTML = state.activityLog.length
-                ? state.activityLog.slice(0, 6).map(item => `<div class="activity-row"><div class="ranking-main"><div class="ranking-name">${escapeHtml(item.title)}</div><div class="activity-detail">${escapeHtml(item.detail || '')}</div></div></div>`).join('')
+                ? state.activityLog.slice(0, 5).map(item => `<div class="activity-row"><div class="ranking-main"><div class="ranking-name">${escapeHtml(item.title)}</div><div class="activity-detail">${escapeHtml(item.detail || '')}</div></div></div>`).join('')
                 : `<div class="empty-state">更新履歴はまだありません</div>`;
         }
 
@@ -2472,7 +2472,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=11'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=12'));
     }
 </script>
 </html>
