@@ -330,6 +330,13 @@
         .rule-chapter-content.active { display: block; }
         .rule-article-title { font-weight: 700; color: var(--accent-gold-light); margin-top: 0.6rem; margin-bottom: 0.2rem; font-size: 0.82rem; }
         .rule-article-title:first-child { margin-top: 0; }
+        .rule-editor-card { background:var(--bg-card); border:1px solid var(--border-color); border-radius:9px; padding:0.7rem; margin-bottom:0.65rem; }
+        .rule-editor-heading { display:flex; gap:0.4rem; align-items:center; margin-bottom:0.55rem; }
+        .rule-editor-heading .form-input { margin:0; flex:1; }
+        .rule-editor-actions { display:flex; gap:0.3rem; flex-wrap:wrap; }
+        .rule-editor-actions button { width:auto; min-width:2.2rem; padding:0.45rem 0.55rem; }
+        .rule-editor-article { background:var(--bg-elevated); border:1px solid var(--border-color); border-radius:8px; padding:0.6rem; margin-top:0.5rem; }
+        .rule-version-meta { font-size:0.7rem; color:var(--text-muted); margin-bottom:0.7rem; }
 
         /* ナビゲーションバー */
         .bottom-nav {
@@ -602,7 +609,21 @@
             <div class="section-header">
                 <div class="section-title">リーグ規約</div>
             </div>
-            <div id="rules-accordion-container"></div>
+            <div class="tab-bar">
+                <button class="tab-button active" data-rules-tab="current" onclick="switchRulesView('current',this)">現行規約</button>
+                <button class="tab-button" data-rules-tab="history" onclick="switchRulesView('history',this)">改正履歴</button>
+                <button class="tab-button" data-rules-tab="manage" onclick="switchRulesView('manage',this)">規約管理</button>
+            </div>
+            <div class="stats-pane active" id="rules-pane-current">
+                <div id="rules-current-meta"></div>
+                <div id="rules-accordion-container"></div>
+            </div>
+            <div class="stats-pane" id="rules-pane-history">
+                <div id="rules-history-list"></div>
+            </div>
+            <div class="stats-pane" id="rules-pane-manage">
+                <div id="rules-management-container"></div>
+            </div>
         </section>
 
     </main>
@@ -852,6 +873,29 @@
             { chapter: '第14章 リーグ理念', articles: [{ title: '第24条（リーグ理念）', text: 'Football Nine League（FNL）は、参加者全員が公平な競技環境のもとでeFootballを楽しみ、長期的に発展するリーグを目指す。すべての参加者は勝利を目指すとともに、互いを尊重し、フェアプレーの精神をもって大会へ参加するものとする。' }] }
         ];
 
+        function createInitialRegulationState() {
+            return {
+                current: {
+                    id: 'regulation-v1',
+                    version: 1,
+                    effectiveDate: '2026-07-23',
+                    reason: 'FNL Season 1 初版',
+                    publishedAt: '2026-07-23T00:00:00+09:00',
+                    chapters: JSON.parse(JSON.stringify(FNL_REGULATIONS))
+                },
+                draft: null,
+                history: []
+            };
+        }
+
+        function ensureRegulationState() {
+            if (!state.regulations || typeof state.regulations !== 'object') state.regulations = createInitialRegulationState();
+            if (!state.regulations.current?.chapters?.length) state.regulations.current = createInitialRegulationState().current;
+            if (!Array.isArray(state.regulations.history)) state.regulations.history = [];
+            if (!Object.prototype.hasOwnProperty.call(state.regulations, 'draft')) state.regulations.draft = null;
+            return state.regulations;
+        }
+
         // アプリ状態
         const state = {
             schedule: JSON.parse(JSON.stringify(INITIAL_SCHEDULE)),
@@ -861,6 +905,7 @@
             activityLog: [],
             seasonArchive: [],
             seasonInfo: { number: 1, year: 2026 },
+            regulations: createInitialRegulationState(),
             previousSeasonSnapshot: null,
             lastMatchSnapshot: null,
             currentFilterMw: 1,
@@ -885,6 +930,7 @@
                 if (Array.isArray(parsed.activityLog)) state.activityLog = parsed.activityLog;
                 if (Array.isArray(parsed.seasonArchive)) state.seasonArchive = parsed.seasonArchive;
                 if (parsed.seasonInfo && typeof parsed.seasonInfo === 'object') state.seasonInfo = parsed.seasonInfo;
+                if (parsed.regulations && typeof parsed.regulations === 'object') state.regulations = parsed.regulations;
                 if (Object.prototype.hasOwnProperty.call(parsed, 'previousSeasonSnapshot')) state.previousSeasonSnapshot = parsed.previousSeasonSnapshot;
                 if (Object.prototype.hasOwnProperty.call(parsed, 'lastMatchSnapshot')) state.lastMatchSnapshot = parsed.lastMatchSnapshot;
                 if (parsed.updatedAt) state.lastSavedAt = parsed.updatedAt;
@@ -904,6 +950,7 @@
                     activityLog: state.activityLog,
                     seasonArchive: state.seasonArchive,
                     seasonInfo: state.seasonInfo,
+                    regulations: state.regulations,
                     previousSeasonSnapshot: state.previousSeasonSnapshot,
                     lastMatchSnapshot: state.lastMatchSnapshot,
                     updatedAt: state.lastSavedAt || new Date().toISOString()
@@ -934,6 +981,7 @@
                 if (Array.isArray(parsed.activityLog)) state.activityLog = parsed.activityLog;
                 if (Array.isArray(parsed.seasonArchive)) state.seasonArchive = parsed.seasonArchive;
                 if (parsed.seasonInfo && typeof parsed.seasonInfo === 'object') state.seasonInfo = parsed.seasonInfo;
+                if (parsed.regulations && typeof parsed.regulations === 'object') state.regulations = parsed.regulations;
                 if (Object.prototype.hasOwnProperty.call(parsed, 'previousSeasonSnapshot')) state.previousSeasonSnapshot = parsed.previousSeasonSnapshot;
                 if (Object.prototype.hasOwnProperty.call(parsed, 'lastMatchSnapshot')) state.lastMatchSnapshot = parsed.lastMatchSnapshot;
                 if (parsed.updatedAt) state.lastSavedAt = parsed.updatedAt;
@@ -959,6 +1007,7 @@
 
         loadPersistedState();
         loadStateFromUrl();
+        ensureRegulationState();
 
         function getTeamLogo(name) {
             const t = RAW_TEAMS.find(item => item.name === name);
@@ -1707,6 +1756,7 @@
             renderHomeDashboard();
             renderTeams();
             renderTransferCenter();
+            renderRules();
         }
 
         function renderStandings() {
@@ -2517,26 +2567,293 @@
             commitTransferChange();
         };
 
-        function renderRules() {
-            const wrap = document.getElementById('rules-accordion-container');
-            if (!wrap) return;
-            let html = '';
-            FNL_REGULATIONS.forEach((ch, idx) => {
-                html += `
-                    <div class="rule-chapter">
-                        <div class="rule-chapter-header" onclick="toggleRuleChapter(${idx}, this)">
-                            <span>${ch.chapter}</span>
-                            <span class="rule-arrow" style="font-size:0.65rem; color:var(--text-muted);">▼</span>
-                        </div>
-                        <div class="rule-chapter-content" id="rule-chapter-${idx}">
-                `;
-                ch.articles.forEach(art => {
-                    html += `<div class="rule-article-title">${art.title}</div><div>${art.text}</div>`;
-                });
-                html += `</div></div>`;
-            });
-            wrap.innerHTML = html;
+        function cloneRegulationData(value) {
+            return JSON.parse(JSON.stringify(value));
         }
+
+        function regulationDateToday() {
+            const now = new Date();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${now.getFullYear()}-${month}-${day}`;
+        }
+
+        function ruleHtmlToEditorText(html) {
+            const holder = document.createElement('div');
+            holder.innerHTML = html || '';
+            holder.querySelectorAll('br').forEach(node => node.replaceWith('\n'));
+            holder.querySelectorAll('li').forEach(node => {
+                node.prepend('・');
+                node.append('\n');
+            });
+            holder.querySelectorAll('.rule-article-title').forEach(node => {
+                node.prepend('\n');
+                node.append('\n');
+            });
+            return (holder.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
+        }
+
+        function ruleEditorTextToHtml(text) {
+            return escapeHtml((text || '').trim()).replace(/\n/g, '<br>');
+        }
+
+        function renderRules() {
+            const regulations = ensureRegulationState();
+            const current = regulations.current;
+            const wrap = document.getElementById('rules-accordion-container');
+            const meta = document.getElementById('rules-current-meta');
+            if (meta) meta.innerHTML = `<div class="market-note"><b>Version ${Number(current.version) || 1}</b> ・ 施行日 ${escapeHtml(current.effectiveDate || '未設定')}<br>${escapeHtml(current.reason || '')}</div>`;
+            if (wrap) {
+                let html = '';
+                current.chapters.forEach((ch, idx) => {
+                    html += `
+                        <div class="rule-chapter">
+                            <div class="rule-chapter-header" onclick="toggleRuleChapter(${idx}, this)">
+                                <span>${escapeHtml(ch.chapter)}</span>
+                                <span class="rule-arrow" style="font-size:0.65rem; color:var(--text-muted);">▼</span>
+                            </div>
+                            <div class="rule-chapter-content" id="rule-chapter-${idx}">`;
+                    (ch.articles || []).forEach(art => {
+                        html += `<div class="rule-article-title">${escapeHtml(art.title)}</div><div>${art.text}</div>`;
+                    });
+                    html += `</div></div>`;
+                });
+                wrap.innerHTML = html;
+            }
+            renderRegulationHistory();
+            renderRegulationManager();
+        }
+
+        window.switchRulesView = function(view, button) {
+            document.querySelectorAll('[id^="rules-pane-"]').forEach(pane => pane.classList.remove('active'));
+            document.querySelectorAll('[data-rules-tab]').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(`rules-pane-${view}`)?.classList.add('active');
+            button?.classList.add('active');
+            if (view === 'manage') renderRegulationManager();
+        };
+
+        function renderRegulationHistory() {
+            const wrap = document.getElementById('rules-history-list');
+            if (!wrap) return;
+            const regulations = ensureRegulationState();
+            const versions = [regulations.current, ...regulations.history];
+            wrap.innerHTML = versions.map((version, index) => `
+                <div class="card" style="margin-bottom:0.6rem;">
+                    <div class="ranking-row">
+                        <div class="ranking-main" onclick="openRegulationVersion('${escapeHtml(version.id)}')">
+                            <div class="ranking-name">Version ${Number(version.version) || 1}${index === 0 ? '（現行）' : ''}</div>
+                            <div class="ranking-team">施行日 ${escapeHtml(version.effectiveDate || '未設定')} ・ ${escapeHtml(version.reason || '改正理由なし')}</div>
+                        </div>
+                        ${index === 0 ? '' : `<button class="btn-secondary" onclick="restoreRegulationVersion('${escapeHtml(version.id)}')">復元</button>`}
+                    </div>
+                </div>`).join('');
+        }
+
+        function createDraftFromCurrent() {
+            const regulations = ensureRegulationState();
+            regulations.draft = {
+                chapters: cloneRegulationData(regulations.current.chapters),
+                effectiveDate: regulationDateToday(),
+                reason: ''
+            };
+            return regulations.draft;
+        }
+
+        function collectRegulationDraftFromForm() {
+            const container = document.getElementById('rules-draft-editor');
+            if (!container) return ensureRegulationState().draft;
+            const chapters = Array.from(container.querySelectorAll('[data-rule-chapter]')).map(chapterEl => ({
+                chapter: chapterEl.querySelector('[data-rule-chapter-title]')?.value.trim() || '',
+                articles: Array.from(chapterEl.querySelectorAll('[data-rule-article]')).map(articleEl => ({
+                    title: articleEl.querySelector('[data-rule-article-title]')?.value.trim() || '',
+                    text: ruleEditorTextToHtml(articleEl.querySelector('[data-rule-article-text]')?.value || '')
+                }))
+            }));
+            const draft = ensureRegulationState().draft || {};
+            draft.chapters = chapters;
+            draft.effectiveDate = document.getElementById('regulation-effective-date')?.value || regulationDateToday();
+            draft.reason = document.getElementById('regulation-reason')?.value.trim() || '';
+            ensureRegulationState().draft = draft;
+            return draft;
+        }
+
+        function renderRegulationManager() {
+            const wrap = document.getElementById('rules-management-container');
+            if (!wrap) return;
+            const regulations = ensureRegulationState();
+            const draft = regulations.draft;
+            if (!draft) {
+                wrap.innerHTML = `
+                    <div class="market-note" style="margin-bottom:0.7rem;">現行規約から編集用の下書きを作成します。下書きは公開するまで現行規約へ反映されません。</div>
+                    <button class="btn-primary" onclick="startRegulationDraft()">現行規約から下書きを作成</button>`;
+                return;
+            }
+            const chaptersHtml = (draft.chapters || []).map((chapter, chapterIndex) => `
+                <div class="rule-editor-card" data-rule-chapter="${chapterIndex}">
+                    <div class="rule-editor-heading">
+                        <input class="form-input" data-rule-chapter-title maxlength="80" value="${escapeHtml(chapter.chapter)}" aria-label="章の見出し">
+                        <div class="rule-editor-actions">
+                            <button class="btn-secondary" onclick="moveRegulationChapter(${chapterIndex},-1)" ${chapterIndex === 0 ? 'disabled' : ''}>↑</button>
+                            <button class="btn-secondary" onclick="moveRegulationChapter(${chapterIndex},1)" ${chapterIndex === draft.chapters.length - 1 ? 'disabled' : ''}>↓</button>
+                            <button class="btn-danger" onclick="deleteRegulationChapter(${chapterIndex})">削除</button>
+                        </div>
+                    </div>
+                    ${(chapter.articles || []).map((article, articleIndex) => `
+                        <div class="rule-editor-article" data-rule-article="${articleIndex}">
+                            <div class="form-group"><label class="form-label">条文見出し</label><input class="form-input" data-rule-article-title maxlength="100" value="${escapeHtml(article.title)}"></div>
+                            <div class="form-group"><label class="form-label">本文</label><textarea class="form-textarea" data-rule-article-text rows="5">${escapeHtml(ruleHtmlToEditorText(article.text))}</textarea></div>
+                            <div class="rule-editor-actions">
+                                <button class="btn-secondary" onclick="moveRegulationArticle(${chapterIndex},${articleIndex},-1)" ${articleIndex === 0 ? 'disabled' : ''}>上へ</button>
+                                <button class="btn-secondary" onclick="moveRegulationArticle(${chapterIndex},${articleIndex},1)" ${articleIndex === chapter.articles.length - 1 ? 'disabled' : ''}>下へ</button>
+                                <button class="btn-danger" onclick="deleteRegulationArticle(${chapterIndex},${articleIndex})">条文を削除</button>
+                            </div>
+                        </div>`).join('')}
+                    <button class="btn-secondary" style="width:100%;margin-top:0.55rem;" onclick="addRegulationArticle(${chapterIndex})">＋ 条文を追加</button>
+                </div>`).join('');
+            wrap.innerHTML = `
+                <div class="market-note" style="margin-bottom:0.7rem;">編集中の内容は「下書きを保存」で全端末に保存できます。「改正を公開」を押すまで現行規約は変わりません。</div>
+                <div class="form-group"><label class="form-label">施行日</label><input id="regulation-effective-date" class="form-input" type="date" value="${escapeHtml(draft.effectiveDate || regulationDateToday())}"></div>
+                <div class="form-group"><label class="form-label">改正理由</label><input id="regulation-reason" class="form-input" maxlength="160" value="${escapeHtml(draft.reason || '')}" placeholder="例：移籍市場の運用変更"></div>
+                <div id="rules-draft-editor">${chaptersHtml}</div>
+                <button class="btn-secondary" style="width:100%;margin-bottom:0.6rem;" onclick="addRegulationChapter()">＋ 章を追加</button>
+                <button class="btn-secondary" style="width:100%;margin-bottom:0.6rem;" onclick="saveRegulationDraft()">下書きを保存</button>
+                <button class="btn-primary" onclick="publishRegulationDraft()">改正を公開</button>
+                <button class="btn-danger" onclick="discardRegulationDraft()">下書きを破棄</button>`;
+        }
+
+        window.startRegulationDraft = function() {
+            createDraftFromCurrent();
+            renderRegulationManager();
+            persistAppState();
+        };
+
+        window.saveRegulationDraft = function(showMessage = true) {
+            const draft = collectRegulationDraftFromForm();
+            if (!draft?.chapters?.length) return alert('少なくとも1つの章が必要です。');
+            persistAppState();
+            if (showMessage) alert('下書きを保存しました。現行規約はまだ変更されていません。');
+            return true;
+        };
+
+        window.addRegulationChapter = function() {
+            const draft = collectRegulationDraftFromForm() || createDraftFromCurrent();
+            draft.chapters.push({ chapter: '新しい章', articles: [{ title: '新しい条文', text: '' }] });
+            renderRegulationManager();
+        };
+
+        window.deleteRegulationChapter = function(chapterIndex) {
+            const draft = collectRegulationDraftFromForm();
+            if (!draft || draft.chapters.length <= 1) return alert('すべての章を削除することはできません。');
+            if (!confirm('この章と含まれる条文を削除しますか？')) return;
+            draft.chapters.splice(chapterIndex, 1);
+            renderRegulationManager();
+        };
+
+        window.moveRegulationChapter = function(chapterIndex, direction) {
+            const draft = collectRegulationDraftFromForm();
+            const target = chapterIndex + direction;
+            if (!draft || target < 0 || target >= draft.chapters.length) return;
+            [draft.chapters[chapterIndex], draft.chapters[target]] = [draft.chapters[target], draft.chapters[chapterIndex]];
+            renderRegulationManager();
+        };
+
+        window.addRegulationArticle = function(chapterIndex) {
+            const draft = collectRegulationDraftFromForm();
+            if (!draft?.chapters[chapterIndex]) return;
+            draft.chapters[chapterIndex].articles.push({ title: '新しい条文', text: '' });
+            renderRegulationManager();
+        };
+
+        window.deleteRegulationArticle = function(chapterIndex, articleIndex) {
+            const draft = collectRegulationDraftFromForm();
+            const articles = draft?.chapters[chapterIndex]?.articles;
+            if (!articles) return;
+            if (!confirm('この条文を削除しますか？')) return;
+            articles.splice(articleIndex, 1);
+            renderRegulationManager();
+        };
+
+        window.moveRegulationArticle = function(chapterIndex, articleIndex, direction) {
+            const draft = collectRegulationDraftFromForm();
+            const articles = draft?.chapters[chapterIndex]?.articles;
+            const target = articleIndex + direction;
+            if (!articles || target < 0 || target >= articles.length) return;
+            [articles[articleIndex], articles[target]] = [articles[target], articles[articleIndex]];
+            renderRegulationManager();
+        };
+
+        window.discardRegulationDraft = function() {
+            if (!confirm('保存中の下書きを破棄しますか？')) return;
+            ensureRegulationState().draft = null;
+            renderRegulationManager();
+            persistAppState();
+        };
+
+        window.publishRegulationDraft = function() {
+            const regulations = ensureRegulationState();
+            const draft = collectRegulationDraftFromForm();
+            if (!draft?.chapters?.length) return alert('公開する規約がありません。');
+            if (draft.chapters.some(chapter => !chapter.chapter || !chapter.articles?.length || chapter.articles.some(article => !article.title || !article.text))) {
+                return alert('章の見出し、条文見出し、本文をすべて入力してください。');
+            }
+            if (!draft.effectiveDate || !draft.reason) return alert('施行日と改正理由を入力してください。');
+            const articleCount = draft.chapters.reduce((total, chapter) => total + chapter.articles.length, 0);
+            document.getElementById('sheet-body').innerHTML = `
+                <div style="text-align:center;margin-bottom:0.8rem;"><div class="hero-subtitle">公開前の最終確認</div><h3>Version ${Number(regulations.current.version) + 1}</h3></div>
+                <div class="market-note" style="margin-bottom:0.7rem;"><b>施行日：</b>${escapeHtml(draft.effectiveDate)}<br><b>改正理由：</b>${escapeHtml(draft.reason)}<br><b>内容：</b>${draft.chapters.length}章・${articleCount}条文</div>
+                ${(draft.chapters || []).map(chapter => `<div class="rule-chapter"><div class="rule-chapter-header" style="cursor:default;"><span>${escapeHtml(chapter.chapter)}</span></div><div class="rule-chapter-content active">${(chapter.articles || []).map(article => `<div class="rule-article-title">${escapeHtml(article.title)}</div><div>${article.text}</div>`).join('')}</div></div>`).join('')}
+                <button class="btn-primary" style="margin-top:0.8rem;" onclick="confirmPublishRegulationDraft()">この内容で改正を公開</button>`;
+            document.getElementById('sheet-overlay').classList.add('active');
+        };
+
+        window.confirmPublishRegulationDraft = function() {
+            const regulations = ensureRegulationState();
+            const draft = regulations.draft;
+            if (!draft) return;
+            if (!confirm(`Version ${Number(regulations.current.version) + 1} として規約改正を公開しますか？`)) return;
+            regulations.history.unshift(cloneRegulationData(regulations.current));
+            regulations.current = {
+                id: `regulation-${Date.now()}`,
+                version: Number(regulations.current.version) + 1,
+                effectiveDate: draft.effectiveDate,
+                reason: draft.reason,
+                publishedAt: new Date().toISOString(),
+                chapters: cloneRegulationData(draft.chapters)
+            };
+            regulations.draft = null;
+            addActivity('規約改正を公開', `Version ${regulations.current.version} ・ ${regulations.current.reason}`);
+            document.getElementById('sheet-overlay').classList.remove('active');
+            renderRules();
+            persistAppState();
+            const currentTab = document.querySelector('[data-rules-tab="current"]');
+            switchRulesView('current', currentTab);
+        };
+
+        window.openRegulationVersion = function(id) {
+            const regulations = ensureRegulationState();
+            const version = [regulations.current, ...regulations.history].find(item => item.id === id);
+            if (!version) return;
+            document.getElementById('sheet-body').innerHTML = `
+                <div style="text-align:center;margin-bottom:0.8rem;"><div class="hero-subtitle">Version ${Number(version.version) || 1}</div><h3>施行日 ${escapeHtml(version.effectiveDate || '未設定')}</h3><div class="rule-version-meta">${escapeHtml(version.reason || '')}</div></div>
+                ${(version.chapters || []).map(chapter => `<div class="rule-chapter"><div class="rule-chapter-header" style="cursor:default;"><span>${escapeHtml(chapter.chapter)}</span></div><div class="rule-chapter-content active">${(chapter.articles || []).map(article => `<div class="rule-article-title">${escapeHtml(article.title)}</div><div>${article.text}</div>`).join('')}</div></div>`).join('')}`;
+            document.getElementById('sheet-overlay').classList.add('active');
+        };
+
+        window.restoreRegulationVersion = function(id) {
+            const regulations = ensureRegulationState();
+            const version = regulations.history.find(item => item.id === id);
+            if (!version || !confirm(`Version ${version.version} の内容を新しい下書きとして復元しますか？`)) return;
+            regulations.draft = {
+                chapters: cloneRegulationData(version.chapters),
+                effectiveDate: regulationDateToday(),
+                reason: `Version ${version.version} の内容を復元`
+            };
+            document.getElementById('sheet-overlay').classList.remove('active');
+            renderRegulationManager();
+            persistAppState();
+            const manageTab = document.querySelector('[data-rules-tab="manage"]');
+            switchRulesView('manage', manageTab);
+        };
 
         window.toggleRuleChapter = function(idx, headerEl) {
             const content = document.getElementById(`rule-chapter-${idx}`);
@@ -2653,7 +2970,6 @@
 
             refreshAllViews();
             renderNews();
-            renderRules();
             renderTransferCenter();
         }
 
@@ -2668,7 +2984,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=24'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=25'));
     }
 </script>
 </html>

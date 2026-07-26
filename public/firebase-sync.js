@@ -40,6 +40,7 @@ function startListening() {
     if (Array.isArray(remote.activityLog)) state.activityLog = remote.activityLog;
     if (Array.isArray(remote.seasonArchive)) state.seasonArchive = remote.seasonArchive;
     if (remote.seasonInfo && typeof remote.seasonInfo === "object") state.seasonInfo = remote.seasonInfo;
+    if (remote.regulations && typeof remote.regulations === "object") state.regulations = remote.regulations;
     if (Object.prototype.hasOwnProperty.call(remote, "previousSeasonSnapshot")) state.previousSeasonSnapshot = remote.previousSeasonSnapshot;
     if (Object.prototype.hasOwnProperty.call(remote, "lastMatchSnapshot")) state.lastMatchSnapshot = remote.lastMatchSnapshot;
     state.lastSavedAt = remoteUpdatedAt || state.lastSavedAt;
@@ -70,6 +71,7 @@ state.dbSaveFn = async () => {
     activityLog: state.activityLog,
     seasonArchive: state.seasonArchive,
     seasonInfo: state.seasonInfo,
+    regulations: state.regulations,
     previousSeasonSnapshot: state.previousSeasonSnapshot,
     lastMatchSnapshot: state.lastMatchSnapshot,
     updatedAt,
