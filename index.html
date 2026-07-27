@@ -351,7 +351,7 @@
         .nav-item {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: var(--text-muted); text-decoration: none; font-size: 0.6rem; font-weight: 700;
-            width: 14.28%; height: 100%; gap: 2px; cursor: pointer; position: relative;
+            width: 20%; height: 100%; gap: 2px; cursor: pointer; position: relative;
         }
 
         .nav-item.active { color: var(--accent-gold); }
@@ -360,6 +360,15 @@
         }
 
         .nav-svg-icon { width: 18px; height: 18px; fill: currentColor; }
+        .more-menu-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.65rem; }
+        .more-menu-button {
+            min-width:0; padding:1rem 0.35rem; border:1px solid var(--border-color); border-radius:12px;
+            background:var(--bg-elevated); color:var(--text-main); cursor:pointer;
+            display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.45rem;
+            font:700 0.75rem 'Noto Sans JP',sans-serif;
+        }
+        .more-menu-button.active { color:var(--accent-gold-light); border-color:var(--accent-gold); background:rgba(198,166,100,0.12); }
+        .more-menu-button .nav-svg-icon { width:24px; height:24px; }
 
         .transfer-club-card { display:flex; align-items:center; gap:0.7rem; padding:0.7rem; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; margin-bottom:0.5rem; cursor:pointer; }
         .transfer-club-card img { width:36px; height:36px; object-fit:contain; border-radius:6px; }
@@ -650,17 +659,9 @@
             <svg class="nav-svg-icon" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8s0 .01 0 .01z"/></svg>
             <span>チーム</span>
         </div>
-        <div class="nav-item" data-page="transfer" onclick="navigateTo('transfer', '移籍', this)">
-            <svg class="nav-svg-icon" viewBox="0 0 24 24"><path d="M7 7h8.17l-2.59 2.59L14 11l5-5-5-5 1.41 1.41L12.83 6H7v1zm10 10H8.83l2.59-2.59L10 13l-5 5 5 5-1.41-1.41L11.17 18H17v-1z"/></svg>
-            <span>移籍</span>
-        </div>
-        <div class="nav-item" data-page="news" onclick="navigateTo('news', 'ニュース', this)">
-            <svg class="nav-svg-icon" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>
-            <span>ニュース</span>
-        </div>
-        <div class="nav-item" data-page="rules" onclick="navigateTo('rules', '規約', this)">
-            <svg class="nav-svg-icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-            <span>規約</span>
+        <div class="nav-item" data-nav-more onclick="openMoreNavigationSheet()">
+            <svg class="nav-svg-icon" viewBox="0 0 24 24"><path d="M6 10a2 2 0 110 4 2 2 0 010-4zm6 0a2 2 0 110 4 2 2 0 010-4zm6 0a2 2 0 110 4 2 2 0 010-4z"/></svg>
+            <span>その他</span>
         </div>
     </nav>
 
@@ -1067,10 +1068,34 @@
                 navEl.classList.add('active');
             } else {
                 const matchedNav = document.querySelector(`#bottom-nav-element .nav-item[data-page="${pageId}"]`);
-                if (matchedNav) matchedNav.classList.add('active');
+                if (matchedNav) {
+                    matchedNav.classList.add('active');
+                } else if (['transfer', 'news', 'rules'].includes(pageId)) {
+                    document.querySelector('#bottom-nav-element .nav-item[data-nav-more]')?.classList.add('active');
+                }
             }
             // ページ切替後に高さが変わっても、Safariのスクロール位置を確実に先頭へ戻す
             requestAnimationFrame(() => window.scrollTo(0, 0));
+        };
+
+        window.openMoreNavigationSheet = function() {
+            const activePageId = document.querySelector('.page.active')?.id?.replace('page-', '') || '';
+            const menuItems = [
+                { page: 'transfer', title: '移籍', icon: '<path d="M7 7h8.17l-2.59 2.59L14 11l5-5-5-5 1.41 1.41L12.83 6H7v1zm10 10H8.83l2.59-2.59L10 13l-5 5 5 5-1.41-1.41L11.17 18H17v-1z"/>' },
+                { page: 'news', title: 'ニュース', icon: '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/>' },
+                { page: 'rules', title: '規約', icon: '<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>' }
+            ];
+            document.getElementById('sheet-body').innerHTML = `
+                <div style="text-align:center;margin-bottom:1rem;"><h3>その他のページ</h3></div>
+                <div class="more-menu-grid">
+                    ${menuItems.map(item => `<button class="more-menu-button ${activePageId === item.page ? 'active' : ''}" onclick="navigateFromMoreMenu('${item.page}','${item.title}')"><svg class="nav-svg-icon" viewBox="0 0 24 24">${item.icon}</svg><span>${item.title}</span></button>`).join('')}
+                </div>`;
+            document.getElementById('sheet-overlay').classList.add('active');
+        };
+
+        window.navigateFromMoreMenu = function(pageId, titleText) {
+            document.getElementById('sheet-overlay').classList.remove('active');
+            navigateTo(pageId, titleText);
         };
 
         // --- LINE 共有 ---
