@@ -511,8 +511,10 @@
                 <div class="card" id="goals-ranking"></div>
                 <div class="section-header" style="margin-top:1rem;"><div class="section-title">アシストランキング</div></div>
                 <div class="card" id="assists-ranking"></div>
-                <div class="section-header" style="margin-top:1rem;"><div class="section-title">MOM／カード</div></div>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">MOMランキング</div></div>
                 <div class="card" id="mom-ranking"></div>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">カード記録</div></div>
+                <div class="card" id="card-ranking"></div>
             </div>
             <div class="stats-pane" id="stats-pane-seasons">
                 <div class="market-note" style="margin-bottom:0.7rem;">現在の順位・選手記録をシーズンの記録として保存できます。試合データは削除されません。</div>
@@ -1609,13 +1611,16 @@
             const stats = calculatePlayerStats();
             const goals = [...stats].filter(player => player.goals).sort((a,b) => b.goals - a.goals || b.assists - a.assists);
             const assists = [...stats].filter(player => player.assists).sort((a,b) => b.assists - a.assists || b.goals - a.goals);
-            const awards = [...stats].filter(player => player.motm || player.yellow || player.red).sort((a,b) => b.motm - a.motm || (b.yellow + b.red) - (a.yellow + a.red));
+            const mom = [...stats].filter(player => player.motm).sort((a,b) => b.motm - a.motm || b.appearances - a.appearances);
+            const cards = [...stats].filter(player => player.yellow || player.red).sort((a,b) => (b.yellow + b.red) - (a.yellow + a.red) || b.red - a.red);
             const goalsWrap = document.getElementById('goals-ranking');
             const assistsWrap = document.getElementById('assists-ranking');
             const momWrap = document.getElementById('mom-ranking');
+            const cardWrap = document.getElementById('card-ranking');
             if (goalsWrap) goalsWrap.innerHTML = renderRankingRows(goals, player => `${player.goals}`);
             if (assistsWrap) assistsWrap.innerHTML = renderRankingRows(assists, player => `${player.assists}`);
-            if (momWrap) momWrap.innerHTML = renderRankingRows(awards, player => `⭐${player.motm} <span style="font-size:0.72rem;color:var(--text-muted);">🟨${player.yellow} 🟥${player.red}</span>`);
+            if (momWrap) momWrap.innerHTML = renderRankingRows(mom, player => `${player.motm}`);
+            if (cardWrap) cardWrap.innerHTML = renderRankingRows(cards, player => `<span style="font-size:0.72rem;color:var(--text-muted);">黄 ${player.yellow}・赤 ${player.red}</span>`);
         }
 
         window.switchStatsView = function(view, button) {
