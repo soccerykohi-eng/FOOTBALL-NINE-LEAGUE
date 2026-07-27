@@ -1076,6 +1076,13 @@
                     document.querySelector('#bottom-nav-element .nav-item[data-nav-more]')?.classList.add('active');
                 }
             }
+            if (pageId === 'matches') {
+                const latestMw = getLatestResultMatchweek();
+                document.querySelectorAll('#matches-filter-bar .chip').forEach(chip => {
+                    chip.classList.toggle('active', Number(chip.dataset.mw) === latestMw);
+                });
+                renderMatches(latestMw);
+            }
             // ページ切替後に高さが変わっても、Safariのスクロール位置を確実に先頭へ戻す
             requestAnimationFrame(() => window.scrollTo(0, 0));
         };
@@ -1842,6 +1849,14 @@
             });
             html += `</tbody></table>`;
             card.innerHTML = html;
+        }
+
+        function getLatestResultMatchweek() {
+            const completedMatchweeks = state.schedule
+                .filter(match => match.hs !== null && match.as !== null)
+                .map(match => Number(match.mw))
+                .filter(Number.isFinite);
+            return completedMatchweeks.length ? Math.max(...completedMatchweeks) : 1;
         }
 
         function renderMatches(filter = 1) {
@@ -3025,13 +3040,15 @@
         function initAppUI() {
             removeDuplicatePages();
             const filterBar = document.getElementById('matches-filter-bar');
+            const latestResultMw = getLatestResultMatchweek();
             if (filterBar) {
                 let html = '';
                 for (let i = 1; i <= 18; i++) {
-                    html += `<button class="chip ${i === 1 ? 'active' : ''}" onclick="filterMatches(${i}, this)">MW${i}</button>`;
+                    html += `<button class="chip ${i === latestResultMw ? 'active' : ''}" data-mw="${i}" onclick="filterMatches(${i}, this)">MW${i}</button>`;
                 }
                 filterBar.innerHTML = html;
             }
+            state.currentFilterMw = latestResultMw;
 
             window.filterMatches = function(mwNum, el) {
                 if (el && el.parentElement) {
