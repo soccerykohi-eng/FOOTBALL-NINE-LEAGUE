@@ -1305,7 +1305,6 @@
         function ensureMatchDetails(match) {
             if (!match.details || typeof match.details !== 'object') match.details = {};
             if (!Array.isArray(match.details.events)) match.details.events = [];
-            if (typeof match.details.comment !== 'string') match.details.comment = '';
             return match.details;
         }
 
@@ -1403,11 +1402,7 @@
                     <div class="form-group"><label class="form-label">${escapeHtml(m.h)} 出場選手</label>${renderAppearancePicker(m.h, 'home', details.appearances?.home || [])}</div>
                     <div class="form-group"><label class="form-label">${escapeHtml(m.a)} 出場選手</label>${renderAppearancePicker(m.a, 'away', details.appearances?.away || [])}</div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">試合コメント</label>
-                    <textarea id="input-match-comment" class="form-textarea" maxlength="500" placeholder="試合の展開やメモ">${escapeHtml(details.comment || '')}</textarea>
-                </div>
-                <button class="btn-primary" onclick="saveScoreToCloud('${m.id}')">結果・MOM・コメントを保存</button>
+                <button class="btn-primary" onclick="saveScoreToCloud('${m.id}')">試合情報を保存</button>
                 <div class="section-header" style="margin-top:1rem;"><div class="section-title">試合記録</div></div>
                 <div class="card">${renderMatchEventsForSheet(m)}</div>
                 <div class="action-grid">
@@ -1432,7 +1427,6 @@
                 m.hs = parseInt(hsVal, 10);
                 m.as = parseInt(asVal, 10);
                 const details = ensureMatchDetails(m);
-                details.comment = document.getElementById('input-match-comment')?.value.trim() || '';
                 const motmName = document.getElementById('input-motm')?.value.trim() || '';
                 details.motm = motmName ? { name: motmName, team: document.getElementById('input-motm-team')?.value || '' } : null;
                 const selectedPlayers = side => [...document.querySelectorAll(`[data-appearance="${side}"]:checked`)].map(input => input.value);
@@ -1557,7 +1551,6 @@
             let text = `FNL MATCHWEEK ${m.mw}\n${m.h} ${score} ${m.a}`;
             if (goals) text += `\n得点: ${goals}`;
             if (details.motm?.name) text += `\nMOM: ${details.motm.name}`;
-            if (details.comment) text += `\n${details.comment}`;
             text += '\n#FNL #eFootball';
             executeShare(`FNL MW${m.mw} 試合結果`, text);
         };
