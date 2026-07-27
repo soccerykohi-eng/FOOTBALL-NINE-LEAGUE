@@ -507,13 +507,13 @@
             </div>
             <div class="stats-pane active" id="stats-pane-teams"><div class="card" id="standings-card"></div></div>
             <div class="stats-pane" id="stats-pane-players">
-                <div class="section-header"><div class="section-title">得点ランキング</div></div>
+                <div class="section-header"><div class="section-title">得点ランキング</div><button class="btn-secondary" onclick="openFullPlayerRanking('goals')">全順位</button></div>
                 <div class="card" id="goals-ranking"></div>
-                <div class="section-header" style="margin-top:1rem;"><div class="section-title">アシストランキング</div></div>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">アシストランキング</div><button class="btn-secondary" onclick="openFullPlayerRanking('assists')">全順位</button></div>
                 <div class="card" id="assists-ranking"></div>
-                <div class="section-header" style="margin-top:1rem;"><div class="section-title">MOMランキング</div></div>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">MOMランキング</div><button class="btn-secondary" onclick="openFullPlayerRanking('mom')">全順位</button></div>
                 <div class="card" id="mom-ranking"></div>
-                <div class="section-header" style="margin-top:1rem;"><div class="section-title">カード記録</div></div>
+                <div class="section-header" style="margin-top:1rem;"><div class="section-title">カード記録</div><button class="btn-secondary" onclick="openFullPlayerRanking('cards')">全順位</button></div>
                 <div class="card" id="card-ranking"></div>
             </div>
             <div class="stats-pane" id="stats-pane-seasons">
@@ -1597,9 +1597,9 @@
             return [...map.values()];
         }
 
-        function renderRankingRows(players, valueRenderer) {
+        function renderRankingRows(players, valueRenderer, limit = 3) {
             if (!players.length) return `<div class="empty-state">試合センターで選手記録を入力すると表示されます</div>`;
-            return players.slice(0, 5).map((player, index) => `
+            return players.slice(0, limit).map((player, index) => `
                 <div class="ranking-row">
                     <div class="ranking-position">${index + 1}</div>
                     <div class="ranking-main"><div class="ranking-name">${escapeHtml(player.name)}</div><div class="ranking-team">${escapeHtml(player.team || '所属未設定')} ・ 出場 ${player.appearances}</div></div>
@@ -1607,21 +1607,52 @@
                 </div>`).join('');
         }
 
-        function renderPlayerRankings() {
+        function getPlayerRanking(type) {
             const stats = calculatePlayerStats();
-            const goals = [...stats].filter(player => player.goals).sort((a,b) => b.goals - a.goals || b.assists - a.assists);
-            const assists = [...stats].filter(player => player.assists).sort((a,b) => b.assists - a.assists || b.goals - a.goals);
-            const mom = [...stats].filter(player => player.motm).sort((a,b) => b.motm - a.motm || b.appearances - a.appearances);
-            const cards = [...stats].filter(player => player.yellow || player.red).sort((a,b) => (b.yellow + b.red) - (a.yellow + a.red) || b.red - a.red);
-            const goalsWrap = document.getElementById('goals-ranking');
-            const assistsWrap = document.getElementById('assists-ranking');
-            const momWrap = document.getElementById('mom-ranking');
-            const cardWrap = document.getElementById('card-ranking');
-            if (goalsWrap) goalsWrap.innerHTML = renderRankingRows(goals, player => `${player.goals}`);
-            if (assistsWrap) assistsWrap.innerHTML = renderRankingRows(assists, player => `${player.assists}`);
-            if (momWrap) momWrap.innerHTML = renderRankingRows(mom, player => `${player.motm}`);
-            if (cardWrap) cardWrap.innerHTML = renderRankingRows(cards, player => `<span style="font-size:0.72rem;color:var(--text-muted);">黄 ${player.yellow}・赤 ${player.red}</span>`);
+            const rankings = {
+                goals: {
+                    title: '得点ランキング',
+                    players: [...stats].filter(player => player.goals > 0).sort((a,b) => b.goals - a.goals || b.assists - a.assists),
+                    valueRenderer: player => `${player.goals}`
+                },
+                assists: {
+                    title: 'アシストランキング',
+                    players: [...stats].filter(player => player.assists > 0).sort((a,b) => b.assists - a.assists || b.goals - a.goals),
+                    valueRenderer: player => `${player.assists}`
+                },
+                mom: {
+                    title: 'MOMランキング',
+                    players: [...stats].filter(player => player.motm > 0).sort((a,b) => b.motm - a.motm || b.appearances - a.appearances),
+                    valueRenderer: player => `${player.motm}`
+                },
+                cards: {
+                    title: 'カード記録',
+                    players: [...stats].filter(player => player.yellow > 0 || player.red > 0).sort((a,b) => (b.yellow + b.red) - (a.yellow + a.red) || b.red - a.red),
+                    valueRenderer: player => `<span style="font-size:0.72rem;color:var(--text-muted);">黄 ${player.yellow}・赤 ${player.red}</span>`
+                }
+            };
+            return rankings[type];
         }
+
+        function renderPlayerRankings() {
+            ['goals', 'assists', 'mom', 'cards'].forEach(type => {
+                const ranking = getPlayerRanking(type);
+                const wrap = document.getElementById(`${type === 'cards' ? 'card' : type}-ranking`);
+                if (wrap && ranking) wrap.innerHTML = renderRankingRows(ranking.players, ranking.valueRenderer);
+            });
+        }
+
+        window.openFullPlayerRanking = function(type) {
+            const ranking = getPlayerRanking(type);
+            if (!ranking) return;
+            document.getElementById('sheet-body').innerHTML = `
+                <div style="text-align:center;margin-bottom:1rem;">
+                    <h3>${ranking.title}</h3>
+                    <p style="font-size:0.72rem;color:var(--text-muted);">記録がある選手の全順位</p>
+                </div>
+                <div class="card">${renderRankingRows(ranking.players, ranking.valueRenderer, ranking.players.length)}</div>`;
+            document.getElementById('sheet-overlay').classList.add('active');
+        };
 
         window.switchStatsView = function(view, button) {
             document.querySelectorAll('.stats-pane').forEach(pane => pane.classList.remove('active'));
