@@ -1317,6 +1317,19 @@
             return match.details;
         }
 
+        function clearMatchDetails(match) {
+            match.details = { events: [], motm: null, appearances: { home: [], away: [] } };
+        }
+
+        function getRecordedGoalTotals(match, events = ensureMatchDetails(match).events) {
+            return events.reduce((totals, event) => {
+                if (event.type !== 'goal') return totals;
+                if (event.team === match.h) totals.home += 1;
+                if (event.team === match.a) totals.away += 1;
+                return totals;
+            }, { home: 0, away: 0 });
+        }
+
         function cloneMatch(match) {
             return JSON.parse(JSON.stringify(match));
         }
@@ -1432,9 +1445,16 @@
 
             const m = state.schedule.find(item => item.id === mId);
             if (m) {
+                const homeScore = parseInt(hsVal, 10);
+                const awayScore = parseInt(asVal, 10);
+                const totals = getRecordedGoalTotals(m);
+                if ((totals.home || totals.away) && (totals.home !== homeScore || totals.away !== awayScore)) {
+                    alert(`得点記録とスコアが一致していません。${m.h}は${totals.home}件、${m.a}は${totals.away}件の得点記録です。`);
+                    return;
+                }
                 takeMatchSnapshot(m, '試合結果の更新');
-                m.hs = parseInt(hsVal, 10);
-                m.as = parseInt(asVal, 10);
+                m.hs = homeScore;
+                m.as = awayScore;
                 const details = ensureMatchDetails(m);
                 const motmName = document.getElementById('input-motm')?.value.trim() || '';
                 details.motm = motmName ? { name: motmName, team: document.getElementById('input-motm-team')?.value || '' } : null;
@@ -1456,6 +1476,7 @@
             if (m) {
                 takeMatchSnapshot(m, 'スコアの取り消し');
                 m.hs = null; m.as = null;
+                clearMatchDetails(m);
                 addActivity('スコアを取り消し', `MW${m.mw} ${m.h} vs ${m.a}`);
                 state.standingsDirty = true;
                 refreshAllViews();
@@ -1506,12 +1527,22 @@
             const m = state.schedule.find(item => item.id === mId);
             const player = document.getElementById('event-player')?.value.trim();
             if (!m || !player) return;
-            takeMatchSnapshot(m, '試合記録の追加');
             const type = document.getElementById('event-type').value;
+            const team = document.getElementById('event-team').value;
+            if (type === 'goal' && m.hs !== null && m.as !== null) {
+                const totals = getRecordedGoalTotals(m);
+                const scoreLimit = team === m.h ? Number(m.hs) : Number(m.as);
+                const recorded = team === m.h ? totals.home : totals.away;
+                if (recorded >= scoreLimit) {
+                    alert('このチームの得点記録は、保存済みのスコアを超えて追加できません。先にスコアを修正してください。');
+                    return;
+                }
+            }
+            takeMatchSnapshot(m, '試合記録の追加');
             ensureMatchDetails(m).events.push({
                 id: `e_${Date.now()}_${Math.random().toString(16).slice(2)}`,
                 type,
-                team: document.getElementById('event-team').value,
+                team,
                 player,
                 assist: type === 'goal' ? document.getElementById('event-assist')?.value.trim() || '' : '',
                 minute: Number(document.getElementById('event-minute')?.value || 0)
@@ -1581,6 +1612,7 @@
                 return map.get(key);
             };
             state.schedule.forEach(match => {
+                if (match.hs === null || match.as === null) return;
                 const details = ensureMatchDetails(match);
                 (details.appearances?.home || []).forEach(name => { const stat = get(name, match.h); if (stat) stat.appearances += 1; });
                 (details.appearances?.away || []).forEach(name => { const stat = get(name, match.a); if (stat) stat.appearances += 1; });

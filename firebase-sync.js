@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, doc, runTransaction, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { deleteToken, getMessaging, getToken, isSupported, onMessage } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-messaging.js";
 
 const setStatus = (text, online = false) => {
@@ -26,6 +26,87 @@ let applyingRemote = false;
 let unsubscribe;
 let messaging;
 let foregroundListenerBound = false;
+let lastSyncedPayload = null;
+let pendingRemotePayload = null;
+let pendingSaveCount = 0;
+let saveQueue = Promise.resolve();
+
+const syncFields = [
+  "schedule",
+  "news",
+  "rosters",
+  "transferMarket",
+  "activityLog",
+  "seasonArchive",
+  "seasonInfo",
+  "regulations",
+  "previousSeasonSnapshot",
+  "lastMatchSnapshot"
+];
+
+const cloneData = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+const sameData = (left, right) => JSON.stringify(left) === JSON.stringify(right);
+const currentStatePayload = () => Object.fromEntries(syncFields.map(field => [field, cloneData(state[field])]));
+
+function mergeArrayById(remoteItems, localItems, baseItems, idKey) {
+  if (!Array.isArray(remoteItems) || !Array.isArray(localItems) || !Array.isArray(baseItems)) return localItems;
+  const baseById = new Map(baseItems.map(item => [item?.[idKey], item]));
+  const localById = new Map(localItems.map(item => [item?.[idKey], item]));
+  const localChanged = new Set(localItems
+    .filter(item => !sameData(item, baseById.get(item?.[idKey])))
+    .map(item => item?.[idKey]));
+  const deleted = new Set(baseItems
+    .filter(item => item?.[idKey] && !localById.has(item[idKey]))
+    .map(item => item[idKey]));
+  const remoteIds = new Set(remoteItems.map(item => item?.[idKey]));
+  const additions = localItems.filter(item => item?.[idKey] && !remoteIds.has(item[idKey]));
+
+  return [
+    ...additions,
+    ...remoteItems
+      .filter(item => !deleted.has(item?.[idKey]))
+      .map(item => localChanged.has(item?.[idKey]) ? localById.get(item[idKey]) : item)
+  ];
+}
+
+function mergeObjectByKey(remoteValue, localValue, baseValue) {
+  if (!remoteValue || !localValue || !baseValue || typeof remoteValue !== "object" || typeof localValue !== "object" || typeof baseValue !== "object") {
+    return localValue;
+  }
+  const keys = new Set([...Object.keys(remoteValue), ...Object.keys(localValue), ...Object.keys(baseValue)]);
+  const merged = {};
+  keys.forEach(key => {
+    const localHasKey = Object.prototype.hasOwnProperty.call(localValue, key);
+    const baseHasKey = Object.prototype.hasOwnProperty.call(baseValue, key);
+    const remoteHasKey = Object.prototype.hasOwnProperty.call(remoteValue, key);
+    const localChanged = localHasKey !== baseHasKey || !sameData(localValue[key], baseValue[key]);
+    if (localChanged && localHasKey) merged[key] = localValue[key];
+    else if (localChanged && !localHasKey) return;
+    else if (remoteHasKey) merged[key] = remoteValue[key];
+  });
+  return merged;
+}
+
+function mergeActivityLog(remoteItems, localItems) {
+  const seen = new Set();
+  return [...(Array.isArray(localItems) ? localItems : []), ...(Array.isArray(remoteItems) ? remoteItems : [])]
+    .filter(item => {
+      const key = JSON.stringify(item);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 100);
+}
+
+function mergeChangedField(field, remoteValue, localValue, baseValue) {
+  if (field === "schedule") return mergeArrayById(remoteValue, localValue, baseValue, "id");
+  if (field === "news") return mergeArrayById(remoteValue, localValue, baseValue, "id");
+  if (field === "seasonArchive") return mergeArrayById(remoteValue, localValue, baseValue, "id");
+  if (field === "rosters") return mergeObjectByKey(remoteValue, localValue, baseValue);
+  if (field === "activityLog") return mergeActivityLog(remoteValue, localValue);
+  return localValue;
+}
 
 const setNotificationUI = (text, enabled = false, unavailable = false) => {
   const button = document.getElementById("news-notification-button");
@@ -172,63 +253,81 @@ const initializeNewsNotifications = async () => {
   }
 };
 
+function applyRemoteState(remote) {
+  applyingRemote = true;
+  if (Array.isArray(remote.schedule)) state.schedule = remote.schedule;
+  if (Array.isArray(remote.news)) state.news = remote.news;
+  if (remote.rosters && typeof remote.rosters === "object") state.rosters = remote.rosters;
+  if (remote.transferMarket && typeof remote.transferMarket === "object") state.transferMarket = remote.transferMarket;
+  if (Array.isArray(remote.activityLog)) state.activityLog = remote.activityLog;
+  if (Array.isArray(remote.seasonArchive)) state.seasonArchive = remote.seasonArchive;
+  if (remote.seasonInfo && typeof remote.seasonInfo === "object") state.seasonInfo = remote.seasonInfo;
+  if (remote.regulations && typeof remote.regulations === "object") state.regulations = remote.regulations;
+  if (Object.prototype.hasOwnProperty.call(remote, "previousSeasonSnapshot")) state.previousSeasonSnapshot = remote.previousSeasonSnapshot;
+  if (Object.prototype.hasOwnProperty.call(remote, "lastMatchSnapshot")) state.lastMatchSnapshot = remote.lastMatchSnapshot;
+  state.lastSavedAt = remote.updatedAt || state.lastSavedAt;
+  state.standingsDirty = true;
+  lastSyncedPayload = currentStatePayload();
+  saveStateToStorage();
+  refreshAllViews();
+  renderNews();
+  renderTransferCenter?.();
+  applyingRemote = false;
+  setStatus("クラウド同期済み", true);
+}
+
 function startListening() {
   unsubscribe?.();
   unsubscribe = onSnapshot(leagueRef, (snapshot) => {
     if (!snapshot.exists()) {
+      lastSyncedPayload = currentStatePayload();
       setStatus("クラウド同期準備完了", true);
       return;
     }
     const remote = snapshot.data();
-    const remoteUpdatedAt = remote.updatedAt || "";
-    if (state.lastSavedAt && remoteUpdatedAt && remoteUpdatedAt < state.lastSavedAt) return;
-
-    applyingRemote = true;
-    if (Array.isArray(remote.schedule)) state.schedule = remote.schedule;
-    if (Array.isArray(remote.news)) state.news = remote.news;
-    if (remote.rosters && typeof remote.rosters === "object") state.rosters = remote.rosters;
-    if (remote.transferMarket && typeof remote.transferMarket === "object") state.transferMarket = remote.transferMarket;
-    if (Array.isArray(remote.activityLog)) state.activityLog = remote.activityLog;
-    if (Array.isArray(remote.seasonArchive)) state.seasonArchive = remote.seasonArchive;
-    if (remote.seasonInfo && typeof remote.seasonInfo === "object") state.seasonInfo = remote.seasonInfo;
-    if (remote.regulations && typeof remote.regulations === "object") state.regulations = remote.regulations;
-    if (Object.prototype.hasOwnProperty.call(remote, "previousSeasonSnapshot")) state.previousSeasonSnapshot = remote.previousSeasonSnapshot;
-    if (Object.prototype.hasOwnProperty.call(remote, "lastMatchSnapshot")) state.lastMatchSnapshot = remote.lastMatchSnapshot;
-    state.lastSavedAt = remoteUpdatedAt || state.lastSavedAt;
-    state.standingsDirty = true;
-    saveStateToStorage();
-    refreshAllViews();
-    renderNews();
-    renderTransferCenter?.();
-    applyingRemote = false;
-    setStatus("クラウド同期済み", true);
+    pendingRemotePayload = remote;
+    if (pendingSaveCount) return;
+    applyRemoteState(remote);
   }, (error) => {
     console.error("Firestore listener failed", error);
     setStatus("同期エラー", false);
   });
 }
 
-state.dbSaveFn = async () => {
-  if (applyingRemote) return;
-  const updatedAt = new Date().toISOString();
-  state.lastSavedAt = updatedAt;
-  saveStateToStorage();
-  if (!auth.currentUser) await signInAnonymously(auth);
-  await setDoc(leagueRef, {
-    schedule: state.schedule,
-    news: state.news,
-    rosters: state.rosters,
-    transferMarket: state.transferMarket,
-    activityLog: state.activityLog,
-    seasonArchive: state.seasonArchive,
-    seasonInfo: state.seasonInfo,
-    regulations: state.regulations,
-    previousSeasonSnapshot: state.previousSeasonSnapshot,
-    lastMatchSnapshot: state.lastMatchSnapshot,
-    updatedAt,
-    serverUpdatedAt: serverTimestamp()
-  }, { merge: true });
-  setStatus("クラウド同期済み", true);
+state.dbSaveFn = () => {
+  if (applyingRemote) return Promise.resolve();
+  const localPayload = currentStatePayload();
+  const basePayload = lastSyncedPayload ? cloneData(lastSyncedPayload) : null;
+  pendingSaveCount += 1;
+  const save = async () => {
+    if (!auth.currentUser) await signInAnonymously(auth);
+    const changedFields = basePayload
+      ? syncFields.filter(field => !sameData(localPayload[field], basePayload[field]))
+      : syncFields;
+    if (!changedFields.length) return;
+    const updatedAt = new Date().toISOString();
+    state.lastSavedAt = updatedAt;
+    await runTransaction(db, async transaction => {
+      const snapshot = await transaction.get(leagueRef);
+      const remote = snapshot.exists() ? snapshot.data() : {};
+      const patch = Object.fromEntries(changedFields.map(field => [
+        field,
+        mergeChangedField(field, remote[field], localPayload[field], basePayload?.[field])
+      ]));
+      transaction.set(leagueRef, { ...patch, updatedAt, serverUpdatedAt: serverTimestamp() }, { merge: true });
+    });
+    setStatus("クラウド同期済み", true);
+  };
+  const queuedSave = saveQueue.then(save, save);
+  saveQueue = queuedSave.catch(() => {});
+  return queuedSave.finally(() => {
+    pendingSaveCount -= 1;
+    if (!pendingSaveCount && pendingRemotePayload) {
+      const remote = pendingRemotePayload;
+      pendingRemotePayload = null;
+      applyRemoteState(remote);
+    }
+  });
 };
 
 onAuthStateChanged(auth, (user) => {
