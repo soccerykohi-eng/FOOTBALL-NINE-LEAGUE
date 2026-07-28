@@ -443,6 +443,16 @@
         .roster-progress { height:3px; overflow:hidden; margin-top:0.65rem; border-radius:999px; background:rgba(255,255,255,0.08); }
         .roster-progress span { display:block; height:100%; border-radius:inherit; background:var(--accent-gold); }
         .roster-team-action { display:flex; justify-content:space-between; margin-top:0.52rem; color:var(--accent-gold-light); font-size:0.62rem; font-weight:800; }
+        .roster-sheet-summary { display:flex; justify-content:center; gap:0.3rem; flex-wrap:wrap; margin-top:0.5rem; }
+        .roster-sheet-summary span { padding:0.22rem 0.42rem; border-radius:999px; background:rgba(255,255,255,0.05); color:var(--text-muted); font-size:0.62rem; font-weight:700; }
+        .roster-player-list { display:grid; gap:0.45rem; margin-top:0.8rem; }
+        .roster-player-card { display:flex; align-items:center; gap:0.55rem; padding:0.62rem; border:1px solid var(--border-color); border-radius:9px; background:var(--bg-elevated); }
+        .roster-player-index { flex:0 0 auto; width:21px; color:var(--accent-gold); font:700 1.08rem/1 'Teko',sans-serif; text-align:center; }
+        .roster-player-info { min-width:0; flex:1; }
+        .roster-player-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:0.82rem; font-weight:900; }
+        .roster-player-tags { display:flex; gap:0.25rem; flex-wrap:wrap; margin-top:0.28rem; }
+        .roster-player-tags span { padding:0.14rem 0.32rem; border-radius:4px; color:var(--text-muted); background:rgba(255,255,255,0.05); font-size:0.57rem; font-weight:700; }
+        .roster-player-tags .position { color:var(--accent-gold-light); background:rgba(198,166,100,0.12); }
         .ranking-row,.event-row,.activity-row { display:flex; align-items:center; gap:0.55rem; padding:0.65rem 0; border-bottom:1px solid var(--border-color); }
         .ranking-row:last-child,.event-row:last-child,.activity-row:last-child { border-bottom:0; }
         .ranking-position { width:24px; color:var(--accent-gold); font:700 1.15rem 'Teko',sans-serif; text-align:center; }
@@ -2242,8 +2252,8 @@
             const canEditRoster = getAutomaticTransferPeriod().key === 'preseason';
             const counts = getRosterCounts(teamId);
             const players = getRoster(teamId).filter(player => player.status !== 'released' && player.status !== 'transferred');
-            const playerRows = players.length ? players.map(player => `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.55rem 0;border-bottom:1px solid var(--border-color);"><div style="flex:1;"><b>${escapeHtml(player.name)}</b><div style="font-size:0.68rem;color:var(--text-muted);">${escapeHtml(player.position || 'ポジション未登録')} ・ ${player.cardType === 'special' ? '特別カード' : 'ノーマルカード'}</div></div><button class="btn-secondary" onclick="removePlayer('${teamId}','${player.id}')" ${canEditRoster ? '' : 'disabled'}>削除</button></div>`).join('') : `<div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.8rem;">登録選手はまだいません</div>`;
-            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:0.8rem;"><img src="${team.logo}" class="team-logo-lg" style="width:52px;height:52px;"><h3>${escapeHtml(team.name)}</h3><div style="font-size:0.72rem;color:var(--text-muted);">登録 ${counts.total}/25 ・ 特別 ${counts.special}/18 ・ ノーマル ${counts.normal}</div></div>${canEditRoster ? '' : '<div class="market-note" style="margin-top:0.7rem;">名簿の追加・削除はシーズン準備期間のみ利用できます。</div>'}${playerRows}<button class="btn-primary" style="margin-top:0.9rem;" onclick="openAddPlayerSheet('${teamId}')" ${canEditRoster ? '' : 'disabled'}>＋ このチームに選手を登録</button>`;
+            const playerRows = players.length ? `<div class="roster-player-list">${players.map((player, index) => `<div class="roster-player-card"><div class="roster-player-index">${index + 1}</div><div class="roster-player-info"><div class="roster-player-name">${escapeHtml(player.name)}</div><div class="roster-player-tags"><span class="position">${escapeHtml(player.position || '未登録')}</span><span>${player.cardType === 'special' ? '特別カード' : 'ノーマルカード'}</span></div></div><button class="btn-secondary" onclick="removePlayer('${teamId}','${player.id}')" ${canEditRoster ? '' : 'disabled'}>削除</button></div>`).join('')}</div>` : `<div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.8rem;">登録選手はまだいません</div>`;
+            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:0.8rem;"><img src="${team.logo}" class="team-logo-lg" style="width:52px;height:52px;"><h3>${escapeHtml(team.name)}</h3><div class="roster-sheet-summary"><span>登録 ${counts.total}/25</span><span>特別 ${counts.special}/18</span><span>ノーマル ${counts.normal}</span></div></div>${canEditRoster ? '' : '<div class="market-note" style="margin-top:0.7rem;">名簿の追加・削除はシーズン準備期間のみ利用できます。</div>'}<div class="transfer-step-title">選手一覧</div>${playerRows}<button class="btn-primary" style="margin-top:0.9rem;" onclick="openAddPlayerSheet('${teamId}')" ${canEditRoster ? '' : 'disabled'}>＋ このチームに選手を登録</button>`;
             document.getElementById('sheet-overlay').classList.add('active');
         };
 
