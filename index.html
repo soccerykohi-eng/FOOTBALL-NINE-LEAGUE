@@ -421,6 +421,14 @@
         .transfer-status-title { margin-top:0.1rem; color:var(--accent-gold-light); font-size:0.86rem; font-weight:900; }
         .transfer-status-copy { color:var(--text-muted); font-size:0.67rem; line-height:1.45; }
         .transfer-step-title { margin:1rem 0 0.45rem; color:var(--text-muted); font-size:0.64rem; font-weight:800; letter-spacing:0.06em; }
+        .market-step { margin-top:0.65rem; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-card); overflow:hidden; }
+        .market-step > summary { list-style:none; display:flex; align-items:center; justify-content:space-between; gap:0.6rem; padding:0.75rem; cursor:pointer; font-size:0.8rem; font-weight:800; }
+        .market-step > summary::-webkit-details-marker { display:none; }
+        .market-step > summary::after { content:'▼'; color:var(--text-muted); font-size:0.64rem; transition:transform 0.16s ease; }
+        .market-step[open] > summary { color:var(--accent-gold-light); border-bottom:1px solid var(--border-color); background:var(--bg-elevated); }
+        .market-step[open] > summary::after { transform:rotate(180deg); }
+        .market-step-copy { display:block; margin-top:0.15rem; color:var(--text-muted); font-size:0.64rem; font-weight:500; line-height:1.4; }
+        .market-step-body { padding:0.7rem; }
         .ranking-row,.event-row,.activity-row { display:flex; align-items:center; gap:0.55rem; padding:0.65rem 0; border-bottom:1px solid var(--border-color); }
         .ranking-row:last-child,.event-row:last-child,.activity-row:last-child { border-bottom:0; }
         .ranking-position { width:24px; color:var(--accent-gold); font:700 1.15rem 'Teko',sans-serif; text-align:center; }
@@ -597,15 +605,22 @@
             <div id="roster-club-list"></div>
             </div>
             <div class="transfer-pane" id="transfer-pane-midseason">
-            <div class="transfer-step-title">1. 放出する選手を選ぶ</div>
-            <div id="market-club-list"></div>
-            <div class="section-header" style="margin-top:1rem;"><div class="section-title">2. 市場の選手</div><button id="add-market-player-button" class="btn-secondary" onclick="openMarketPlayerSheet()">移籍希望を登録</button></div>
-            <div id="available-player-list"></div>
-            <div class="section-header" style="margin-top:1rem;"><div class="section-title">3. 希望を提出</div><button id="midseason-draft-button" class="btn-secondary" onclick="openDraftBoardSheet()">希望を提出</button></div>
-            <div id="draft-club-list"></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.7rem;"><button id="midseason-run-draft-button" class="btn-primary" onclick="runAutomaticDraft()">ドラフトを確定</button><button id="undo-transfer-button" class="btn-secondary" onclick="undoLastTransferChange()">直前を戻す</button></div>
-            <div class="transfer-step-title">確定結果</div>
-            <div id="draft-results-list"></div>
+            <details class="market-step" open>
+                <summary><span>1. 放出する選手を選ぶ<span class="market-step-copy">放出人数と同じ数だけ指名枠ができます</span></span></summary>
+                <div class="market-step-body" id="market-club-list"></div>
+            </details>
+            <details class="market-step">
+                <summary><span>2. 市場の選手を見る<span class="market-step-copy">新しく移籍希望の選手を追加できます</span></span></summary>
+                <div class="market-step-body"><div style="display:flex;justify-content:flex-end;margin-bottom:0.55rem;"><button id="add-market-player-button" class="btn-secondary" onclick="openMarketPlayerSheet()">移籍希望を登録</button></div><div id="available-player-list"></div></div>
+            </details>
+            <details class="market-step">
+                <summary><span>3. 希望を提出して確定<span class="market-step-copy">希望を提出した後にドラフトを確定します</span></span></summary>
+                <div class="market-step-body"><div style="display:flex;justify-content:flex-end;margin-bottom:0.55rem;"><button id="midseason-draft-button" class="btn-secondary" onclick="openDraftBoardSheet()">希望を提出</button></div><div id="draft-club-list"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.7rem;"><button id="midseason-run-draft-button" class="btn-primary" onclick="runAutomaticDraft()">ドラフトを確定</button><button id="undo-transfer-button" class="btn-secondary" onclick="undoLastTransferChange()">直前を戻す</button></div></div>
+            </details>
+            <details class="market-step">
+                <summary><span>確定結果</span></summary>
+                <div class="market-step-body" id="draft-results-list"></div>
+            </details>
             </div>
             <div class="transfer-pane" id="transfer-pane-trades">
             <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">トレード可能選手</div><button id="trade-listing-button" class="btn-secondary" onclick="openTradeListingSheet()">＋ トレード可能選手</button></div>
@@ -615,11 +630,14 @@
             </div>
             <div class="transfer-pane" id="transfer-pane-endseason">
             <div id="end-market-status"></div>
-            <div class="section-header" style="margin-top:1rem;"><div class="section-title">1. プロテクト選手</div><button id="protection-register-button" class="btn-secondary" onclick="openProtectionSheet()">プロテクト登録</button></div>
-            <div id="protection-list"></div>
-            <div class="section-header" style="margin-top:1rem;"><div class="section-title">2. シーズン終了ドラフト</div><button id="end-draft-pick-button" class="btn-secondary" onclick="openRoundOnePickSheet()">1巡目を提出</button></div>
-            <div id="end-draft-list"></div>
-            <div id="end-draft-actions" style="margin-top:0.7rem;"></div>
+            <details class="market-step" open>
+                <summary><span>1. プロテクト選手<span class="market-step-copy">10試合以上出場した選手から選択します</span></span></summary>
+                <div class="market-step-body"><div style="display:flex;justify-content:flex-end;margin-bottom:0.55rem;"><button id="protection-register-button" class="btn-secondary" onclick="openProtectionSheet()">プロテクト登録</button></div><div id="protection-list"></div></div>
+            </details>
+            <details class="market-step">
+                <summary><span>2. シーズン終了ドラフト<span class="market-step-copy">1巡目は非公開提出、2巡目以降は順番に指名します</span></span></summary>
+                <div class="market-step-body"><div style="display:flex;justify-content:flex-end;margin-bottom:0.55rem;"><button id="end-draft-pick-button" class="btn-secondary" onclick="openRoundOnePickSheet()">1巡目を提出</button></div><div id="end-draft-list"></div><div id="end-draft-actions" style="margin-top:0.7rem;"></div></div>
+            </details>
             </div>
             <div class="transfer-pane" id="transfer-pane-history">
             <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">移籍履歴</div></div>
