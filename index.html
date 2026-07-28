@@ -416,12 +416,18 @@
         .sheet-content {
             background: var(--bg-card); width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px;
             padding: 1.2rem; transform: translateY(100%); transition: transform 0.2s ease-out;
-            border-top: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto;
+            border-top: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; position: relative;
             -webkit-overflow-scrolling: touch;
         }
 
         .sheet-overlay.active .sheet-content { transform: translateY(0); }
         .sheet-bar { width: 32px; height: 4px; background: var(--border-color); border-radius: 2px; margin: 0 auto 0.8rem; }
+        .sheet-close-button {
+            position: absolute; top: 0.55rem; right: 0.7rem; border: 1px solid var(--border-color);
+            color: var(--text-muted); background: var(--bg-elevated); border-radius: 999px; padding: 0.3rem 0.65rem;
+            font-family: inherit; font-size: 0.72rem; font-weight: 700; cursor: pointer;
+        }
+        .sheet-close-button:active { transform: scale(0.96); color: var(--text-main); }
 
         .btn-primary { background: var(--accent-gold); color: #000; border: none; width: 100%; padding: 0.75rem; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
         .btn-secondary { background: rgba(198, 166, 100, 0.15); color: var(--accent-gold-light); border: 1px solid rgba(198, 166, 100, 0.3); padding: 0.35rem 0.7rem; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer; }
@@ -670,6 +676,7 @@
     <!-- モーダルシート -->
     <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet(event)">
         <div class="sheet-content">
+            <button type="button" class="sheet-close-button" onclick="dismissSheet()" aria-label="閉じる">閉じる</button>
             <div class="sheet-bar"></div>
             <div id="sheet-body"></div>
         </div>
@@ -3057,6 +3064,10 @@
 
         window.closeSheet = function(e) {
             if (e.target.id === 'sheet-overlay') document.getElementById('sheet-overlay').classList.remove('active');
+        };
+
+        window.dismissSheet = function() {
+            document.getElementById('sheet-overlay').classList.remove('active');
         };
 
         // ブラウザの復元処理などで同じページが重複した場合は、最初の表示だけを残す
