@@ -1107,6 +1107,10 @@
                 renderMatches(latestMw);
                 focusMatchweekChip(latestMw, 'auto');
             }
+            if (pageId === 'rules') {
+                renderRules();
+                switchRulesView('current', document.querySelector('[data-rules-tab="current"]'));
+            }
             // ページ切替後に高さが変わっても、Safariのスクロール位置を確実に先頭へ戻す
             requestAnimationFrame(() => window.scrollTo(0, 0));
         };
