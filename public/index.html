@@ -340,6 +340,13 @@
         .rule-chapter-content.active { display: block; }
         .rule-article-title { font-weight: 700; color: var(--accent-gold-light); margin-top: 0.6rem; margin-bottom: 0.2rem; font-size: 0.82rem; }
         .rule-article-title:first-child { margin-top: 0; }
+        .rule-filter-bar { display:flex; gap:0.35rem; overflow-x:auto; margin:0.65rem 0; padding-bottom:0.1rem; scrollbar-width:none; }
+        .rule-filter-bar::-webkit-scrollbar { display:none; }
+        .rule-filter-button { flex:0 0 auto; border:1px solid var(--border-color); border-radius:999px; padding:0.34rem 0.62rem; background:var(--bg-card); color:var(--text-muted); font:700 0.68rem 'Noto Sans JP',sans-serif; cursor:pointer; white-space:nowrap; }
+        .rule-filter-button.active { color:var(--accent-gold-light); border-color:var(--accent-gold); background:rgba(198,166,100,0.14); }
+        .rule-chapter-header .rule-arrow { transition:transform 0.16s ease; }
+        .rule-chapter-header.open .rule-arrow { transform:rotate(180deg); }
+        .rule-chapter-count { margin-left:auto; margin-right:0.45rem; color:var(--text-muted); font-size:0.64rem; font-weight:700; }
         .rule-editor-card { background:var(--bg-card); border:1px solid var(--border-color); border-radius:9px; padding:0.7rem; margin-bottom:0.65rem; }
         .rule-editor-heading { display:flex; gap:0.4rem; align-items:center; margin-bottom:0.55rem; }
         .rule-editor-heading .form-input { margin:0; flex:1; }
@@ -647,6 +654,7 @@
             </div>
             <div class="stats-pane active" id="rules-pane-current">
                 <div id="rules-current-meta"></div>
+                <div class="rule-filter-bar" id="rules-filter-bar"></div>
                 <div id="rules-accordion-container"></div>
             </div>
             <div class="stats-pane" id="rules-pane-history">
@@ -2756,19 +2764,35 @@
             return escapeHtml((text || '').trim()).replace(/\n/g, '<br>');
         }
 
+        function getRuleChapterCategory(chapterName = '') {
+            if (/選手登録|移籍/.test(chapterName)) return 'transfer';
+            if (/試合|リーグ戦|カップ戦/.test(chapterName)) return 'matches';
+            if (/表彰|メディア|運営|懲戒|改正/.test(chapterName)) return 'operation';
+            return 'basic';
+        }
+
         function renderRules() {
             const regulations = ensureRegulationState();
             const current = regulations.current;
             const wrap = document.getElementById('rules-accordion-container');
             const meta = document.getElementById('rules-current-meta');
+            const filterBar = document.getElementById('rules-filter-bar');
+            const category = state.ruleCategory || 'basic';
             if (meta) meta.innerHTML = `<div class="market-note"><b>Version ${Number(current.version) || 1}</b> ・ 施行日 ${escapeHtml(current.effectiveDate || '未設定')}<br>${escapeHtml(current.reason || '')}</div>`;
+            if (filterBar) {
+                const filters = [['basic', '基本'], ['matches', '試合'], ['transfer', '移籍'], ['operation', '運営'], ['all', 'すべて']];
+                filterBar.innerHTML = filters.map(([key, label]) => `<button class="rule-filter-button ${category === key ? 'active' : ''}" onclick="filterRules('${key}')">${label}</button>`).join('');
+            }
             if (wrap) {
                 let html = '';
                 current.chapters.forEach((ch, idx) => {
+                    if (category !== 'all' && getRuleChapterCategory(ch.chapter) !== category) return;
+                    const articleCount = (ch.articles || []).length;
                     html += `
                         <div class="rule-chapter">
                             <div class="rule-chapter-header" onclick="toggleRuleChapter(${idx}, this)">
                                 <span>${escapeHtml(ch.chapter)}</span>
+                                <span class="rule-chapter-count">${articleCount}条</span>
                                 <span class="rule-arrow" style="font-size:0.65rem; color:var(--text-muted);">▼</span>
                             </div>
                             <div class="rule-chapter-content" id="rule-chapter-${idx}">`;
@@ -2782,6 +2806,11 @@
             renderRegulationHistory();
             renderRegulationManager();
         }
+
+        window.filterRules = function(category) {
+            state.ruleCategory = category;
+            renderRules();
+        };
 
         window.switchRulesView = function(view, button) {
             document.querySelectorAll('[id^="rules-pane-"]').forEach(pane => pane.classList.remove('active'));
@@ -3018,7 +3047,10 @@
             const content = document.getElementById(`rule-chapter-${idx}`);
             if (content) {
                 const isActive = content.classList.contains('active');
+                document.querySelectorAll('[id^="rule-chapter-"]').forEach(item => item.classList.remove('active'));
+                document.querySelectorAll('.rule-chapter-header.open').forEach(item => item.classList.remove('open'));
                 content.classList.toggle('active', !isActive);
+                headerEl?.classList.toggle('open', !isActive);
             }
         };
 
