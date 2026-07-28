@@ -397,6 +397,8 @@
         .tab-bar { display:grid; grid-template-columns:repeat(3,1fr); gap:0.35rem; padding:0.25rem; margin-bottom:0.75rem; background:var(--bg-card); border:1px solid var(--border-color); border-radius:9px; }
         .tab-button { border:0; border-radius:7px; padding:0.55rem 0.35rem; background:transparent; color:var(--text-muted); font:700 0.72rem 'Noto Sans JP',sans-serif; cursor:pointer; }
         .tab-button.active { color:#111318; background:var(--accent-gold); }
+        .ranking-tab-bar { grid-template-columns:repeat(4,1fr); margin-bottom:0.65rem; }
+        .ranking-tab-bar .tab-button { padding-inline:0.2rem; font-size:0.67rem; }
         .stats-pane { display:none; }
         .stats-pane.active { display:block; }
         .transfer-tab-bar { display:flex; gap:0.35rem; overflow-x:auto; padding:0.25rem; margin:0.8rem 0; background:var(--bg-card); border:1px solid var(--border-color); border-radius:9px; scrollbar-width:none; }
@@ -518,14 +520,14 @@
             </div>
             <div class="stats-pane active" id="stats-pane-teams"><div class="card" id="standings-card"></div></div>
             <div class="stats-pane" id="stats-pane-players">
-                <div class="section-header"><div class="section-title">得点ランキング</div><button class="btn-secondary" onclick="openFullPlayerRanking('goals')">全順位</button></div>
-                <div class="card" id="goals-ranking"></div>
-                <div class="section-header" style="margin-top:1rem;"><div class="section-title">アシストランキング</div><button class="btn-secondary" onclick="openFullPlayerRanking('assists')">全順位</button></div>
-                <div class="card" id="assists-ranking"></div>
-                <div class="section-header" style="margin-top:1rem;"><div class="section-title">MOMランキング</div><button class="btn-secondary" onclick="openFullPlayerRanking('mom')">全順位</button></div>
-                <div class="card" id="mom-ranking"></div>
-                <div class="section-header" style="margin-top:1rem;"><div class="section-title">カード記録</div><button class="btn-secondary" onclick="openFullPlayerRanking('cards')">全順位</button></div>
-                <div class="card" id="card-ranking"></div>
+                <div class="tab-bar ranking-tab-bar">
+                    <button class="tab-button active" data-player-ranking-tab="goals" onclick="switchPlayerRanking('goals',this)">得点</button>
+                    <button class="tab-button" data-player-ranking-tab="assists" onclick="switchPlayerRanking('assists',this)">アシスト</button>
+                    <button class="tab-button" data-player-ranking-tab="mom" onclick="switchPlayerRanking('mom',this)">MOM</button>
+                    <button class="tab-button" data-player-ranking-tab="cards" onclick="switchPlayerRanking('cards',this)">カード</button>
+                </div>
+                <div class="section-header"><div class="section-title" id="player-ranking-title">得点ランキング</div><button class="btn-secondary" id="player-ranking-full-button" onclick="openFullPlayerRanking('goals')">全順位</button></div>
+                <div class="card" id="player-ranking"></div>
             </div>
             <div class="stats-pane" id="stats-pane-seasons">
                 <div class="market-note" style="margin-bottom:0.7rem;">現在の順位・選手記録をシーズンの記録として保存できます。試合データは削除されません。</div>
@@ -1691,12 +1693,21 @@
         }
 
         function renderPlayerRankings() {
-            ['goals', 'assists', 'mom', 'cards'].forEach(type => {
-                const ranking = getPlayerRanking(type);
-                const wrap = document.getElementById(`${type === 'cards' ? 'card' : type}-ranking`);
-                if (wrap && ranking) wrap.innerHTML = renderRankingRows(ranking.players, ranking.valueRenderer);
-            });
+            const type = state.playerRankingType || 'goals';
+            const ranking = getPlayerRanking(type);
+            const wrap = document.getElementById('player-ranking');
+            const title = document.getElementById('player-ranking-title');
+            const fullButton = document.getElementById('player-ranking-full-button');
+            if (wrap && ranking) wrap.innerHTML = renderRankingRows(ranking.players, ranking.valueRenderer);
+            if (title && ranking) title.textContent = ranking.title;
+            if (fullButton) fullButton.setAttribute('onclick', `openFullPlayerRanking('${type}')`);
         }
+
+        window.switchPlayerRanking = function(type, button) {
+            state.playerRankingType = type;
+            document.querySelectorAll('[data-player-ranking-tab]').forEach(tab => tab.classList.toggle('active', tab.dataset.playerRankingTab === type));
+            renderPlayerRankings();
+        };
 
         window.openFullPlayerRanking = function(type) {
             const ranking = getPlayerRanking(type);
