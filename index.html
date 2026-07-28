@@ -1091,6 +1091,7 @@
                     chip.classList.toggle('active', Number(chip.dataset.mw) === latestMw);
                 });
                 renderMatches(latestMw);
+                focusMatchweekChip(latestMw, 'auto');
             }
             // ページ切替後に高さが変わっても、Safariのスクロール位置を確実に先頭へ戻す
             requestAnimationFrame(() => window.scrollTo(0, 0));
@@ -1902,6 +1903,14 @@
                 .map(match => Number(match.mw))
                 .filter(Number.isFinite);
             return completedMatchweeks.length ? Math.max(...completedMatchweeks) : 1;
+        }
+
+        function focusMatchweekChip(mwNum, behavior = 'smooth') {
+            const chip = document.querySelector(`#matches-filter-bar .chip[data-mw="${mwNum}"]`);
+            if (!chip) return;
+            requestAnimationFrame(() => {
+                chip.scrollIntoView({ behavior, block: 'nearest', inline: 'center' });
+            });
         }
 
         function renderMatches(filter = 1) {
@@ -3105,7 +3114,9 @@
                     el.classList.add('active');
                 }
                 renderMatches(mwNum);
+                focusMatchweekChip(mwNum);
             };
+            focusMatchweekChip(latestResultMw, 'auto');
 
             refreshAllViews();
             renderNews();
