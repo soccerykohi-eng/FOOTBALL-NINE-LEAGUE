@@ -3063,7 +3063,7 @@
                     <div class="metric-card"><div class="metric-label">最多出場</div><div class="metric-value">${escapeHtml(appearanceLeader?.name || '-')}</div><div style="font-size:0.65rem;color:var(--text-muted);">${appearanceLeader?.appearances || 0} 試合</div></div>
                     <div class="metric-card"><div class="metric-label">登録選手</div><div class="metric-value">${teamPlayers.length}</div><div style="font-size:0.65rem;color:var(--text-muted);">名簿登録中</div></div>
                 </div>
-                <div class="section-header" style="margin-top:0.7rem;"><div class="section-title">選手成績（${statViews[activeStatView].label}順）</div></div>
+                <div class="section-header" style="margin-top:0.7rem;"><div class="section-title">選手成績</div></div>
                 <div class="market-note" style="margin-bottom:0.55rem;">各選手の出場試合数・得点・アシストを表示しています。</div>
                 <div class="tab-bar" style="margin-bottom:0.55rem;"><button class="tab-button ${activeStatView === 'goals' ? 'active' : ''}" onclick="openTeamSheet('${name}', 'goals')">得点</button><button class="tab-button ${activeStatView === 'assists' ? 'active' : ''}" onclick="openTeamSheet('${name}', 'assists')">アシスト</button><button class="tab-button ${activeStatView === 'appearances' ? 'active' : ''}" onclick="openTeamSheet('${name}', 'appearances')">出場</button></div>
                 <div class="card">${playerRows}</div>
