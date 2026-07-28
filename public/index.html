@@ -397,8 +397,10 @@
         .tab-bar { display:grid; grid-template-columns:repeat(3,1fr); gap:0.35rem; padding:0.25rem; margin-bottom:0.75rem; background:var(--bg-card); border:1px solid var(--border-color); border-radius:9px; }
         .tab-button { border:0; border-radius:7px; padding:0.55rem 0.35rem; background:transparent; color:var(--text-muted); font:700 0.72rem 'Noto Sans JP',sans-serif; cursor:pointer; }
         .tab-button.active { color:#111318; background:var(--accent-gold); }
-        .ranking-tab-bar { grid-template-columns:repeat(4,1fr); margin-bottom:0.65rem; }
-        .ranking-tab-bar .tab-button { padding-inline:0.2rem; font-size:0.67rem; }
+        .ranking-switch-label { margin:0.1rem 0 0.38rem; color:var(--text-muted); font-size:0.62rem; font-weight:800; letter-spacing:0.08em; }
+        .ranking-tab-bar { display:flex; gap:0.35rem; margin-bottom:0.7rem; padding:0; background:transparent; border:0; border-radius:0; }
+        .ranking-tab-bar .tab-button { flex:1; min-width:0; padding:0.34rem 0.15rem; border:1px solid var(--border-color); border-radius:999px; color:var(--text-muted); font-size:0.64rem; background:var(--bg-card); }
+        .ranking-tab-bar .tab-button.active { color:var(--accent-gold-light); border-color:var(--accent-gold); background:rgba(198,166,100,0.14); }
         .stats-pane { display:none; }
         .stats-pane.active { display:block; }
         .transfer-tab-bar { display:flex; gap:0.35rem; overflow-x:auto; padding:0.25rem; margin:0.8rem 0; background:var(--bg-card); border:1px solid var(--border-color); border-radius:9px; scrollbar-width:none; }
@@ -520,7 +522,8 @@
             </div>
             <div class="stats-pane active" id="stats-pane-teams"><div class="card" id="standings-card"></div></div>
             <div class="stats-pane" id="stats-pane-players">
-                <div class="tab-bar ranking-tab-bar">
+                <div class="ranking-switch-label">表示項目</div>
+                <div class="ranking-tab-bar">
                     <button class="tab-button active" data-player-ranking-tab="goals" onclick="switchPlayerRanking('goals',this)">得点</button>
                     <button class="tab-button" data-player-ranking-tab="assists" onclick="switchPlayerRanking('assists',this)">アシスト</button>
                     <button class="tab-button" data-player-ranking-tab="mom" onclick="switchPlayerRanking('mom',this)">MOM</button>
