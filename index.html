@@ -3022,7 +3022,7 @@
             document.getElementById('sheet-overlay').classList.add('active');
         };
 
-        window.openTeamSheet = function(name) {
+        window.openTeamSheet = function(name, statView = 'goals') {
             const raw = RAW_TEAMS.find(item => item.name === name);
             if (!raw) return;
 
@@ -3032,7 +3032,13 @@
             });
             const goalLeader = [...teamPlayers].sort((a, b) => b.goals - a.goals || b.appearances - a.appearances)[0];
             const appearanceLeader = [...teamPlayers].sort((a, b) => b.appearances - a.appearances || b.goals - a.goals)[0];
-            const playerRows = [...teamPlayers].sort((a, b) => b.goals - a.goals || b.appearances - a.appearances).slice(0, 5).map((player, index) => `<div class="ranking-row"><div class="ranking-position">${index + 1}</div><div class="ranking-main"><div class="ranking-name">${escapeHtml(player.name)}</div><div class="ranking-team">出場 ${player.appearances}試合 ・ 得点 ${player.goals} ・ アシスト ${player.assists}</div></div></div>`).join('') || `<div class="empty-state">登録選手がいません</div>`;
+            const statViews = {
+                goals: { label: '得点', sort: (a, b) => b.goals - a.goals || b.assists - a.assists || b.appearances - a.appearances },
+                assists: { label: 'アシスト', sort: (a, b) => b.assists - a.assists || b.goals - a.goals || b.appearances - a.appearances },
+                appearances: { label: '出場', sort: (a, b) => b.appearances - a.appearances || b.goals - a.goals || b.assists - a.assists }
+            };
+            const activeStatView = statViews[statView] ? statView : 'goals';
+            const playerRows = [...teamPlayers].sort(statViews[activeStatView].sort).slice(0, 5).map((player, index) => `<div class="ranking-row"><div class="ranking-position">${index + 1}</div><div class="ranking-main"><div class="ranking-name">${escapeHtml(player.name)}</div><div class="ranking-team">出場 ${player.appearances}試合 ・ 得点 ${player.goals} ・ アシスト ${player.assists}</div></div><div class="ranking-number">${activeStatView === 'goals' ? `${player.goals} 得点` : activeStatView === 'assists' ? `${player.assists} AS` : `${player.appearances} 試合`}</div></div>`).join('') || `<div class="empty-state">登録選手がいません</div>`;
             const recentMatches = state.schedule.filter(match => (match.h === name || match.a === name) && match.hs !== null && match.as !== null).sort((a, b) => b.mw - a.mw).slice(0, 3);
             const matchRows = recentMatches.map(match => {
                 const isHome = match.h === name;
@@ -3057,8 +3063,9 @@
                     <div class="metric-card"><div class="metric-label">最多出場</div><div class="metric-value">${escapeHtml(appearanceLeader?.name || '-')}</div><div style="font-size:0.65rem;color:var(--text-muted);">${appearanceLeader?.appearances || 0} 試合</div></div>
                     <div class="metric-card"><div class="metric-label">登録選手</div><div class="metric-value">${teamPlayers.length}</div><div style="font-size:0.65rem;color:var(--text-muted);">名簿登録中</div></div>
                 </div>
-                <div class="section-header" style="margin-top:0.7rem;"><div class="section-title">選手成績（得点順）</div></div>
+                <div class="section-header" style="margin-top:0.7rem;"><div class="section-title">選手成績（${statViews[activeStatView].label}順）</div></div>
                 <div class="market-note" style="margin-bottom:0.55rem;">各選手の出場試合数・得点・アシストを表示しています。</div>
+                <div class="tab-bar" style="margin-bottom:0.55rem;"><button class="tab-button ${activeStatView === 'goals' ? 'active' : ''}" onclick="openTeamSheet('${name}', 'goals')">得点</button><button class="tab-button ${activeStatView === 'assists' ? 'active' : ''}" onclick="openTeamSheet('${name}', 'assists')">アシスト</button><button class="tab-button ${activeStatView === 'appearances' ? 'active' : ''}" onclick="openTeamSheet('${name}', 'appearances')">出場</button></div>
                 <div class="card">${playerRows}</div>
                 <div class="section-header" style="margin-top:1rem;"><div class="section-title">直近の試合結果</div></div>
                 <div class="card">${matchRows}</div>
