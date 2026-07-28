@@ -382,6 +382,8 @@
         .metric-card { min-width:0; padding:0.7rem 0.45rem; text-align:center; background:linear-gradient(145deg,var(--bg-card),#171b25); border:1px solid var(--border-color); border-radius:9px; }
         .metric-label { color:var(--text-muted); font-size:0.58rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .metric-value { margin-top:0.18rem; color:var(--accent-gold-light); font-family:'Teko',sans-serif; font-size:1.25rem; line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .metric-value.metric-player-name { min-height:2.3em; font-family:'Noto Sans JP',sans-serif; font-size:0.68rem; font-weight:800; line-height:1.15; white-space:normal; overflow:visible; overflow-wrap:anywhere; display:flex; align-items:center; justify-content:center; }
+        .metric-detail { min-height:1.2em; margin-top:0.15rem; color:var(--text-muted); font-size:0.6rem; }
         .tab-bar { display:grid; grid-template-columns:repeat(3,1fr); gap:0.35rem; padding:0.25rem; margin-bottom:0.75rem; background:var(--bg-card); border:1px solid var(--border-color); border-radius:9px; }
         .tab-button { border:0; border-radius:7px; padding:0.55rem 0.35rem; background:transparent; color:var(--text-muted); font:700 0.72rem 'Noto Sans JP',sans-serif; cursor:pointer; }
         .tab-button.active { color:#111318; background:var(--accent-gold); }
@@ -1856,12 +1858,12 @@
 
         function renderHomeDashboard() {
             const standings = calculateStandings();
-            const stats = calculatePlayerStats().sort((a,b) => b.goals - a.goals || b.assists - a.assists);
+            const topScorer = calculatePlayerStats().filter(player => player.goals > 0).sort((a,b) => b.goals - a.goals || b.assists - a.assists)[0];
             const played = state.schedule.filter(match => match.hs !== null && match.as !== null).length;
             const dashboard = document.getElementById('home-dashboard');
             if (dashboard) dashboard.innerHTML = `
                 <div class="metric-card"><div class="metric-label">現在の首位</div><div class="metric-value">${escapeHtml(standings[0]?.name || '-')}</div></div>
-                <div class="metric-card"><div class="metric-label">得点ランキング</div><div class="metric-value">${escapeHtml(stats[0]?.name || '-')}</div></div>
+                <div class="metric-card"><div class="metric-label">得点王</div><div class="metric-value metric-player-name" title="${escapeHtml(topScorer?.name || '得点記録なし')}">${escapeHtml(topScorer?.name || '得点記録なし')}</div><div class="metric-detail">${topScorer ? `${topScorer.goals} 得点` : ''}</div></div>
                 <div class="metric-card"><div class="metric-label">消化試合</div><div class="metric-value">${played} / ${state.schedule.length}</div></div>`;
             const activityWrap = document.getElementById('home-activity-list');
             if (activityWrap) activityWrap.innerHTML = state.activityLog.length
