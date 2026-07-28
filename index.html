@@ -1495,11 +1495,15 @@
         window.openMatchEventSheet = function(mId, type = 'goal') {
             const m = state.schedule.find(item => item.id === mId);
             if (!m) return;
-            const labels = { goal: '得点', yellow: 'イエローカード', red: 'レッドカード' };
+            const isCardEntry = type === 'yellow' || type === 'red';
+            const title = isCardEntry ? 'カードを追加' : '得点を追加';
+            const typeField = isCardEntry
+                ? `<select id="event-type" class="form-select" onchange="toggleAssistField()"><option value="yellow" ${type === 'yellow' ? 'selected' : ''}>イエローカード</option><option value="red" ${type === 'red' ? 'selected' : ''}>レッドカード</option></select>`
+                : '<input id="event-type" type="hidden" value="goal">';
             const body = document.getElementById('sheet-body');
             body.innerHTML = `
-                <div style="text-align:center;margin-bottom:1rem;"><h3>${labels[type] || '試合記録'}を追加</h3></div>
-                <div class="form-group"><label class="form-label">種類</label><select id="event-type" class="form-select" onchange="toggleAssistField()"><option value="goal" ${type === 'goal' ? 'selected' : ''}>得点</option><option value="yellow" ${type === 'yellow' ? 'selected' : ''}>イエローカード</option><option value="red" ${type === 'red' ? 'selected' : ''}>レッドカード</option></select></div>
+                <div style="text-align:center;margin-bottom:1rem;"><h3>${title}</h3></div>
+                ${isCardEntry ? `<div class="form-group"><label class="form-label">種類</label>${typeField}</div>` : typeField}
                 <div class="form-group"><label class="form-label">チーム</label><select id="event-team" class="form-select" onchange="updateMatchEventPlayerOptions('${m.id}')"><option>${escapeHtml(m.h)}</option><option>${escapeHtml(m.a)}</option></select></div>
                 <div class="form-group"><label class="form-label">選手</label><select id="event-player" class="form-select">${matchEventPlayerOptions(m.h)}</select></div>
                 <div class="form-group" id="assist-field"><label class="form-label">アシスト（なしでも可）</label><select id="event-assist" class="form-select">${matchEventPlayerOptions(m.h, 'アシストなし')}</select></div>
