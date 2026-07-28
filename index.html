@@ -3030,8 +3030,6 @@
                 const recorded = calculatePlayerStats().find(stat => stat.team === name && stat.name === player.name) || {};
                 return { name: player.name, goals: recorded.goals || 0, assists: recorded.assists || 0, appearances: recorded.appearances || 0 };
             });
-            const goalLeader = [...teamPlayers].sort((a, b) => b.goals - a.goals || b.appearances - a.appearances)[0];
-            const appearanceLeader = [...teamPlayers].sort((a, b) => b.appearances - a.appearances || b.goals - a.goals)[0];
             const statViews = {
                 goals: { label: '得点', sort: (a, b) => b.goals - a.goals || b.assists - a.assists || b.appearances - a.appearances },
                 assists: { label: 'アシスト', sort: (a, b) => b.assists - a.assists || b.goals - a.goals || b.appearances - a.appearances },
@@ -3057,11 +3055,6 @@
                 <div style="text-align:center;">
                     <img src="${raw.logo}" class="team-logo-lg" style="width:64px; height:64px;" alt="${escapeHtml(raw.name)}">
                     <h3 style="font-family:'Teko'; font-size:1.8rem; line-height:1; margin-top:0.2rem;">${escapeHtml(raw.name)}</h3>
-                </div>
-                <div class="dashboard-grid">
-                    <div class="metric-card"><div class="metric-label">チーム得点王</div><div class="metric-value">${escapeHtml(goalLeader?.name || '-')}</div><div style="font-size:0.65rem;color:var(--text-muted);">${goalLeader?.goals || 0} 得点</div></div>
-                    <div class="metric-card"><div class="metric-label">最多出場</div><div class="metric-value">${escapeHtml(appearanceLeader?.name || '-')}</div><div style="font-size:0.65rem;color:var(--text-muted);">${appearanceLeader?.appearances || 0} 試合</div></div>
-                    <div class="metric-card"><div class="metric-label">登録選手</div><div class="metric-value">${teamPlayers.length}</div><div style="font-size:0.65rem;color:var(--text-muted);">名簿登録中</div></div>
                 </div>
                 <div class="section-header" style="margin-top:0.7rem;"><div class="section-title">選手成績</div></div>
                 <div class="market-note" style="margin-bottom:0.55rem;">各選手の出場試合数・得点・アシストを表示しています。</div>
