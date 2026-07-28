@@ -416,6 +416,11 @@
         .transfer-tab-button.active { color:#111318; background:var(--accent-gold); }
         .transfer-pane { display:none; }
         .transfer-pane.active { display:block; }
+        .transfer-status-card { display:grid; grid-template-columns:auto 1fr; gap:0.7rem; align-items:center; padding:0.72rem; border:1px solid rgba(198,166,100,0.3); border-radius:10px; background:linear-gradient(135deg,rgba(198,166,100,0.13),var(--bg-card)); }
+        .transfer-status-label { color:var(--text-muted); font-size:0.6rem; font-weight:800; letter-spacing:0.06em; }
+        .transfer-status-title { margin-top:0.1rem; color:var(--accent-gold-light); font-size:0.86rem; font-weight:900; }
+        .transfer-status-copy { color:var(--text-muted); font-size:0.67rem; line-height:1.45; }
+        .transfer-step-title { margin:1rem 0 0.45rem; color:var(--text-muted); font-size:0.64rem; font-weight:800; letter-spacing:0.06em; }
         .ranking-row,.event-row,.activity-row { display:flex; align-items:center; gap:0.55rem; padding:0.65rem 0; border-bottom:1px solid var(--border-color); }
         .ranking-row:last-child,.event-row:last-child,.activity-row:last-child { border-bottom:0; }
         .ranking-position { width:24px; color:var(--accent-gold); font:700 1.15rem 'Teko',sans-serif; text-align:center; }
@@ -574,9 +579,7 @@
         <section id="page-transfer" class="page">
             <div class="section-header">
                 <div class="section-title">移籍センター</div>
-                <div style="display:flex;gap:0.4rem;"><button id="add-player-button" class="btn-secondary" onclick="openAddPlayerSheet()">＋ 選手登録</button><button id="add-market-player-button" class="btn-secondary" onclick="openMarketPlayerSheet()">＋ 移籍希望</button></div>
             </div>
-            <div class="market-note">全員で自由に編集できる移籍センターです。名簿登録・放出・希望提出を済ませたら、ドラフトを自動確定できます。直前の変更は1回だけ戻せます。</div>
             <div id="market-phase-banner" style="margin-top:0.55rem;"></div>
             <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.5rem; margin:0.8rem 0;" id="player-summary"></div>
             <div class="transfer-tab-bar">
@@ -589,37 +592,32 @@
             <div class="transfer-pane active" id="transfer-pane-rosters">
             <div class="section-header" style="margin-top:1.1rem;">
                 <div class="section-title">選手名簿</div>
+                <button id="add-player-button" class="btn-secondary" onclick="openAddPlayerSheet()">選手を登録</button>
             </div>
             <div id="roster-club-list"></div>
             </div>
             <div class="transfer-pane" id="transfer-pane-midseason">
-            <div class="section-header" style="margin-top:1.2rem;">
-                <div class="section-title">シーズン中間市場</div>
-            </div>
-            <div class="market-note" style="margin-bottom:0.7rem;">リーグ一巡目終了後に実施。放出人数と同数まで補強可能で、順位の低いクラブから希望順に自動指名します。</div>
+            <div class="transfer-step-title">1. 放出する選手を選ぶ</div>
             <div id="market-club-list"></div>
-            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">移籍市場の選手</div></div>
+            <div class="section-header" style="margin-top:1rem;"><div class="section-title">2. 市場の選手</div><button id="add-market-player-button" class="btn-secondary" onclick="openMarketPlayerSheet()">移籍希望を登録</button></div>
             <div id="available-player-list"></div>
-            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">ドラフト希望</div><button id="midseason-draft-button" class="btn-secondary" onclick="openDraftBoardSheet()">希望を提出</button></div>
+            <div class="section-header" style="margin-top:1rem;"><div class="section-title">3. 希望を提出</div><button id="midseason-draft-button" class="btn-secondary" onclick="openDraftBoardSheet()">希望を提出</button></div>
             <div id="draft-club-list"></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.7rem;"><button id="midseason-run-draft-button" class="btn-primary" onclick="runAutomaticDraft()">⚡ ドラフトを自動確定</button><button id="undo-transfer-button" class="btn-secondary" onclick="undoLastTransferChange()">↶ 直前を戻す</button></div>
-            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">ドラフト結果</div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.7rem;"><button id="midseason-run-draft-button" class="btn-primary" onclick="runAutomaticDraft()">ドラフトを確定</button><button id="undo-transfer-button" class="btn-secondary" onclick="undoLastTransferChange()">直前を戻す</button></div>
+            <div class="transfer-step-title">確定結果</div>
             <div id="draft-results-list"></div>
             </div>
             <div class="transfer-pane" id="transfer-pane-trades">
             <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">トレード可能選手</div><button id="trade-listing-button" class="btn-secondary" onclick="openTradeListingSheet()">＋ トレード可能選手</button></div>
-            <div class="market-note" style="margin-bottom:0.7rem;">トレード可能な選手を公表し、他チームが交換選手を提示できます。提示した側と公表した側の合意で成立し、名簿へ自動反映されます。</div>
             <div id="trade-listing-list"></div>
-            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">トレード提案</div></div>
+            <div class="transfer-step-title">届いた提案</div>
             <div id="trade-offer-list"></div>
             </div>
             <div class="transfer-pane" id="transfer-pane-endseason">
-            <div class="section-header" style="margin-top:1.2rem;"><div class="section-title">シーズン終了市場</div></div>
-            <div class="market-note" style="margin-bottom:0.7rem;">プロテクト選手を公表後、1巡目は非公開提出・重複時は自動抽選。2巡目以降は表示された指名順で、未獲得の選手だけを指名できます。</div>
             <div id="end-market-status"></div>
-            <div class="section-header" style="margin-top:1rem;"><div class="section-title">プロテクト選手</div><button id="protection-register-button" class="btn-secondary" onclick="openProtectionSheet()">プロテクト登録</button></div>
+            <div class="section-header" style="margin-top:1rem;"><div class="section-title">1. プロテクト選手</div><button id="protection-register-button" class="btn-secondary" onclick="openProtectionSheet()">プロテクト登録</button></div>
             <div id="protection-list"></div>
-            <div class="section-header" style="margin-top:1rem;"><div class="section-title">シーズン終了ドラフト</div><button id="end-draft-pick-button" class="btn-secondary" onclick="openRoundOnePickSheet()">1巡目を提出</button></div>
+            <div class="section-header" style="margin-top:1rem;"><div class="section-title">2. シーズン終了ドラフト</div><button id="end-draft-pick-button" class="btn-secondary" onclick="openRoundOnePickSheet()">1巡目を提出</button></div>
             <div id="end-draft-list"></div>
             <div id="end-draft-actions" style="margin-top:0.7rem;"></div>
             </div>
@@ -2158,7 +2156,7 @@
             const isPreseason = currentPeriod.key === 'preseason';
             const isMidseason = currentPeriod.key === 'midseason';
             const isEndseason = currentPeriod.key === 'endseason';
-            if (phaseBanner) phaseBanner.innerHTML = `<div class="card" style="padding:0.75rem;"><div style="font-size:0.6rem;color:var(--text-muted);">現在の期間（試合結果から自動判定）</div><b style="display:block;color:var(--accent-gold-light);font-size:0.86rem;margin-top:0.14rem;">${currentPeriod.label}</b><div style="font-size:0.67rem;color:var(--text-muted);margin-top:0.24rem;line-height:1.5;">${currentPeriod.description}</div></div>`;
+            if (phaseBanner) phaseBanner.innerHTML = `<div class="transfer-status-card"><div><div class="transfer-status-label">現在の期間</div><div class="transfer-status-title">${currentPeriod.label}</div></div><div class="transfer-status-copy">${currentPeriod.description}</div></div>`;
             setTransferControlState('add-player-button', isPreseason, '選手登録はシーズン準備期間のみ利用できます');
             setTransferControlState('add-market-player-button', isMidseason, '移籍希望の登録はシーズン中間移籍市場のみ利用できます');
             setTransferControlState('midseason-draft-button', isMidseason, '希望提出はシーズン中間移籍市場のみ利用できます');
