@@ -299,10 +299,20 @@
             cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
         }
 
-        .line-share-btn {
-            background: #06c755; color: #fff; border: none; font-size: 0.75rem; font-weight: bold;
-            padding: 6px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+        .share-action-btn {
+            min-height: 34px; padding: 0 12px; border: 1px solid var(--accent-gold); border-radius: 8px;
+            background: linear-gradient(135deg, #252015, #16130e); color: var(--accent-gold-light);
+            font-family: inherit; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.04em;
+            cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 3px 10px rgba(0,0,0,0.22);
+            transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
         }
+        .share-action-btn::before {
+            content: ''; width: 11px; height: 11px; border: 1.5px solid currentColor; border-radius: 2px;
+            box-sizing: border-box; transform: translateY(1px);
+        }
+        .share-action-btn:hover { background: #352b18; border-color: var(--accent-gold-light); transform: translateY(-1px); }
+        .share-action-btn:active { transform: translateY(0); }
 
         .team-logo-img { width: 24px; height: 24px; border-radius: 50%; object-fit: contain; flex-shrink: 0; }
         .team-logo-lg { width: 56px; height: 56px; border-radius: 50%; object-fit: contain; margin: 0 auto 0.4rem; display: block; }
@@ -499,9 +509,7 @@
         <section id="page-standings" class="page">
             <div class="section-header">
                 <div class="section-title">順位表・記録</div>
-                <button class="line-share-btn" onclick="generateLineStandingsShareText()">
-                    📲 順位表共有
-                </button>
+                <button class="share-action-btn" onclick="generateLineStandingsShareText()">順位表を共有</button>
             </div>
             <div class="tab-bar">
                 <button class="tab-button active" data-stats-tab="teams" onclick="switchStatsView('teams',this)">チーム順位</button>
@@ -535,7 +543,7 @@
                 <div class="section-title">日程・結果</div>
                 <div style="display:flex;gap:0.4rem;align-items:center;">
                     <button id="schedule-assignment-button" class="btn-secondary" style="display:none;" onclick="openScheduleAssignmentSheet()">A〜I 抽選結果</button>
-                    <button class="line-share-btn" onclick="generateLineMatchweekShareText()">節結果共有</button>
+                    <button class="share-action-btn" onclick="generateLineMatchweekShareText()">試合結果を共有</button>
                 </div>
             </div>
             <div class="filter-scroll" id="matches-filter-bar"></div>
@@ -1435,7 +1443,7 @@
                 <div class="action-grid">
                     <button class="btn-secondary" onclick="openMatchEventSheet('${m.id}','goal')">＋ 得点</button>
                     <button class="btn-secondary" onclick="openMatchEventSheet('${m.id}','yellow')">＋ カード</button>
-                    <button class="btn-secondary" onclick="generateMatchShareText('${m.id}')">📲 試合共有</button>
+                    <button class="share-action-btn" onclick="generateMatchShareText('${m.id}')">試合結果を共有</button>
                     <button class="btn-secondary" onclick="undoLastMatchChange()">↶ 直前を戻す</button>
                 </div>
                 ${m.hs !== null ? `<button class="btn-danger" onclick="clearScoreInCloud('${m.id}')">スコアを取り消す</button>` : ''}
