@@ -555,6 +555,34 @@
         .team-result-marker { width:40px; color:var(--text-muted); font:700 .9rem 'Teko',sans-serif; }
         .team-result-marker.win { color:var(--accent-gold-light); }
         .team-result-score { color:var(--text-main); font:700 1.3rem/1 'Teko',sans-serif; }
+
+        /* Match center: official match record */
+        .match-center-header { text-align:center; margin:0 .1rem 1rem; }
+        .match-center-kicker { color:var(--accent-gold); font-size:.68rem; font-weight:900; letter-spacing:.12em; }
+        .match-center-title { margin-top:.22rem; font-family:'Teko',sans-serif; font-size:2rem; line-height:1; letter-spacing:.04em; }
+        .match-center-subtitle { margin-top:.35rem; color:var(--text-muted); font-size:.72rem; }
+        .match-center-scoreboard { display:grid; grid-template-columns:minmax(0,1fr) 72px minmax(0,1fr); align-items:center; gap:.55rem; padding:1rem .75rem; margin-bottom:1rem; border:1px solid rgba(198,166,100,.28); border-radius:16px; background:linear-gradient(145deg,rgba(198,166,100,.1),var(--bg-card) 58%); }
+        .match-center-team { min-width:0; display:flex; flex-direction:column; align-items:center; gap:.42rem; text-align:center; }
+        .match-center-team img { width:42px; height:42px; object-fit:contain; }
+        .match-center-team-name { min-height:2.5em; font-size:.76rem; font-weight:900; line-height:1.22; overflow-wrap:anywhere; }
+        .match-center-score-input { width:64px !important; height:58px; padding:0 !important; border-radius:12px !important; background:#0b0f14 !important; color:var(--text-main) !important; font:700 2.25rem/1 'Teko',sans-serif !important; text-align:center; }
+        .match-center-versus { color:var(--text-muted); font:700 .84rem 'Teko',sans-serif; letter-spacing:.08em; text-align:center; }
+        .match-center-section { margin-top:1rem; }
+        .match-center-section-heading { display:flex; align-items:center; justify-content:space-between; margin:0 0 .55rem; font-size:.8rem; font-weight:900; }
+        .match-center-section-heading small { color:var(--text-muted); font-size:.62rem; font-weight:700; }
+        .match-center-panel { padding:.8rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
+        .match-center-mom { display:grid; grid-template-columns:1fr 1.35fr; gap:.5rem; }
+        .match-center-lineup-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
+        .match-center-lineup { min-width:0; padding:.75rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
+        .match-center-lineup-name { display:flex; align-items:center; gap:.45rem; margin-bottom:.55rem; font-size:.76rem; font-weight:900; }
+        .match-center-lineup-name img { width:24px; height:24px; object-fit:contain; }
+        .match-center-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; margin-top:.7rem; }
+        .match-center-actions .btn-secondary, .match-center-actions .share-action-btn { min-height:40px; width:100%; border-radius:10px; box-shadow:none; }
+        .match-center-save { margin-top:1rem; min-height:46px; border-radius:12px; }
+        .match-center-events { margin-top:.3rem; padding:.25rem .8rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
+        .match-center-events .event-row { padding:.7rem 0; }
+        .match-event-type { color:var(--accent-gold-light); font-size:.64rem; font-weight:900; letter-spacing:.04em; }
+        @media (max-width:380px) { .match-center-scoreboard { grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr); gap:.35rem; padding:.85rem .45rem; } .match-center-score-input { width:54px !important; } .match-center-lineup-grid { grid-template-columns:1fr; } .match-center-mom { grid-template-columns:1fr; } }
     </style>
 </head>
 <body>
@@ -1503,11 +1531,12 @@
         function renderMatchEventsForSheet(match) {
             const details = ensureMatchDetails(match);
             if (!details.events.length) return `<div class="empty-state">得点・カード記録はまだありません</div>`;
-            const labels = { goal: '⚽ 得点', yellow: '🟨 警告', red: '🟥 退場' };
+            const labels = { goal: 'GOAL', yellow: 'YELLOW CARD', red: 'RED CARD' };
             return details.events.slice().sort((a,b) => Number(a.minute || 0) - Number(b.minute || 0)).map(event => `
                 <div class="event-row">
                     <div class="ranking-main">
-                        <div class="ranking-name">${labels[event.type] || '記録'} ${escapeHtml(event.player || '')} ${event.minute ? `${event.minute}'` : ''}</div>
+                        <div class="match-event-type">${labels[event.type] || '記録'}${event.minute ? ` · ${event.minute}'` : ''}</div>
+                        <div class="ranking-name">${escapeHtml(event.player || '')}</div>
                         <div class="ranking-team">${escapeHtml(event.team || '')}${event.assist ? ` ・ AS ${escapeHtml(event.assist)}` : ''}</div>
                     </div>
                     <button class="btn-secondary" onclick="deleteMatchEvent('${match.id}','${event.id}')">削除</button>
@@ -1518,41 +1547,50 @@
             const m = state.schedule.find(item => item.id === mId);
             if (!m) return;
             const details = ensureMatchDetails(m);
-            const allPlayers = [...getRosterNamesByTeamName(m.h), ...getRosterNamesByTeamName(m.a)];
             const body = document.getElementById('sheet-body');
             body.innerHTML = `
-                <div style="text-align:center; margin-bottom:0.8rem;">
-                    <span style="color:var(--accent-gold); font-weight:bold;">MATCHWEEK ${m.mw}</span>
-                    <h3 style="margin-top:0.2rem;">MATCH CENTER</h3>
+                <div class="match-center-header">
+                    <div class="match-center-kicker">MATCHWEEK ${m.mw}</div>
+                    <h3 class="match-center-title">MATCH CENTER</h3>
+                    <div class="match-center-subtitle">公式試合記録を入力・管理</div>
                 </div>
-                <div style="display:flex; justify-content:space-around; align-items:center; margin:1.2rem 0;">
-                    <div style="text-align:center;">
-                        <div style="font-weight:700; margin-bottom:0.3rem;">${escapeHtml(m.h)}</div>
-                        <input type="number" id="input-hs" class="form-input" inputmode="numeric" pattern="[0-9]*" min="0" max="20" style="width:60px; font-size:1.5rem; text-align:center; font-weight:bold;" value="${m.hs !== null ? m.hs : ''}">
+                <div class="match-center-scoreboard">
+                    <div class="match-center-team">
+                        <img src="${getTeamLogo(m.h)}" alt="">
+                        <div class="match-center-team-name">${escapeHtml(m.h)}</div>
+                        <input type="number" id="input-hs" aria-label="${escapeHtml(m.h)}の得点" class="form-input match-center-score-input" inputmode="numeric" pattern="[0-9]*" min="0" max="20" value="${m.hs !== null ? m.hs : ''}">
                     </div>
-                    <div style="font-weight:bold; font-size:1.1rem;">VS</div>
-                    <div style="text-align:center;">
-                        <div style="font-weight:700; margin-bottom:0.3rem;">${escapeHtml(m.a)}</div>
-                        <input type="number" id="input-as" class="form-input" inputmode="numeric" pattern="[0-9]*" min="0" max="20" style="width:60px; font-size:1.5rem; text-align:center; font-weight:bold;" value="${m.as !== null ? m.as : ''}">
+                    <div class="match-center-versus">VS</div>
+                    <div class="match-center-team">
+                        <img src="${getTeamLogo(m.a)}" alt="">
+                        <div class="match-center-team-name">${escapeHtml(m.a)}</div>
+                        <input type="number" id="input-as" aria-label="${escapeHtml(m.a)}の得点" class="form-input match-center-score-input" inputmode="numeric" pattern="[0-9]*" min="0" max="20" value="${m.as !== null ? m.as : ''}">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">MOM</label>
-                    <select id="input-motm-team" class="form-select" style="margin-bottom:0.4rem;" onchange="updateMotmPlayerOptions()"><option value="${escapeHtml(m.h)}" ${details.motm?.team === m.h ? 'selected' : ''}>${escapeHtml(m.h)}</option><option value="${escapeHtml(m.a)}" ${details.motm?.team === m.a ? 'selected' : ''}>${escapeHtml(m.a)}</option></select>
-                    <select id="input-motm" class="form-select">${matchEventPlayerOptions(details.motm?.team || m.h, 'MOMを選択', details.motm?.name || '')}</select>
+                <div class="match-center-section">
+                    <div class="match-center-section-heading"><span>MOM</span><small>マン・オブ・ザ・マッチ</small></div>
+                    <div class="match-center-panel match-center-mom">
+                        <select id="input-motm-team" aria-label="MOMのチーム" class="form-select" onchange="updateMotmPlayerOptions()"><option value="${escapeHtml(m.h)}" ${details.motm?.team === m.h ? 'selected' : ''}>${escapeHtml(m.h)}</option><option value="${escapeHtml(m.a)}" ${details.motm?.team === m.a ? 'selected' : ''}>${escapeHtml(m.a)}</option></select>
+                        <select id="input-motm" aria-label="MOMの選手" class="form-select">${matchEventPlayerOptions(details.motm?.team || m.h, 'MOMを選択', details.motm?.name || '')}</select>
+                    </div>
                 </div>
-                <div class="action-grid">
-                    <div class="form-group"><label class="form-label">${escapeHtml(m.h)} 出場選手</label>${renderAppearancePicker(m.h, 'home', details.appearances?.home || [])}</div>
-                    <div class="form-group"><label class="form-label">${escapeHtml(m.a)} 出場選手</label>${renderAppearancePicker(m.a, 'away', details.appearances?.away || [])}</div>
+                <div class="match-center-section">
+                    <div class="match-center-section-heading"><span>出場選手</span><small>出場数の多い順</small></div>
+                    <div class="match-center-lineup-grid">
+                        <div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(m.h)}" alt="">${escapeHtml(m.h)}</div>${renderAppearancePicker(m.h, 'home', details.appearances?.home || [])}</div>
+                        <div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(m.a)}" alt="">${escapeHtml(m.a)}</div>${renderAppearancePicker(m.a, 'away', details.appearances?.away || [])}</div>
+                    </div>
                 </div>
-                <button class="btn-primary" onclick="saveScoreToCloud('${m.id}')">試合情報を保存</button>
-                <div class="section-header" style="margin-top:1rem;"><div class="section-title">試合記録</div></div>
-                <div class="card">${renderMatchEventsForSheet(m)}</div>
-                <div class="action-grid">
-                    <button class="btn-secondary" onclick="openMatchEventSheet('${m.id}','goal')">＋ 得点</button>
-                    <button class="btn-secondary" onclick="openMatchEventSheet('${m.id}','yellow')">＋ カード</button>
+                <button class="btn-primary match-center-save" onclick="saveScoreToCloud('${m.id}')">試合情報を保存</button>
+                <div class="match-center-section">
+                    <div class="match-center-section-heading"><span>試合記録</span><small>得点・カード</small></div>
+                    <div class="match-center-events">${renderMatchEventsForSheet(m)}</div>
+                </div>
+                <div class="match-center-actions">
+                    <button class="btn-secondary" onclick="openMatchEventSheet('${m.id}','goal')">得点を追加</button>
+                    <button class="btn-secondary" onclick="openMatchEventSheet('${m.id}','yellow')">カードを追加</button>
                     <button class="share-action-btn" onclick="generateMatchShareText('${m.id}')">試合結果を共有</button>
-                    <button class="btn-secondary" onclick="undoLastMatchChange()">↶ 直前を戻す</button>
+                    <button class="btn-secondary" onclick="undoLastMatchChange()">直前の変更を戻す</button>
                 </div>
                 ${m.hs !== null ? `<button class="btn-danger" onclick="clearScoreInCloud('${m.id}')">スコアを取り消す</button>` : ''}
             `;
@@ -3279,7 +3317,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=27'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=28'));
     }
 </script>
 </html>
