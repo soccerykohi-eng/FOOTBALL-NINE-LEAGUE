@@ -608,6 +608,26 @@
         .roster-player-tags span { border-radius:999px; padding:.15rem .38rem; font-size:.56rem; }
         .roster-player-tags .position { min-width:30px; text-align:center; }
         .roster-empty { padding:.9rem; border:1px dashed var(--border-color); border-radius:12px; color:var(--text-muted); text-align:center; font-size:.72rem; }
+
+        /* News composer: clear editorial workflow */
+        .news-composer-header { padding:1rem; margin:-.15rem -.15rem 1rem; border:1px solid rgba(198,166,100,.24); border-radius:16px; background:linear-gradient(145deg,rgba(198,166,100,.13),var(--bg-card) 62%); }
+        .news-composer-kicker { color:var(--accent-gold); font-size:.64rem; font-weight:900; letter-spacing:.12em; }
+        .news-composer-title { margin-top:.26rem; font-family:'Teko',sans-serif; font-size:1.9rem; line-height:1; }
+        .news-composer-copy { margin-top:.38rem; color:var(--text-muted); font-size:.72rem; line-height:1.5; }
+        .news-composer-section { margin-top:1rem; }
+        .news-composer-section-heading { display:flex; align-items:center; justify-content:space-between; margin-bottom:.55rem; font-size:.78rem; font-weight:900; }
+        .news-composer-section-heading small { color:var(--text-muted); font-size:.61rem; font-weight:700; }
+        .news-composer-panel { padding:.8rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
+        .news-composer-meta { display:grid; grid-template-columns:1fr 1fr; gap:.55rem; }
+        .news-composer-field { margin:0; }
+        .news-composer-field.is-wide { grid-column:1 / -1; }
+        .news-composer-field .form-label { font-size:.66rem; letter-spacing:.04em; }
+        .news-composer-field .form-input, .news-composer-field .form-select, .news-composer-field .form-textarea { min-height:40px; border-radius:10px; background:#0b0f14; font-size:.82rem; }
+        .news-composer-field .form-textarea { min-height:160px; resize:vertical; line-height:1.6; }
+        .news-composer-publish-note { display:flex; gap:.5rem; align-items:flex-start; margin-top:.75rem; padding:.7rem .75rem; border-radius:10px; background:rgba(255,255,255,.035); color:var(--text-muted); font-size:.66rem; line-height:1.5; }
+        .news-composer-publish-note::before { content:''; width:6px; height:6px; margin-top:.28rem; flex:0 0 auto; border-radius:50%; background:var(--accent-gold); }
+        .news-composer-submit { min-height:46px; margin-top:.75rem; border-radius:12px; }
+        @media (max-width:380px) { .news-composer-meta { grid-template-columns:1fr; } }
     </style>
 </head>
 <body>
@@ -1434,42 +1454,28 @@
             const todayStr = new Date().toISOString().split('T')[0].replace(/-/g, '.');
             const body = document.getElementById('sheet-body');
             body.innerHTML = `
-                <div style="text-align:center; margin-bottom:1rem;">
-                    <h3 style="font-size:1.1rem; font-weight:700;">新しいニュースを投稿</h3>
+                <div class="news-composer-header">
+                    <div class="news-composer-kicker">FNL NEWSROOM</div>
+                    <h3 class="news-composer-title">ニュースを投稿</h3>
+                    <div class="news-composer-copy">掲載情報を選び、見出しと本文を入力して公開します。</div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">カテゴリー</label>
-                    <select id="post-category" class="form-select">
-                        <option value="お知らせ">お知らせ</option>
-                        <option value="試合情報">試合情報</option>
-                        <option value="試合結果">試合結果</option>
-                        <option value="移籍情報">移籍情報</option>
-                        <option value="チーム情報">チーム情報</option>
-                        <option value="選手情報">選手情報</option>
-                        <option value="大会・イベント">大会・イベント</option>
-                        <option value="規約・運営">規約・運営</option>
-                    </select>
+                <div class="news-composer-section">
+                    <div class="news-composer-section-heading"><span>掲載情報</span><small>公開時に表示されます</small></div>
+                    <div class="news-composer-panel news-composer-meta">
+                        <div class="form-group news-composer-field"><label class="form-label">カテゴリー</label><select id="post-category" class="form-select"><option value="お知らせ">お知らせ</option><option value="試合情報">試合情報</option><option value="試合結果">試合結果</option><option value="移籍情報">移籍情報</option><option value="チーム情報">チーム情報</option><option value="選手情報">選手情報</option><option value="大会・イベント">大会・イベント</option><option value="規約・運営">規約・運営</option></select></div>
+                        <div class="form-group news-composer-field"><label class="form-label">発信元</label><select id="post-source" class="form-select"><option value="official">FNL運営</option>${RAW_TEAMS.map(team => `<option value="team:${team.id}">${escapeHtml(team.name)} メディア</option>`).join('')}</select></div>
+                        <div class="form-group news-composer-field is-wide"><label class="form-label">投稿日</label><input type="text" id="post-date" class="form-input" value="${todayStr}" aria-label="投稿日"></div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">発信元</label>
-                    <select id="post-source" class="form-select">
-                        <option value="official">FNL運営</option>
-                        ${RAW_TEAMS.map(team => `<option value="team:${team.id}">${escapeHtml(team.name)} メディア</option>`).join('')}
-                    </select>
+                <div class="news-composer-section">
+                    <div class="news-composer-section-heading"><span>記事内容</span><small>タイトルは60文字まで</small></div>
+                    <div class="news-composer-panel">
+                        <div class="form-group news-composer-field"><label class="form-label">タイトル</label><input type="text" id="post-title" class="form-input" placeholder="例：MATCHWEEK 3 の試合結果を公開" maxlength="60" autocomplete="off"></div>
+                        <div class="form-group news-composer-field"><label class="form-label">本文</label><textarea id="post-content" class="form-textarea" placeholder="ニュースの詳細を入力してください"></textarea></div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">投稿日</label>
-                    <input type="text" id="post-date" class="form-input" value="${todayStr}">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">タイトル</label>
-                    <input type="text" id="post-title" class="form-input" placeholder="タイトルを入力" maxlength="60">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">本文</label>
-                    <textarea id="post-content" class="form-textarea" placeholder="詳細を入力してください"></textarea>
-                </div>
-                <button class="btn-primary" onclick="submitNewsPostToCloud()">公開投稿</button>
+                <div class="news-composer-publish-note">公開するとホームとニュース一覧に表示され、通知を受け取る設定の利用者へもお知らせされます。</div>
+                <button class="btn-primary news-composer-submit" onclick="submitNewsPostToCloud()">ニュースを公開</button>
             `;
             document.getElementById('sheet-overlay').classList.add('active');
         };
@@ -3371,7 +3377,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=30'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=31'));
     }
 </script>
 </html>
