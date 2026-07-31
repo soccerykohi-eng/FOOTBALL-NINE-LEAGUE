@@ -588,6 +588,7 @@
         .match-center-save-bar { margin-top:1rem; padding:.7rem; border:1px solid rgba(198,166,100,.25); border-radius:12px; background:linear-gradient(135deg,rgba(198,166,100,.1),var(--bg-card)); }
         .match-center-save-copy { margin:0 0 .55rem; color:var(--text-muted); font-size:.65rem; line-height:1.45; }
         .match-center-save { min-height:46px; border-radius:12px; }
+        .match-center-required { display:inline-flex; align-items:center; margin-left:.35rem; padding:.15rem .36rem; border-radius:999px; background:rgba(198,166,100,.14); color:var(--accent-gold-light); font-size:.55rem; font-weight:900; letter-spacing:.04em; }
         .match-center-events { margin-top:.3rem; padding:.25rem .8rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
         .match-center-events .event-row { padding:.7rem 0; }
         .match-event-type { color:var(--accent-gold-light); font-size:.64rem; font-weight:900; letter-spacing:.04em; }
@@ -1609,12 +1610,7 @@
                 <div class="match-center-header">
                     <div class="match-center-kicker">MATCHWEEK ${m.mw}</div>
                     <h3 class="match-center-title">MATCH CENTER</h3>
-                    <div class="match-center-subtitle">公式試合記録を入力・管理</div>
-                </div>
-                <div class="match-center-flow" aria-label="入力の流れ">
-                    <div class="match-center-flow-step is-primary"><b>1</b><span>スコア</span></div>
-                    <div class="match-center-flow-step"><b>2</b><span>選手情報</span></div>
-                    <div class="match-center-flow-step"><b>3</b><span>保存</span></div>
+                    <div class="match-center-subtitle">試合結果を入力</div>
                 </div>
                 <div class="match-center-scoreboard">
                     <div class="match-center-team">
@@ -1632,18 +1628,18 @@
                     </div>
                 </div>
                 <div class="match-center-save-bar">
-                    <p class="match-center-save-copy">スコア、MOM、両チームの出場選手はすべて必須です。得点・カードの記録は下の「試合記録」から追加できます。</p>
-                    <button class="btn-primary match-center-save" onclick="saveScoreToCloud('${m.id}')">スコア・選手情報を保存</button>
+                    <p class="match-center-save-copy">必須項目を入力して保存</p>
+                    <button class="btn-primary match-center-save" onclick="saveScoreToCloud('${m.id}')">試合結果を保存</button>
                 </div>
                 <div class="match-center-section">
-                    <div class="match-center-section-heading"><span>MOM</span><small>マン・オブ・ザ・マッチ</small></div>
+                    <div class="match-center-section-heading"><span>MOM <span class="match-center-required">必須</span></span><small>マン・オブ・ザ・マッチ</small></div>
                     <div class="match-center-panel match-center-mom">
                         <select id="input-motm-team" aria-label="MOMのチーム" class="form-select" onchange="updateMotmPlayerOptions()"><option value="${escapeHtml(m.h)}" ${details.motm?.team === m.h ? 'selected' : ''}>${escapeHtml(m.h)}</option><option value="${escapeHtml(m.a)}" ${details.motm?.team === m.a ? 'selected' : ''}>${escapeHtml(m.a)}</option></select>
                         <select id="input-motm" aria-label="MOMの選手" class="form-select">${matchEventPlayerOptions(details.motm?.team || m.h, 'MOMを選択', details.motm?.name || '')}</select>
                     </div>
                 </div>
                 <div class="match-center-section">
-                    <div class="match-center-section-heading"><span>出場選手</span><small>出場数の多い順</small></div>
+                    <div class="match-center-section-heading"><span>出場選手 <span class="match-center-required">必須</span></span><small>両チームを選択</small></div>
                     <div class="match-center-lineup-grid">
                         <div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(m.h)}" alt="">${escapeHtml(m.h)}</div>${renderAppearancePicker(m.h, 'home', details.appearances?.home || [])}</div>
                         <div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(m.a)}" alt="">${escapeHtml(m.a)}</div>${renderAppearancePicker(m.a, 'away', details.appearances?.away || [])}</div>
@@ -3409,7 +3405,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=34'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=35'));
     }
 </script>
 </html>
