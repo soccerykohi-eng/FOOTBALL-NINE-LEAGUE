@@ -40,6 +40,7 @@ const syncFields = [
   "seasonArchive",
   "seasonInfo",
   "regulations",
+  "hirabayashiCup",
   "previousSeasonSnapshot",
   "lastMatchSnapshot"
 ];

@@ -380,6 +380,43 @@
         .cup-club { min-width:0; padding:.65rem .35rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); text-align:center; }
         .cup-club img { width:32px; height:32px; object-fit:contain; }
         .cup-club span { display:block; margin-top:.35rem; overflow:hidden; color:var(--text-main); font-size:.58rem; font-weight:800; text-overflow:ellipsis; white-space:nowrap; }
+        .cup-hero { min-height:220px; padding-left:130px; }
+        .cup-hero-image { position:absolute; left:14px; top:50%; width:102px; height:102px; border-radius:18px; object-fit:cover; transform:translateY(-50%); box-shadow:0 12px 28px rgba(0,0,0,.35); }
+        .cup-hub-tabs { display:flex; gap:.35rem; margin-top:1rem; overflow-x:auto; scrollbar-width:none; }
+        .cup-hub-tab { flex:0 0 auto; padding:.55rem .75rem; border:1px solid var(--border-color); border-radius:9px; background:var(--bg-card); color:var(--text-muted); font:800 .68rem/1 inherit; }
+        .cup-hub-tab.active { border-color:rgba(198,166,100,.55); background:rgba(198,166,100,.13); color:var(--accent-gold-light); }
+        .cup-panel { display:none; margin-top:1rem; }
+        .cup-panel.active { display:block; animation:fadeIn .2s ease; }
+        .cup-group-switcher { display:flex; gap:.35rem; margin-bottom:.7rem; }
+        .cup-group-switcher button { flex:1; padding:.5rem; border:1px solid var(--border-color); border-radius:9px; background:transparent; color:var(--text-muted); font-weight:800; font-size:.7rem; }
+        .cup-group-switcher button.active { background:rgba(18,89,52,.45); border-color:rgba(58,150,92,.62); color:#d8f3df; }
+        .cup-standing-row { display:grid; grid-template-columns:24px 1fr 28px 32px 36px; gap:.35rem; align-items:center; padding:.62rem 0; border-bottom:1px solid var(--border-color); font-size:.7rem; }
+        .cup-standing-row:last-child { border-bottom:0; }
+        .cup-standing-rank { color:var(--accent-gold-light); font-weight:900; }
+        .cup-standing-team { display:flex; min-width:0; align-items:center; gap:.42rem; font-weight:800; }
+        .cup-standing-team img { width:21px; height:21px; object-fit:contain; }
+        .cup-standing-team span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .cup-match-list { display:grid; gap:.55rem; }
+        .cup-match-card { padding:.7rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
+        .cup-match-meta { display:flex; justify-content:space-between; margin-bottom:.55rem; color:var(--text-muted); font-size:.6rem; font-weight:900; letter-spacing:.06em; }
+        .cup-match-line { display:grid; grid-template-columns:1fr auto 1fr; gap:.45rem; align-items:center; }
+        .cup-match-team { display:flex; min-width:0; align-items:center; gap:.38rem; font-size:.68rem; font-weight:800; }
+        .cup-match-team.away { justify-content:flex-end; text-align:right; }
+        .cup-match-team img { width:24px; height:24px; object-fit:contain; }
+        .cup-match-score { min-width:50px; padding:.35rem .25rem; border-radius:8px; background:#090e0c; color:var(--accent-gold-light); text-align:center; font:800 .95rem/1 'Teko',sans-serif; }
+        .cup-match-action { width:100%; margin-top:.6rem; padding:.46rem; border:1px solid rgba(198,166,100,.42); border-radius:8px; background:transparent; color:var(--accent-gold-light); font-size:.64rem; font-weight:900; }
+        .cup-bracket { display:grid; grid-template-columns:repeat(3,minmax(142px,1fr)); gap:.7rem; overflow-x:auto; padding-bottom:.25rem; }
+        .cup-bracket-column { min-width:142px; }
+        .cup-bracket-heading { margin:0 0 .5rem; color:var(--text-muted); font-size:.58rem; font-weight:900; letter-spacing:.08em; }
+        .cup-bracket-match { margin-bottom:.65rem; padding:.55rem; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-card); }
+        .cup-bracket-team { display:flex; justify-content:space-between; gap:.3rem; padding:.25rem 0; color:var(--text-main); font-size:.64rem; font-weight:800; }
+        .cup-bracket-team + .cup-bracket-team { border-top:1px solid rgba(255,255,255,.06); }
+        .cup-qualifier-note { padding:.8rem; border:1px dashed rgba(198,166,100,.4); border-radius:12px; color:var(--text-muted); font-size:.7rem; line-height:1.55; }
+        .cup-record-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.4rem; }
+        .cup-record-card { padding:.7rem .35rem; border:1px solid var(--border-color); border-radius:11px; background:var(--bg-card); text-align:center; }
+        .cup-record-card b { display:block; overflow:hidden; color:var(--text-main); font-size:.68rem; text-overflow:ellipsis; white-space:nowrap; }
+        .cup-record-card span { display:block; margin-top:.23rem; color:var(--accent-gold-light); font-size:.62rem; font-weight:900; }
+        @media (max-width:360px) { .cup-hero { padding-left:108px; } .cup-hero-image { width:82px; height:82px; } }
 
         /* 規約 */
         .rule-chapter { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.6rem; overflow: hidden; }
@@ -1159,6 +1196,30 @@
             return state.regulations;
         }
 
+        function createHirabayashiCupState() {
+            const clubs = RAW_TEAMS.map(team => team.name);
+            const groups = { A: clubs.slice(0, 3), B: clubs.slice(3, 6), C: clubs.slice(6, 9) };
+            const groupMatches = Object.entries(groups).flatMap(([group, teams]) => [
+                { id: `hc_g${group}_1`, stage: 'group', group, label: `GROUP ${group}`, h: teams[0], a: teams[1], hs: null, as: null, pkWinner: '', details: { events: [], motm: null, appearances: { home: [], away: [] } } },
+                { id: `hc_g${group}_2`, stage: 'group', group, label: `GROUP ${group}`, h: teams[1], a: teams[2], hs: null, as: null, pkWinner: '', details: { events: [], motm: null, appearances: { home: [], away: [] } } },
+                { id: `hc_g${group}_3`, stage: 'group', group, label: `GROUP ${group}`, h: teams[2], a: teams[0], hs: null, as: null, pkWinner: '', details: { events: [], motm: null, appearances: { home: [], away: [] } } }
+            ]);
+            return { groups, groupMatches, repechageMatches: [], knockoutMatches: [], activeTab: 'groups', activeGroup: 'A' };
+        }
+
+        function ensureHirabayashiCupState() {
+            if (!state.hirabayashiCup || typeof state.hirabayashiCup !== 'object') state.hirabayashiCup = createHirabayashiCupState();
+            const cup = state.hirabayashiCup;
+            const fallback = createHirabayashiCupState();
+            if (!cup.groups || typeof cup.groups !== 'object') cup.groups = fallback.groups;
+            if (!Array.isArray(cup.groupMatches)) cup.groupMatches = fallback.groupMatches;
+            if (!Array.isArray(cup.repechageMatches)) cup.repechageMatches = [];
+            if (!Array.isArray(cup.knockoutMatches)) cup.knockoutMatches = [];
+            if (!cup.activeTab) cup.activeTab = 'groups';
+            if (!cup.activeGroup) cup.activeGroup = 'A';
+            return cup;
+        }
+
         // アプリ状態
         const state = {
             schedule: JSON.parse(JSON.stringify(INITIAL_SCHEDULE)),
@@ -1169,6 +1230,7 @@
             seasonArchive: [],
             seasonInfo: { number: 1, year: 2026 },
             regulations: createInitialRegulationState(),
+            hirabayashiCup: createHirabayashiCupState(),
             previousSeasonSnapshot: null,
             lastMatchSnapshot: null,
             currentFilterMw: 1,
@@ -1194,6 +1256,7 @@
                 if (Array.isArray(parsed.seasonArchive)) state.seasonArchive = parsed.seasonArchive;
                 if (parsed.seasonInfo && typeof parsed.seasonInfo === 'object') state.seasonInfo = parsed.seasonInfo;
                 if (parsed.regulations && typeof parsed.regulations === 'object') state.regulations = parsed.regulations;
+                if (parsed.hirabayashiCup && typeof parsed.hirabayashiCup === 'object') state.hirabayashiCup = parsed.hirabayashiCup;
                 if (Object.prototype.hasOwnProperty.call(parsed, 'previousSeasonSnapshot')) state.previousSeasonSnapshot = parsed.previousSeasonSnapshot;
                 if (Object.prototype.hasOwnProperty.call(parsed, 'lastMatchSnapshot')) state.lastMatchSnapshot = parsed.lastMatchSnapshot;
                 if (parsed.updatedAt) state.lastSavedAt = parsed.updatedAt;
@@ -1214,6 +1277,7 @@
                     seasonArchive: state.seasonArchive,
                     seasonInfo: state.seasonInfo,
                     regulations: state.regulations,
+                    hirabayashiCup: state.hirabayashiCup,
                     previousSeasonSnapshot: state.previousSeasonSnapshot,
                     lastMatchSnapshot: state.lastMatchSnapshot,
                     updatedAt: state.lastSavedAt || new Date().toISOString()
@@ -1245,6 +1309,7 @@
                 if (Array.isArray(parsed.seasonArchive)) state.seasonArchive = parsed.seasonArchive;
                 if (parsed.seasonInfo && typeof parsed.seasonInfo === 'object') state.seasonInfo = parsed.seasonInfo;
                 if (parsed.regulations && typeof parsed.regulations === 'object') state.regulations = parsed.regulations;
+                if (parsed.hirabayashiCup && typeof parsed.hirabayashiCup === 'object') state.hirabayashiCup = parsed.hirabayashiCup;
                 if (Object.prototype.hasOwnProperty.call(parsed, 'previousSeasonSnapshot')) state.previousSeasonSnapshot = parsed.previousSeasonSnapshot;
                 if (Object.prototype.hasOwnProperty.call(parsed, 'lastMatchSnapshot')) state.lastMatchSnapshot = parsed.lastMatchSnapshot;
                 if (parsed.updatedAt) state.lastSavedAt = parsed.updatedAt;
@@ -1288,6 +1353,7 @@
         loadPersistedState();
         loadStateFromUrl();
         ensureRegulationState();
+        ensureHirabayashiCupState();
         window.normalizeFnlTeamNames();
 
         function getTeamLogo(name) {
@@ -2182,6 +2248,7 @@
             renderTeams();
             renderTransferCenter();
             renderRules();
+            renderHirabayashiCup();
         }
 
         function renderStandings() {
@@ -3058,73 +3125,179 @@
             return 'basic';
         }
 
+        function getCupAllMatches() {
+            const cup = ensureHirabayashiCupState();
+            return [...cup.groupMatches, ...cup.repechageMatches, ...cup.knockoutMatches];
+        }
+
+        function getCupMatch(matchId) { return getCupAllMatches().find(match => match.id === matchId); }
+
+        function ensureCupDetails(match) {
+            if (!match.details || typeof match.details !== 'object') match.details = {};
+            if (!Array.isArray(match.details.events)) match.details.events = [];
+            if (!match.details.motm) match.details.motm = null;
+            return match.details;
+        }
+
+        function calculateCupTable(teams, matches) {
+            const rows = Object.fromEntries(teams.map(name => [name, { name, p: 0, w: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0 }]));
+            matches.forEach(match => {
+                if (match.hs === null || match.as === null || !rows[match.h] || !rows[match.a]) return;
+                const home = rows[match.h], away = rows[match.a], hs = Number(match.hs), as = Number(match.as);
+                home.p++; away.p++; home.gf += hs; home.ga += as; away.gf += as; away.ga += hs;
+                if (hs > as) { home.w++; home.pts += 3; away.l++; }
+                else if (as > hs) { away.w++; away.pts += 3; home.l++; }
+                else if (match.pkWinner === match.h) { home.w++; home.pts += 2; away.l++; away.pts += 1; }
+                else if (match.pkWinner === match.a) { away.w++; away.pts += 2; home.l++; home.pts += 1; }
+                home.gd = home.gf - home.ga; away.gd = away.gf - away.ga;
+            });
+            return Object.values(rows).sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || a.name.localeCompare(b.name, 'ja')).map((row, index) => ({ ...row, rank: index + 1 }));
+        }
+
+        function cupMatchScore(match) {
+            if (!match || match.hs === null || match.as === null) return 'VS';
+            return `${match.hs} - ${match.as}${match.pkWinner ? ' PK' : ''}`;
+        }
+
+        function cupWinner(match) {
+            if (!match || match.hs === null || match.as === null) return '';
+            if (Number(match.hs) > Number(match.as)) return match.h;
+            if (Number(match.as) > Number(match.hs)) return match.a;
+            return match.pkWinner || '';
+        }
+
+        function cupLoser(match) {
+            const winner = cupWinner(match);
+            return winner === match?.h ? match.a : winner === match?.a ? match.h : '';
+        }
+
+        function getCupQualifiers() {
+            const cup = ensureHirabayashiCupState();
+            const groups = ['A', 'B', 'C'].map(group => calculateCupTable(cup.groups[group], cup.groupMatches.filter(match => match.group === group)));
+            return { groups, direct: groups.flatMap(rows => rows.slice(0, 2).map(row => row.name)), thirds: groups.map(rows => rows[2]?.name).filter(Boolean) };
+        }
+
+        function syncCupKnockout() {
+            const cup = ensureHirabayashiCupState();
+            const byId = Object.fromEntries(cup.knockoutMatches.map(match => [match.id, match]));
+            const qf = ['hc_qf1', 'hc_qf2', 'hc_qf3', 'hc_qf4'].map(id => byId[id]).filter(Boolean);
+            const setTeams = (id, h, a, label) => {
+                const match = byId[id];
+                if (!match) return;
+                if (match.h !== h || match.a !== a) { match.h = h || '未確定'; match.a = a || '未確定'; match.hs = null; match.as = null; match.pkWinner = ''; match.details = { events: [], motm: null }; }
+                match.label = label;
+            };
+            setTeams('hc_sf1', cupWinner(qf[0]), cupWinner(qf[1]), '準決勝 1');
+            setTeams('hc_sf2', cupWinner(qf[2]), cupWinner(qf[3]), '準決勝 2');
+            const sf1 = byId.hc_sf1, sf2 = byId.hc_sf2;
+            setTeams('hc_3rd', cupLoser(sf1), cupLoser(sf2), '3位決定戦');
+            setTeams('hc_final', cupWinner(sf1), cupWinner(sf2), '決勝');
+        }
+
+        function createCupMatchCard(match) {
+            const ready = match.h && match.a && match.h !== '未確定' && match.a !== '未確定';
+            return `<div class="cup-match-card">
+                <div class="cup-match-meta"><span>${escapeHtml(match.label || 'HIRABAYASHI CUP')}</span><span>${match.hs !== null ? 'FINAL' : 'SCHEDULED'}</span></div>
+                <div class="cup-match-line">
+                    <div class="cup-match-team"><img src="${getTeamLogo(match.h)}" alt=""><span>${escapeHtml(match.h)}</span></div>
+                    <div class="cup-match-score">${cupMatchScore(match)}</div>
+                    <div class="cup-match-team away"><span>${escapeHtml(match.a)}</span><img src="${getTeamLogo(match.a)}" alt=""></div>
+                </div>
+                ${ready ? `<button class="cup-match-action" onclick="openCupMatchSheet('${match.id}')">試合結果・記録を入力</button>` : ''}
+            </div>`;
+        }
+
+        function calculateCupPlayerStats() {
+            const stats = new Map();
+            getCupAllMatches().forEach(match => ensureCupDetails(match).events.forEach(event => {
+                if (!event.player) return;
+                const key = `${event.team}__${event.player}`;
+                if (!stats.has(key)) stats.set(key, { name: event.player, team: event.team, goals: 0, assists: 0 });
+                const row = stats.get(key);
+                if (event.type === 'goal') row.goals++;
+                if (event.assist) {
+                    const assistKey = `${event.team}__${event.assist}`;
+                    if (!stats.has(assistKey)) stats.set(assistKey, { name: event.assist, team: event.team, goals: 0, assists: 0 });
+                    stats.get(assistKey).assists++;
+                }
+            }));
+            return [...stats.values()];
+        }
+
         function renderHirabayashiCup() {
             const wrap = document.getElementById('hirabayashi-cup-content');
             if (!wrap) return;
-            const clubs = RAW_TEAMS.map(team => `
-                <div class="cup-club">
-                    <img src="${team.logo}" alt="${escapeHtml(team.name)}">
-                    <span>${escapeHtml(team.name)}</span>
-                </div>`).join('');
+            const cup = ensureHirabayashiCupState();
+            syncCupKnockout();
+            const qualifiers = getCupQualifiers();
+            const activeGroup = cup.activeGroup;
+            const groupRows = calculateCupTable(cup.groups[activeGroup], cup.groupMatches.filter(match => match.group === activeGroup));
+            const playerStats = calculateCupPlayerStats();
+            const topGoals = [...playerStats].filter(row => row.goals).sort((a,b) => b.goals - a.goals)[0];
+            const topAssists = [...playerStats].filter(row => row.assists).sort((a,b) => b.assists - a.assists)[0];
+            const bracketColumns = [
+                ['準々決勝', cup.knockoutMatches.filter(match => match.id.startsWith('hc_qf'))],
+                ['準決勝', cup.knockoutMatches.filter(match => match.id.startsWith('hc_sf'))],
+                ['決勝', cup.knockoutMatches.filter(match => ['hc_3rd', 'hc_final'].includes(match.id))]
+            ];
+            const clubs = RAW_TEAMS.map(team => `<div class="cup-club"><img src="${team.logo}" alt="${escapeHtml(team.name)}"><span>${escapeHtml(team.name)}</span></div>`).join('');
+            const groupMatches = cup.groupMatches.filter(match => match.group === activeGroup).map(createCupMatchCard).join('');
+            const repechage = cup.repechageMatches.length ? cup.repechageMatches.map(createCupMatchCard).join('') : `<div class="cup-qualifier-note">グループステージの全試合結果を登録すると、各組3位のクラブによる敗者復活戦を作成できます。</div>`;
+            const allGroupsFinished = cup.groupMatches.every(match => match.hs !== null && match.as !== null && (match.hs !== match.as || match.pkWinner));
+            const allRepechageFinished = cup.repechageMatches.length && cup.repechageMatches.every(match => match.hs !== null && match.as !== null && (match.hs !== match.as || match.pkWinner));
             wrap.innerHTML = `
-                <div class="cup-hero">
-                    <div class="cup-eyebrow">FNL OFFICIAL CUP</div>
-                    <h2 class="cup-title">HIRABAYASHI CUP</h2>
-                    <p class="cup-subtitle">平林杯 ・ 9 CLUB TOURNAMENT</p>
-                    <div class="cup-hero-stats">
-                        <div class="cup-hero-stat"><b>9</b><span>CLUBS</span></div>
-                        <div class="cup-hero-stat"><b>3</b><span>GROUPS</span></div>
-                        <div class="cup-hero-stat"><b>8</b><span>FINALISTS</span></div>
-                    </div>
+                <div class="cup-hero"><img class="cup-hero-image" src="./hirabayashi-cup.png" alt="平林杯ロゴ"><div class="cup-eyebrow">FNL OFFICIAL CUP</div><h2 class="cup-title">HIRABAYASHI CUP</h2><p class="cup-subtitle">平林杯 ・ 9 CLUB TOURNAMENT</p><div class="cup-hero-stats"><div class="cup-hero-stat"><b>9</b><span>CLUBS</span></div><div class="cup-hero-stat"><b>3</b><span>GROUPS</span></div><div class="cup-hero-stat"><b>8</b><span>FINALISTS</span></div></div></div>
+                <div class="cup-hub-tabs">
+                    ${[['groups','グループ'],['repechage','敗者復活'],['bracket','決勝T'],['records','記録'],['guide','大会要項']].map(([key,label]) => `<button class="cup-hub-tab ${cup.activeTab === key ? 'active' : ''}" onclick="switchCupTab('${key}')">${label}</button>`).join('')}
                 </div>
-
-                <section class="cup-section">
-                    <h3 class="cup-section-title">大会形式</h3>
-                    <div class="cup-format-card">
-                        <div class="cup-stage">
-                            <div class="cup-stage-number">01</div>
-                            <div><b>グループステージ</b><p>3クラブずつの3組で総当たり。試合時間は6分、各組上位2クラブが決勝トーナメントへ進出します。</p></div>
-                        </div>
-                        <div class="cup-stage">
-                            <div class="cup-stage-number">02</div>
-                            <div><b>敗者復活戦</b><p>各組3位の3クラブで総当たり。試合時間は6分、上位2クラブが決勝トーナメントへ進出します。</p></div>
-                        </div>
-                        <div class="cup-stage">
-                            <div class="cup-stage-number">03</div>
-                            <div><b>決勝トーナメント</b><p>準々決勝、準決勝、3位決定戦、決勝を行います。試合時間は10分、延長戦とPK戦を適用します。</p></div>
-                        </div>
-                    </div>
+                <section class="cup-panel ${cup.activeTab === 'groups' ? 'active' : ''}">
+                    <div class="cup-group-switcher">${['A','B','C'].map(group => `<button class="${activeGroup === group ? 'active' : ''}" onclick="switchCupGroup('${group}')">GROUP ${group}</button>`).join('')}</div>
+                    <div class="cup-rule-list">${groupRows.map(row => `<div class="cup-standing-row"><span class="cup-standing-rank">${row.rank}</span><span class="cup-standing-team"><img src="${getTeamLogo(row.name)}" alt=""><span>${escapeHtml(row.name)}</span></span><span>${row.p}試</span><span>${row.gd > 0 ? '+' : ''}${row.gd}</span><b>${row.pts}点</b></div>`).join('')}</div>
+                    <div class="cup-section"><h3 class="cup-section-title">GROUP ${activeGroup} 試合</h3><div class="cup-match-list">${groupMatches}</div></div>
                 </section>
-
-                <section class="cup-section">
-                    <h3 class="cup-section-title">勝点・順位決定</h3>
-                    <div class="cup-points-grid">
-                        <div class="cup-point"><b>3</b><span>勝利</span></div>
-                        <div class="cup-point"><b>2</b><span>PK勝利</span></div>
-                        <div class="cup-point"><b>1</b><span>PK敗戦</span></div>
-                        <div class="cup-point"><b>0</b><span>敗戦</span></div>
-                    </div>
-                    <div class="cup-rule-list" style="margin-top:12px;">
-                        <div class="cup-rule"><b>順位決定順</b><span>勝点 → 得失点差 → 直接対決</span></div>
-                    </div>
+                <section class="cup-panel ${cup.activeTab === 'repechage' ? 'active' : ''}">
+                    <div class="cup-qualifier-note">各組3位：${qualifiers.thirds.map(escapeHtml).join(' ・ ')}<br>勝点は 勝利3 / PK勝利2 / PK敗戦1 / 敗戦0 です。</div>
+                    <div class="cup-section"><div class="cup-match-list">${repechage}</div>${allGroupsFinished && !cup.repechageMatches.length ? `<button class="btn-primary" style="margin-top:.75rem;width:100%;" onclick="createCupRepechage()">敗者復活戦を作成</button>` : ''}</div>
                 </section>
-
-                <section class="cup-section">
-                    <h3 class="cup-section-title">大会ルール</h3>
-                    <div class="cup-rule-list">
-                        <div class="cup-rule"><b>日程調整</b><span>対戦クラブ同士で相談し、合意した日程で実施します。</span></div>
-                        <div class="cup-rule"><b>試合設定</b><span>「好調縛り」を適用し、試合ルールはNormalで行います。</span></div>
-                        <div class="cup-rule"><b>選手交代</b><span>最大5人、交代回数は最大3回です。</span></div>
-                        <div class="cup-rule"><b>回線切断</b><span>グループ・敗者復活戦は原則再試合。決勝トーナメントも同一設定で再試合とします。故意の切断は失格です。</span></div>
-                        <div class="cup-rule"><b>その他</b><span>けがはON。フェアプレーとスポーツマンシップを大切にして大会を運営します。</span></div>
-                    </div>
+                <section class="cup-panel ${cup.activeTab === 'bracket' ? 'active' : ''}">
+                    ${cup.knockoutMatches.length ? `<div class="cup-bracket">${bracketColumns.map(([title,matches]) => `<div class="cup-bracket-column"><div class="cup-bracket-heading">${title}</div>${matches.map(match => `<div class="cup-bracket-match"><div class="cup-bracket-heading">${escapeHtml(match.label)}</div><div class="cup-bracket-team"><span>${escapeHtml(match.h)}</span><b>${match.hs ?? '-'}</b></div><div class="cup-bracket-team"><span>${escapeHtml(match.a)}</span><b>${match.as ?? '-'}</b></div>${match.h !== '未確定' && match.a !== '未確定' ? `<button class="cup-match-action" onclick="openCupMatchSheet('${match.id}')">記録</button>` : ''}</div>`).join('')}</div>`).join('')}</div>` : `<div class="cup-qualifier-note">敗者復活戦を含む全試合結果が登録されたら、8クラブの決勝トーナメントを作成できます。</div>`}
+                    ${allRepechageFinished && !cup.knockoutMatches.length ? `<button class="btn-primary" style="margin-top:.75rem;width:100%;" onclick="createCupKnockout()">決勝トーナメントを作成</button>` : ''}
                 </section>
-
-                <section class="cup-section">
-                    <h3 class="cup-section-title">参加クラブ</h3>
-                    <div class="cup-club-grid">${clubs}</div>
-                </section>`;
+                <section class="cup-panel ${cup.activeTab === 'records' ? 'active' : ''}">
+                    <div class="cup-record-grid"><div class="cup-record-card"><b>${escapeHtml(topGoals?.name || '記録なし')}</b><span>得点王 ${topGoals?.goals || 0} GOALS</span></div><div class="cup-record-card"><b>${escapeHtml(topAssists?.name || '記録なし')}</b><span>アシスト王 ${topAssists?.assists || 0} ASSISTS</span></div><div class="cup-record-card"><b>${getCupAllMatches().filter(match => match.hs !== null).length}</b><span>試合結果</span></div></div>
+                    <div class="cup-section"><h3 class="cup-section-title">個人記録</h3><div class="cup-rule-list">${playerStats.length ? playerStats.sort((a,b) => b.goals - a.goals || b.assists - a.assists).map((row,index) => `<div class="cup-standing-row"><span class="cup-standing-rank">${index + 1}</span><span>${escapeHtml(row.name)}<small style="display:block;color:var(--text-muted)">${escapeHtml(row.team)}</small></span><span>${row.goals}G</span><span>${row.assists}A</span><span></span></div>`).join('') : '<div class="empty-state">試合記録を入力すると、得点・アシストのランキングが表示されます。</div>'}</div></div>
+                </section>
+                <section class="cup-panel ${cup.activeTab === 'guide' ? 'active' : ''}"><div class="cup-format-card"><div class="cup-stage"><div class="cup-stage-number">01</div><div><b>グループステージ</b><p>3組の総当たり戦。各組上位2クラブが決勝トーナメントへ進出します。</p></div></div><div class="cup-stage"><div class="cup-stage-number">02</div><div><b>敗者復活戦</b><p>各組3位の3クラブによる総当たり戦。上位2クラブが決勝トーナメントへ進出します。</p></div></div><div class="cup-stage"><div class="cup-stage-number">03</div><div><b>決勝トーナメント</b><p>準々決勝、準決勝、3位決定戦、決勝。10分、延長戦・PK戦あり。</p></div></div></div><div class="cup-section"><h3 class="cup-section-title">参加クラブ</h3><div class="cup-club-grid">${clubs}</div></div></section>`;
         }
+
+        window.switchCupTab = function(tab) { ensureHirabayashiCupState().activeTab = tab; renderHirabayashiCup(); };
+        window.switchCupGroup = function(group) { ensureHirabayashiCupState().activeGroup = group; renderHirabayashiCup(); };
+        window.createCupRepechage = function() {
+            const cup = ensureHirabayashiCupState(), teams = getCupQualifiers().thirds;
+            if (teams.length !== 3) return alert('各組の順位が確定してから作成してください。');
+            cup.repechageMatches = [[0,1],[1,2],[2,0]].map(([h,a], index) => ({ id: `hc_r_${index + 1}`, stage: 'repechage', label: '敗者復活戦', h: teams[h], a: teams[a], hs: null, as: null, pkWinner: '', details: { events: [], motm: null } }));
+            cup.activeTab = 'repechage'; persistAppState(); renderHirabayashiCup();
+        };
+        window.createCupKnockout = function() {
+            const cup = ensureHirabayashiCupState(), direct = getCupQualifiers().direct;
+            const repechage = calculateCupTable(getCupQualifiers().thirds, cup.repechageMatches).slice(0, 2).map(row => row.name);
+            if (direct.length !== 6 || repechage.length !== 2) return alert('決勝トーナメントの進出クラブが確定していません。');
+            const entrants = [...direct, ...repechage];
+            const make = (id, label, h, a) => ({ id, stage: 'knockout', label, h, a, hs: null, as: null, pkWinner: '', details: { events: [], motm: null } });
+            cup.knockoutMatches = [make('hc_qf1','準々決勝 1',entrants[0],entrants[7]),make('hc_qf2','準々決勝 2',entrants[1],entrants[6]),make('hc_qf3','準々決勝 3',entrants[2],entrants[5]),make('hc_qf4','準々決勝 4',entrants[3],entrants[4]),make('hc_sf1','準決勝 1','未確定','未確定'),make('hc_sf2','準決勝 2','未確定','未確定'),make('hc_3rd','3位決定戦','未確定','未確定'),make('hc_final','決勝','未確定','未確定')];
+            cup.activeTab = 'bracket'; persistAppState(); renderHirabayashiCup();
+        };
+        window.openCupMatchSheet = function(matchId) {
+            const match = getCupMatch(matchId); if (!match) return;
+            const details = ensureCupDetails(match), playerOptions = team => matchEventPlayerOptions(team, '選手を選択');
+            document.getElementById('sheet-body').innerHTML = `<div class="match-center-header"><div class="match-center-kicker">HIRABAYASHI CUP</div><h3 class="match-center-title">${escapeHtml(match.label)}</h3><div class="match-center-subtitle">${escapeHtml(match.h)} vs ${escapeHtml(match.a)}</div></div><div class="match-center-scoreboard"><div class="match-center-team"><img src="${getTeamLogo(match.h)}" alt=""><div class="match-center-team-name">${escapeHtml(match.h)}</div><input type="number" id="cup-hs" class="form-input match-center-score-input" min="0" value="${match.hs ?? ''}" placeholder="0"></div><div class="match-center-versus">VS</div><div class="match-center-team"><img src="${getTeamLogo(match.a)}" alt=""><div class="match-center-team-name">${escapeHtml(match.a)}</div><input type="number" id="cup-as" class="form-input match-center-score-input" min="0" value="${match.as ?? ''}" placeholder="0"></div></div><div class="form-group"><label class="form-label">同点時のPK勝者（同点で終了した場合のみ選択）</label><select id="cup-pk" class="form-select"><option value="">PKなし / 未選択</option><option value="${escapeHtml(match.h)}" ${match.pkWinner === match.h ? 'selected' : ''}>${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}" ${match.pkWinner === match.a ? 'selected' : ''}>${escapeHtml(match.a)}</option></select></div><div class="form-group"><label class="form-label">MOM</label><div class="match-center-mom"><select id="cup-motm-team" class="form-select"><option value="${escapeHtml(match.h)}">${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}">${escapeHtml(match.a)}</option></select><input id="cup-motm" class="form-input" list="cup-players" value="${escapeHtml(details.motm?.name || '')}" placeholder="選手名"></div><datalist id="cup-players">${[...getRosterNamesByTeamName(match.h),...getRosterNamesByTeamName(match.a)].map(name => `<option value="${escapeHtml(name)}">`).join('')}</datalist></div><button class="btn-primary match-center-save" onclick="saveCupMatch('${match.id}')">試合結果を保存</button><div class="match-center-section"><div class="match-center-section-heading"><span>得点・カード記録</span></div><div class="event-entry-card"><div class="form-group"><select id="cup-event-type" class="form-select"><option value="goal">得点</option><option value="yellow">イエローカード</option><option value="red">レッドカード</option></select></div><div class="form-group"><select id="cup-event-team" class="form-select" onchange="updateCupEventOptions('${match.id}')"><option value="${escapeHtml(match.h)}">${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}">${escapeHtml(match.a)}</option></select></div><div class="form-group"><select id="cup-event-player" class="form-select">${playerOptions(match.h)}</select></div><div class="form-group"><select id="cup-event-assist" class="form-select">${matchEventPlayerOptions(match.h,'アシストなし')}</select></div></div><button class="btn-secondary" style="width:100%;" onclick="addCupEvent('${match.id}')">記録を追加</button><div class="match-center-events">${details.events.length ? details.events.map(event => `<div class="event-row"><div class="ranking-main"><div class="match-event-type">${escapeHtml(event.type.toUpperCase())}</div><div class="ranking-name">${escapeHtml(event.player)}</div><div class="ranking-team">${escapeHtml(event.team)}${event.assist ? ` ・ AS ${escapeHtml(event.assist)}` : ''}</div></div><button class="btn-secondary" onclick="deleteCupEvent('${match.id}','${event.id}')">削除</button></div>`).join('') : '<div class="empty-state">記録はまだありません</div>'}</div></div><button class="btn-secondary event-entry-back" onclick="closeCupSheet()">閉じる</button>`;
+            document.getElementById('sheet-overlay').classList.add('active');
+        };
+        window.updateCupEventOptions = function(matchId) { const match = getCupMatch(matchId), team = document.getElementById('cup-event-team')?.value; if (!match || !team) return; document.getElementById('cup-event-player').innerHTML = matchEventPlayerOptions(team); document.getElementById('cup-event-assist').innerHTML = matchEventPlayerOptions(team, 'アシストなし'); };
+        window.addCupEvent = function(matchId) { const match = getCupMatch(matchId), player = document.getElementById('cup-event-player')?.value; if (!match || !player) return alert('選手を選択してください。'); ensureCupDetails(match).events.push({ id: `hc_e_${Date.now()}`, type: document.getElementById('cup-event-type').value, team: document.getElementById('cup-event-team').value, player, assist: document.getElementById('cup-event-type').value === 'goal' ? document.getElementById('cup-event-assist').value : '' }); persistAppState(); openCupMatchSheet(matchId); };
+        window.deleteCupEvent = function(matchId, eventId) { const match = getCupMatch(matchId); if (!match) return; ensureCupDetails(match).events = ensureCupDetails(match).events.filter(event => event.id !== eventId); persistAppState(); openCupMatchSheet(matchId); };
+        window.saveCupMatch = function(matchId) { const match = getCupMatch(matchId), hs = document.getElementById('cup-hs')?.value, as = document.getElementById('cup-as')?.value, pkWinner = document.getElementById('cup-pk')?.value || ''; if (!match || hs === '' || as === '') return alert('両チームの得点を入力してください。'); if (Number(hs) === Number(as) && !pkWinner) return alert('同点の場合はPK勝者を選択してください。'); if (Number(hs) !== Number(as) && pkWinner) return alert('PK勝者は同点の場合だけ選択できます。'); match.hs = Number(hs); match.as = Number(as); match.pkWinner = pkWinner; const motm = document.getElementById('cup-motm')?.value.trim(); ensureCupDetails(match).motm = motm ? { name: motm, team: document.getElementById('cup-motm-team').value } : null; syncCupKnockout(); persistAppState(); document.getElementById('sheet-overlay').classList.remove('active'); renderHirabayashiCup(); };
+        window.closeCupSheet = function() { document.getElementById('sheet-overlay').classList.remove('active'); renderHirabayashiCup(); };
 
         function renderRules() {
             const regulations = ensureRegulationState();
@@ -3538,7 +3711,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=41'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=42'));
     }
 </script>
 </html>
