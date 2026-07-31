@@ -350,6 +350,37 @@
         .news-detail-content { margin:.15rem 0 1.2rem; color:#d7dbe2; font-size:.87rem; line-height:1.8; white-space:pre-wrap; }
         .news-detail-delete { margin-top:.2rem; }
 
+        /* 平林杯 */
+        .cup-hero { position:relative; overflow:hidden; padding:1.2rem; border:1px solid rgba(198,166,100,.36); border-radius:18px; background:linear-gradient(145deg,rgba(18,89,52,.6),var(--bg-card) 58%); }
+        .cup-hero::after { content:''; position:absolute; right:-3rem; bottom:-4rem; width:11rem; height:11rem; border:1px solid rgba(198,166,100,.2); border-radius:50%; box-shadow:inset 0 0 0 16px rgba(18,89,52,.18); pointer-events:none; }
+        .cup-eyebrow { color:var(--accent-gold-light); font-size:.62rem; font-weight:900; letter-spacing:.14em; }
+        .cup-title { position:relative; z-index:1; margin:.35rem 0 0; font:700 2.75rem/.9 'Teko',sans-serif; letter-spacing:.04em; }
+        .cup-subtitle { position:relative; z-index:1; margin-top:.38rem; color:#c5d4c9; font-size:.7rem; font-weight:800; letter-spacing:.07em; }
+        .cup-hero-stats { position:relative; z-index:1; display:grid; grid-template-columns:repeat(3,1fr); gap:.4rem; margin-top:1.15rem; }
+        .cup-hero-stat { padding:.5rem .25rem; border:1px solid rgba(255,255,255,.1); border-radius:10px; background:rgba(6,14,10,.34); text-align:center; }
+        .cup-hero-stat b { display:block; color:var(--accent-gold-light); font:700 1.32rem/1 'Teko',sans-serif; }
+        .cup-hero-stat span { display:block; margin-top:.18rem; color:var(--text-muted); font-size:.55rem; font-weight:800; letter-spacing:.05em; }
+        .cup-section { margin-top:1.25rem; }
+        .cup-section-title { margin:0 0 .6rem; font-size:.9rem; font-weight:900; }
+        .cup-format-card { padding:.1rem .85rem; border:1px solid var(--border-color); border-radius:14px; background:var(--bg-card); }
+        .cup-stage { display:grid; grid-template-columns:30px 1fr; gap:.65rem; padding:.85rem 0; }
+        .cup-stage + .cup-stage { border-top:1px solid var(--border-color); }
+        .cup-stage-number { display:grid; place-items:center; align-self:start; width:30px; height:30px; border-radius:9px; background:rgba(198,166,100,.12); color:var(--accent-gold-light); font:700 1rem/1 'Teko',sans-serif; }
+        .cup-stage-title { color:var(--text-main); font-size:.8rem; font-weight:900; }
+        .cup-stage-copy { margin-top:.27rem; color:var(--text-muted); font-size:.69rem; line-height:1.55; }
+        .cup-points-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:.4rem; }
+        .cup-point { padding:.6rem .2rem; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-card); text-align:center; }
+        .cup-point b { display:block; color:var(--accent-gold-light); font:700 1.4rem/1 'Teko',sans-serif; }
+        .cup-point span { display:block; margin-top:.18rem; color:var(--text-muted); font-size:.56rem; font-weight:800; }
+        .cup-rule-list { padding:.05rem .85rem; border:1px solid var(--border-color); border-radius:14px; background:var(--bg-card); }
+        .cup-rule { padding:.75rem 0; color:#d7dbe2; font-size:.72rem; line-height:1.5; }
+        .cup-rule + .cup-rule { border-top:1px solid var(--border-color); }
+        .cup-rule b { color:var(--accent-gold-light); }
+        .cup-club-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.45rem; }
+        .cup-club { min-width:0; padding:.65rem .35rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); text-align:center; }
+        .cup-club img { width:32px; height:32px; object-fit:contain; }
+        .cup-club span { display:block; margin-top:.35rem; overflow:hidden; color:var(--text-main); font-size:.58rem; font-weight:800; text-overflow:ellipsis; white-space:nowrap; }
+
         /* 規約 */
         .rule-chapter { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.6rem; overflow: hidden; }
         .rule-chapter-header { padding: 0.8rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: var(--bg-elevated); font-weight: 700; font-size: 0.85rem; }
@@ -859,6 +890,11 @@
             </div>
         </section>
 
+        <!-- PAGE 8: HIRABAYASHI CUP -->
+        <section id="page-cup" class="page">
+            <div id="hirabayashi-cup-content"></div>
+        </section>
+
     </main>
 
     <!-- ボトムナビゲーションバー -->
@@ -1309,7 +1345,7 @@
                 const matchedNav = document.querySelector(`#bottom-nav-element .nav-item[data-page="${pageId}"]`);
                 if (matchedNav) {
                     matchedNav.classList.add('active');
-                } else if (['transfer', 'news', 'rules'].includes(pageId)) {
+                } else if (['transfer', 'news', 'rules', 'cup'].includes(pageId)) {
                     document.querySelector('#bottom-nav-element .nav-item[data-nav-more]')?.classList.add('active');
                 }
             }
@@ -1325,6 +1361,7 @@
                 renderRules();
                 switchRulesView('current', document.querySelector('[data-rules-tab="current"]'));
             }
+            if (pageId === 'cup') renderHirabayashiCup();
             // ページ切替後に高さが変わっても、Safariのスクロール位置を確実に先頭へ戻す
             requestAnimationFrame(() => window.scrollTo(0, 0));
         };
@@ -1333,6 +1370,7 @@
             const activePageId = document.querySelector('.page.active')?.id?.replace('page-', '') || '';
             const menuItems = [
                 { page: 'transfer', title: '移籍', icon: '<path d="M7 7h8.17l-2.59 2.59L14 11l5-5-5-5 1.41 1.41L12.83 6H7v1zm10 10H8.83l2.59-2.59L10 13l-5 5 5 5-1.41-1.41L11.17 18H17v-1z"/>' },
+                { page: 'cup', title: '平林杯', icon: '<path d="M8 2h8v5a4 4 0 0 1-8 0V2zm0 3H5v2a4 4 0 0 0 4 4M16 5h3v2a4 4 0 0 1-4 4M12 11v5m-3 4h6M8 20h8"/>' },
                 { page: 'news', title: 'ニュース', icon: '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/>' },
                 { page: 'rules', title: '規約', icon: '<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>' }
             ];
@@ -3020,6 +3058,74 @@
             return 'basic';
         }
 
+        function renderHirabayashiCup() {
+            const wrap = document.getElementById('hirabayashi-cup-content');
+            if (!wrap) return;
+            const clubs = RAW_TEAMS.map(team => `
+                <div class="cup-club">
+                    <img src="${team.logo}" alt="${escapeHtml(team.name)}">
+                    <span>${escapeHtml(team.name)}</span>
+                </div>`).join('');
+            wrap.innerHTML = `
+                <div class="cup-hero">
+                    <div class="cup-eyebrow">FNL OFFICIAL CUP</div>
+                    <h2 class="cup-title">HIRABAYASHI CUP</h2>
+                    <p class="cup-subtitle">平林杯 ・ 9 CLUB TOURNAMENT</p>
+                    <div class="cup-hero-stats">
+                        <div class="cup-hero-stat"><b>9</b><span>CLUBS</span></div>
+                        <div class="cup-hero-stat"><b>3</b><span>GROUPS</span></div>
+                        <div class="cup-hero-stat"><b>8</b><span>FINALISTS</span></div>
+                    </div>
+                </div>
+
+                <section class="cup-section">
+                    <h3 class="cup-section-title">大会形式</h3>
+                    <div class="cup-format-card">
+                        <div class="cup-stage">
+                            <div class="cup-stage-number">01</div>
+                            <div><b>グループステージ</b><p>3クラブずつの3組で総当たり。試合時間は6分、各組上位2クラブが決勝トーナメントへ進出します。</p></div>
+                        </div>
+                        <div class="cup-stage">
+                            <div class="cup-stage-number">02</div>
+                            <div><b>敗者復活戦</b><p>各組3位の3クラブで総当たり。試合時間は6分、上位2クラブが決勝トーナメントへ進出します。</p></div>
+                        </div>
+                        <div class="cup-stage">
+                            <div class="cup-stage-number">03</div>
+                            <div><b>決勝トーナメント</b><p>準々決勝、準決勝、3位決定戦、決勝を行います。試合時間は10分、延長戦とPK戦を適用します。</p></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="cup-section">
+                    <h3 class="cup-section-title">勝点・順位決定</h3>
+                    <div class="cup-points-grid">
+                        <div class="cup-point"><b>3</b><span>勝利</span></div>
+                        <div class="cup-point"><b>2</b><span>PK勝利</span></div>
+                        <div class="cup-point"><b>1</b><span>PK敗戦</span></div>
+                        <div class="cup-point"><b>0</b><span>敗戦</span></div>
+                    </div>
+                    <div class="cup-rule-list" style="margin-top:12px;">
+                        <div class="cup-rule"><b>順位決定順</b><span>勝点 → 得失点差 → 直接対決</span></div>
+                    </div>
+                </section>
+
+                <section class="cup-section">
+                    <h3 class="cup-section-title">大会ルール</h3>
+                    <div class="cup-rule-list">
+                        <div class="cup-rule"><b>日程調整</b><span>対戦クラブ同士で相談し、合意した日程で実施します。</span></div>
+                        <div class="cup-rule"><b>試合設定</b><span>「好調縛り」を適用し、試合ルールはNormalで行います。</span></div>
+                        <div class="cup-rule"><b>選手交代</b><span>最大5人、交代回数は最大3回です。</span></div>
+                        <div class="cup-rule"><b>回線切断</b><span>グループ・敗者復活戦は原則再試合。決勝トーナメントも同一設定で再試合とします。故意の切断は失格です。</span></div>
+                        <div class="cup-rule"><b>その他</b><span>けがはON。フェアプレーとスポーツマンシップを大切にして大会を運営します。</span></div>
+                    </div>
+                </section>
+
+                <section class="cup-section">
+                    <h3 class="cup-section-title">参加クラブ</h3>
+                    <div class="cup-club-grid">${clubs}</div>
+                </section>`;
+        }
+
         function renderRules() {
             const regulations = ensureRegulationState();
             const current = regulations.current;
@@ -3432,7 +3538,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=40'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=41'));
     }
 </script>
 </html>
