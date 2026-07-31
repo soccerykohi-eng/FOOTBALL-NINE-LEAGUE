@@ -1749,7 +1749,6 @@
                     <div class="form-group"><label class="form-label">チーム</label><select id="event-team" class="form-select" onchange="updateMatchEventPlayerOptions('${m.id}')"><option>${escapeHtml(m.h)}</option><option>${escapeHtml(m.a)}</option></select></div>
                     <div class="form-group"><label class="form-label">選手</label><select id="event-player" class="form-select">${matchEventPlayerOptions(m.h)}</select></div>
                     ${isCardEntry ? '' : `<div class="form-group"><label class="form-label">アシスト</label><select id="event-assist" class="form-select">${matchEventPlayerOptions(m.h, 'なし')}</select></div>`}
-                    <div class="form-group"><label class="form-label">時間</label><input id="event-minute" class="form-input" type="number" inputmode="numeric" min="1" max="120" placeholder="任意"></div>
                 </div>
                 <button class="btn-primary event-entry-save" onclick="saveMatchEvent('${m.id}')">記録を追加</button>
                 <button class="btn-secondary event-entry-back" onclick="openScoreInputSheet('${m.id}')">試合センターへ戻る</button>`;
@@ -1802,7 +1801,7 @@
                 team,
                 player,
                 assist: type === 'goal' ? document.getElementById('event-assist')?.value.trim() || '' : '',
-                minute: Number(document.getElementById('event-minute')?.value || 0)
+                minute: 0
             });
             addActivity('試合記録を追加', `${player} ・ MW${m.mw} ${m.h} vs ${m.a}`);
             refreshAllViews();
@@ -3423,7 +3422,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=37'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=38'));
     }
 </script>
 </html>
