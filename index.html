@@ -1631,6 +1631,10 @@
                         <input type="number" id="input-as" aria-label="${escapeHtml(m.a)}の得点" class="form-input match-center-score-input" inputmode="numeric" pattern="[0-9]*" min="0" max="20" placeholder="0" value="${m.as !== null ? m.as : ''}">
                     </div>
                 </div>
+                <div class="match-center-save-bar">
+                    <p class="match-center-save-copy">まず試合スコアを保存します。MOMと出場選手を入力した場合も同時に保存されます。得点・カードは下の「試合記録」から追加できます。</p>
+                    <button class="btn-primary match-center-save" onclick="saveScoreToCloud('${m.id}')">スコア・選手情報を保存</button>
+                </div>
                 <div class="match-center-section">
                     <div class="match-center-section-heading"><span>MOM</span><small>マン・オブ・ザ・マッチ</small></div>
                     <div class="match-center-panel match-center-mom">
@@ -1644,10 +1648,6 @@
                         <div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(m.h)}" alt="">${escapeHtml(m.h)}</div>${renderAppearancePicker(m.h, 'home', details.appearances?.home || [])}</div>
                         <div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(m.a)}" alt="">${escapeHtml(m.a)}</div>${renderAppearancePicker(m.a, 'away', details.appearances?.away || [])}</div>
                     </div>
-                </div>
-                <div class="match-center-save-bar">
-                    <p class="match-center-save-copy">スコア、MOM、出場選手を確認してから保存してください。得点・カードの記録は下の「試合記録」から追加できます。</p>
-                    <button class="btn-primary match-center-save" onclick="saveScoreToCloud('${m.id}')">スコア・選手情報を保存</button>
                 </div>
                 <div class="match-center-section">
                     <div class="match-center-section-heading"><span>試合記録</span><small>得点・カード</small></div>
@@ -3399,7 +3399,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=32'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=33'));
     }
 </script>
 </html>
