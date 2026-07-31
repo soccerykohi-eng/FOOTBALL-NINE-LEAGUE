@@ -266,6 +266,7 @@ function applyRemoteState(remote) {
   if (Object.prototype.hasOwnProperty.call(remote, "previousSeasonSnapshot")) state.previousSeasonSnapshot = remote.previousSeasonSnapshot;
   if (Object.prototype.hasOwnProperty.call(remote, "lastMatchSnapshot")) state.lastMatchSnapshot = remote.lastMatchSnapshot;
   state.lastSavedAt = remote.updatedAt || state.lastSavedAt;
+  window.normalizeFnlTeamNames?.();
   state.standingsDirty = true;
   lastSyncedPayload = currentStatePayload();
   saveStateToStorage();
