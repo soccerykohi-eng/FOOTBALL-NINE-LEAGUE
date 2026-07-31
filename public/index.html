@@ -590,6 +590,19 @@
         .match-event-type { color:var(--accent-gold-light); font-size:.64rem; font-weight:900; letter-spacing:.04em; }
         .match-center-utilities { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; margin-top:.7rem; }
         .match-center-utilities .btn-secondary, .match-center-utilities .share-action-btn { min-height:36px; width:100%; border-radius:9px; box-shadow:none; font-size:.68rem; }
+        .event-sheet-header { margin:0 0 1rem; padding:.15rem .1rem .85rem; border-bottom:1px solid var(--border-color); }
+        .event-sheet-kicker { color:var(--accent-gold); font-size:.62rem; font-weight:900; letter-spacing:.1em; }
+        .event-sheet-title { margin:.18rem 0 0; font:700 1.85rem/1 'Teko',sans-serif; letter-spacing:.03em; }
+        .event-sheet-match { margin-top:.35rem; color:var(--text-muted); font-size:.67rem; font-weight:700; }
+        .event-entry-card { padding:.8rem; border:1px solid var(--border-color); border-radius:14px; background:var(--bg-card); }
+        .event-entry-card .form-group:last-child { margin-bottom:0; }
+        .event-type-switch { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.45rem; margin-bottom:.8rem; }
+        .event-type-choice { position:relative; cursor:pointer; }
+        .event-type-choice input { position:absolute; opacity:0; pointer-events:none; }
+        .event-type-choice span { display:flex; align-items:center; justify-content:center; min-height:40px; border:1px solid var(--border-color); border-radius:10px; color:var(--text-muted); font-size:.7rem; font-weight:800; }
+        .event-type-choice input:checked + span { border-color:rgba(198,166,100,.6); background:rgba(198,166,100,.12); color:var(--accent-gold-light); }
+        .event-entry-save { width:100%; min-height:46px; margin-top:.8rem; border-radius:11px; }
+        .event-entry-back { width:100%; min-height:38px; margin-top:.5rem; border-radius:10px; box-shadow:none; }
         @media (max-width:380px) { .match-center-scoreboard { grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr); gap:.35rem; padding:.85rem .45rem; } .match-center-score-input { width:54px !important; } .match-center-lineup-grid { grid-template-columns:1fr; } .match-center-mom { grid-template-columns:1fr; } }
 
         /* Roster: club composition at a glance */
@@ -1726,24 +1739,26 @@
             const isCardEntry = type === 'yellow' || type === 'red';
             const title = isCardEntry ? 'カードを追加' : '得点を追加';
             const typeField = isCardEntry
-                ? `<select id="event-type" class="form-select" onchange="toggleAssistField()"><option value="yellow" ${type === 'yellow' ? 'selected' : ''}>イエローカード</option><option value="red" ${type === 'red' ? 'selected' : ''}>レッドカード</option></select>`
+                ? `<div class="event-type-switch" aria-label="カードの種類"><label class="event-type-choice"><input type="radio" name="event-type" value="yellow" ${type === 'yellow' ? 'checked' : ''}><span>イエロー</span></label><label class="event-type-choice"><input type="radio" name="event-type" value="red" ${type === 'red' ? 'checked' : ''}><span>レッド</span></label></div>`
                 : '<input id="event-type" type="hidden" value="goal">';
             const body = document.getElementById('sheet-body');
             body.innerHTML = `
-                <div style="text-align:center;margin-bottom:1rem;"><h3>${title}</h3></div>
-                ${isCardEntry ? `<div class="form-group"><label class="form-label">種類</label>${typeField}</div>` : typeField}
-                <div class="form-group"><label class="form-label">チーム</label><select id="event-team" class="form-select" onchange="updateMatchEventPlayerOptions('${m.id}')"><option>${escapeHtml(m.h)}</option><option>${escapeHtml(m.a)}</option></select></div>
-                <div class="form-group"><label class="form-label">選手</label><select id="event-player" class="form-select">${matchEventPlayerOptions(m.h)}</select></div>
-                <div class="form-group" id="assist-field"><label class="form-label">アシスト（なしでも可）</label><select id="event-assist" class="form-select">${matchEventPlayerOptions(m.h, 'アシストなし')}</select></div>
-                <div class="form-group"><label class="form-label">時間（任意）</label><input id="event-minute" class="form-input" type="number" inputmode="numeric" min="1" max="120" placeholder="例：67"></div>
-                <button class="btn-primary" onclick="saveMatchEvent('${m.id}')">記録して全員に同期</button>
-                <button class="btn-secondary" style="width:100%;margin-top:0.5rem;" onclick="openScoreInputSheet('${m.id}')">試合センターへ戻る</button>`;
-            window.toggleAssistField();
+                <div class="event-sheet-header"><div class="event-sheet-kicker">${isCardEntry ? 'CARD RECORD' : 'GOAL RECORD'}</div><h3 class="event-sheet-title">${title}</h3><div class="event-sheet-match">${escapeHtml(m.h)} vs ${escapeHtml(m.a)}</div></div>
+                <div class="event-entry-card">
+                    ${typeField}
+                    <div class="form-group"><label class="form-label">チーム</label><select id="event-team" class="form-select" onchange="updateMatchEventPlayerOptions('${m.id}')"><option>${escapeHtml(m.h)}</option><option>${escapeHtml(m.a)}</option></select></div>
+                    <div class="form-group"><label class="form-label">選手</label><select id="event-player" class="form-select">${matchEventPlayerOptions(m.h)}</select></div>
+                    ${isCardEntry ? '' : `<div class="form-group"><label class="form-label">アシスト</label><select id="event-assist" class="form-select">${matchEventPlayerOptions(m.h, 'なし')}</select></div>`}
+                    <div class="form-group"><label class="form-label">時間</label><input id="event-minute" class="form-input" type="number" inputmode="numeric" min="1" max="120" placeholder="任意"></div>
+                </div>
+                <button class="btn-primary event-entry-save" onclick="saveMatchEvent('${m.id}')">記録を追加</button>
+                <button class="btn-secondary event-entry-back" onclick="openScoreInputSheet('${m.id}')">試合センターへ戻る</button>`;
         };
 
         window.toggleAssistField = function() {
             const field = document.getElementById('assist-field');
-            if (field) field.style.display = document.getElementById('event-type')?.value === 'goal' ? 'block' : 'none';
+            const selectedType = document.querySelector('input[name="event-type"]:checked')?.value || document.getElementById('event-type')?.value;
+            if (field) field.style.display = selectedType === 'goal' ? 'block' : 'none';
         };
 
         window.updateMatchEventPlayerOptions = function(mId) {
@@ -1765,8 +1780,11 @@
         window.saveMatchEvent = function(mId) {
             const m = state.schedule.find(item => item.id === mId);
             const player = document.getElementById('event-player')?.value.trim();
-            if (!m || !player) return;
-            const type = document.getElementById('event-type').value;
+            if (!m || !player) {
+                alert('選手を選択してから記録を追加してください。');
+                return;
+            }
+            const type = document.querySelector('input[name="event-type"]:checked')?.value || document.getElementById('event-type')?.value;
             const team = document.getElementById('event-team').value;
             if (type === 'goal' && m.hs !== null && m.as !== null) {
                 const totals = getRecordedGoalTotals(m);
@@ -3405,7 +3423,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=36'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=37'));
     }
 </script>
 </html>
