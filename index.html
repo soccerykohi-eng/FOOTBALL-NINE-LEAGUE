@@ -557,11 +557,11 @@
         .team-result-score { color:var(--text-main); font:700 1.3rem/1 'Teko',sans-serif; }
 
         /* Match center: official match record */
-        .match-center-header { text-align:center; margin:0 .1rem 1rem; }
+        .match-center-header { margin:0 .1rem .9rem; }
         .match-center-kicker { color:var(--accent-gold); font-size:.68rem; font-weight:900; letter-spacing:.12em; }
-        .match-center-title { margin-top:.22rem; font-family:'Teko',sans-serif; font-size:2rem; line-height:1; letter-spacing:.04em; }
-        .match-center-subtitle { margin-top:.35rem; color:var(--text-muted); font-size:.72rem; }
-        .match-center-scoreboard { display:grid; grid-template-columns:minmax(0,1fr) 72px minmax(0,1fr); align-items:center; gap:.55rem; padding:1rem .75rem; margin-bottom:1rem; border:1px solid rgba(198,166,100,.28); border-radius:16px; background:linear-gradient(145deg,rgba(198,166,100,.1),var(--bg-card) 58%); }
+        .match-center-title { margin-top:.16rem; font-family:'Teko',sans-serif; font-size:2rem; line-height:1; letter-spacing:.04em; }
+        .match-center-subtitle { margin-top:.25rem; color:var(--text-muted); font-size:.7rem; }
+        .match-center-scoreboard { display:grid; grid-template-columns:minmax(0,1fr) 72px minmax(0,1fr); align-items:center; gap:.55rem; padding:1rem .75rem; margin-bottom:.9rem; border:1px solid rgba(198,166,100,.28); border-radius:16px; background:linear-gradient(145deg,rgba(198,166,100,.1),var(--bg-card) 58%); }
         .match-center-team { min-width:0; display:flex; flex-direction:column; align-items:center; gap:.42rem; text-align:center; }
         .match-center-team img { width:42px; height:42px; object-fit:contain; }
         .match-center-team-name { min-height:2.5em; font-size:.76rem; font-weight:900; line-height:1.22; overflow-wrap:anywhere; }
@@ -569,30 +569,28 @@
         .match-center-score-input::placeholder { color:rgba(255,255,255,.24); }
         .match-center-score-caption { color:var(--text-muted); font-size:.58rem; font-weight:800; letter-spacing:.05em; }
         .match-center-versus { color:var(--text-muted); font:700 .84rem 'Teko',sans-serif; letter-spacing:.08em; text-align:center; }
-        .match-center-flow { display:grid; grid-template-columns:repeat(3,1fr); gap:.35rem; margin:0 0 1rem; }
-        .match-center-flow-step { min-width:0; display:flex; align-items:center; gap:.35rem; padding:.45rem .4rem; border:1px solid var(--border-color); border-radius:9px; color:var(--text-muted); font-size:.58rem; font-weight:800; line-height:1.2; }
-        .match-center-flow-step b { display:grid; place-items:center; flex:0 0 18px; width:18px; height:18px; border-radius:50%; background:rgba(255,255,255,.07); color:var(--text-main); font:700 .72rem/1 'Teko',sans-serif; }
-        .match-center-flow-step.is-primary { border-color:rgba(198,166,100,.4); color:var(--accent-gold-light); background:rgba(198,166,100,.08); }
-        .match-center-flow-step.is-primary b { background:var(--accent-gold); color:#101318; }
-        .match-center-section { margin-top:1rem; }
-        .match-center-section-heading { display:flex; align-items:center; justify-content:space-between; margin:0 0 .55rem; font-size:.8rem; font-weight:900; }
+        .match-center-section { margin-top:1.15rem; }
+        .match-center-section-heading { display:flex; align-items:center; justify-content:space-between; margin:0 0 .6rem; font-size:.84rem; font-weight:900; }
         .match-center-section-heading small { color:var(--text-muted); font-size:.62rem; font-weight:700; }
         .match-center-panel { padding:.8rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
+        .match-center-core { padding:.8rem; border:1px solid var(--border-color); border-radius:14px; background:var(--bg-card); }
+        .match-center-core-label { display:block; margin:0 0 .45rem; color:var(--text-muted); font-size:.6rem; font-weight:900; letter-spacing:.06em; }
+        .match-center-core-label + .match-center-mom { margin-bottom:.8rem; }
         .match-center-mom { display:grid; grid-template-columns:1fr 1.35fr; gap:.5rem; }
         .match-center-lineup-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
         .match-center-lineup { min-width:0; padding:.75rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
         .match-center-lineup-name { display:flex; align-items:center; gap:.45rem; margin-bottom:.55rem; font-size:.76rem; font-weight:900; }
         .match-center-lineup-name img { width:24px; height:24px; object-fit:contain; }
-        .match-center-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; margin-top:.7rem; }
+        .match-center-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; }
         .match-center-actions .btn-secondary, .match-center-actions .share-action-btn { min-height:40px; width:100%; border-radius:10px; box-shadow:none; }
-        .match-center-save-bar { margin-top:1rem; padding:.7rem; border:1px solid rgba(198,166,100,.25); border-radius:12px; background:linear-gradient(135deg,rgba(198,166,100,.1),var(--bg-card)); }
-        .match-center-save-copy { margin:0 0 .55rem; color:var(--text-muted); font-size:.65rem; line-height:1.45; }
-        .match-center-save { min-height:46px; border-radius:12px; }
-        .match-center-required { display:inline-flex; align-items:center; margin-left:.35rem; padding:.15rem .36rem; border-radius:999px; background:rgba(198,166,100,.14); color:var(--accent-gold-light); font-size:.55rem; font-weight:900; letter-spacing:.04em; }
-        .match-center-events { margin-top:.3rem; padding:.25rem .8rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
+        .match-center-save-bar { margin-top:1.15rem; padding:.65rem; border:1px solid rgba(198,166,100,.32); border-radius:14px; background:linear-gradient(135deg,rgba(198,166,100,.12),var(--bg-card)); }
+        .match-center-save { min-height:48px; border-radius:11px; }
+        .match-center-events { margin-top:.7rem; padding:.25rem .8rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
         .match-center-events .event-row { padding:.7rem 0; }
         .match-event-type { color:var(--accent-gold-light); font-size:.64rem; font-weight:900; letter-spacing:.04em; }
-        @media (max-width:380px) { .match-center-scoreboard { grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr); gap:.35rem; padding:.85rem .45rem; } .match-center-score-input { width:54px !important; } .match-center-lineup-grid { grid-template-columns:1fr; } .match-center-mom { grid-template-columns:1fr; } .match-center-flow-step { padding:.42rem .28rem; font-size:.54rem; } }
+        .match-center-utilities { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; margin-top:.7rem; }
+        .match-center-utilities .btn-secondary, .match-center-utilities .share-action-btn { min-height:36px; width:100%; border-radius:9px; box-shadow:none; font-size:.68rem; }
+        @media (max-width:380px) { .match-center-scoreboard { grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr); gap:.35rem; padding:.85rem .45rem; } .match-center-score-input { width:54px !important; } .match-center-lineup-grid { grid-template-columns:1fr; } .match-center-mom { grid-template-columns:1fr; } }
 
         /* Roster: club composition at a glance */
         .roster-sheet-hero { text-align:center; padding:1rem; margin:-.15rem -.15rem 1rem; border:1px solid rgba(198,166,100,.24); border-radius:16px; background:linear-gradient(145deg,rgba(198,166,100,.13),var(--bg-card) 60%); }
@@ -1610,7 +1608,7 @@
                 <div class="match-center-header">
                     <div class="match-center-kicker">MATCHWEEK ${m.mw}</div>
                     <h3 class="match-center-title">MATCH CENTER</h3>
-                    <div class="match-center-subtitle">試合結果を入力</div>
+                    <div class="match-center-subtitle">公式試合記録</div>
                 </div>
                 <div class="match-center-scoreboard">
                     <div class="match-center-team">
@@ -1627,31 +1625,33 @@
                         <input type="number" id="input-as" aria-label="${escapeHtml(m.a)}の得点" class="form-input match-center-score-input" inputmode="numeric" pattern="[0-9]*" min="0" max="20" placeholder="0" value="${m.as !== null ? m.as : ''}">
                     </div>
                 </div>
+                <div class="match-center-section">
+                    <div class="match-center-section-heading"><span>試合情報</span></div>
+                    <div class="match-center-core">
+                        <span class="match-center-core-label">MOM</span>
+                        <div class="match-center-mom">
+                        <select id="input-motm-team" aria-label="MOMのチーム" class="form-select" onchange="updateMotmPlayerOptions()"><option value="${escapeHtml(m.h)}" ${details.motm?.team === m.h ? 'selected' : ''}>${escapeHtml(m.h)}</option><option value="${escapeHtml(m.a)}" ${details.motm?.team === m.a ? 'selected' : ''}>${escapeHtml(m.a)}</option></select>
+                        <select id="input-motm" aria-label="MOMの選手" class="form-select">${matchEventPlayerOptions(details.motm?.team || m.h, 'MOMを選択', details.motm?.name || '')}</select>
+                        </div>
+                        <span class="match-center-core-label">出場選手</span>
+                        <div class="match-center-lineup-grid">
+                        <div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(m.h)}" alt="">${escapeHtml(m.h)}</div>${renderAppearancePicker(m.h, 'home', details.appearances?.home || [])}</div>
+                        <div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(m.a)}" alt="">${escapeHtml(m.a)}</div>${renderAppearancePicker(m.a, 'away', details.appearances?.away || [])}</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="match-center-save-bar">
-                    <p class="match-center-save-copy">必須項目を入力して保存</p>
                     <button class="btn-primary match-center-save" onclick="saveScoreToCloud('${m.id}')">試合結果を保存</button>
                 </div>
                 <div class="match-center-section">
-                    <div class="match-center-section-heading"><span>MOM <span class="match-center-required">必須</span></span><small>マン・オブ・ザ・マッチ</small></div>
-                    <div class="match-center-panel match-center-mom">
-                        <select id="input-motm-team" aria-label="MOMのチーム" class="form-select" onchange="updateMotmPlayerOptions()"><option value="${escapeHtml(m.h)}" ${details.motm?.team === m.h ? 'selected' : ''}>${escapeHtml(m.h)}</option><option value="${escapeHtml(m.a)}" ${details.motm?.team === m.a ? 'selected' : ''}>${escapeHtml(m.a)}</option></select>
-                        <select id="input-motm" aria-label="MOMの選手" class="form-select">${matchEventPlayerOptions(details.motm?.team || m.h, 'MOMを選択', details.motm?.name || '')}</select>
+                    <div class="match-center-section-heading"><span>追加記録</span><small>得点・カード</small></div>
+                    <div class="match-center-actions">
+                        <button class="btn-secondary" onclick="openMatchEventSheet('${m.id}','goal')">得点を追加</button>
+                        <button class="btn-secondary" onclick="openMatchEventSheet('${m.id}','yellow')">カードを追加</button>
                     </div>
-                </div>
-                <div class="match-center-section">
-                    <div class="match-center-section-heading"><span>出場選手 <span class="match-center-required">必須</span></span><small>両チームを選択</small></div>
-                    <div class="match-center-lineup-grid">
-                        <div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(m.h)}" alt="">${escapeHtml(m.h)}</div>${renderAppearancePicker(m.h, 'home', details.appearances?.home || [])}</div>
-                        <div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(m.a)}" alt="">${escapeHtml(m.a)}</div>${renderAppearancePicker(m.a, 'away', details.appearances?.away || [])}</div>
-                    </div>
-                </div>
-                <div class="match-center-section">
-                    <div class="match-center-section-heading"><span>試合記録</span><small>得点・カード</small></div>
                     <div class="match-center-events">${renderMatchEventsForSheet(m)}</div>
                 </div>
-                <div class="match-center-actions">
-                    <button class="btn-secondary" onclick="openMatchEventSheet('${m.id}','goal')">得点を追加</button>
-                    <button class="btn-secondary" onclick="openMatchEventSheet('${m.id}','yellow')">カードを追加</button>
+                <div class="match-center-utilities">
                     <button class="share-action-btn" onclick="generateMatchShareText('${m.id}')">試合結果を共有</button>
                     <button class="btn-secondary" onclick="undoLastMatchChange()">直前の変更を戻す</button>
                 </div>
@@ -3405,7 +3405,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=35'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=36'));
     }
 </script>
 </html>
