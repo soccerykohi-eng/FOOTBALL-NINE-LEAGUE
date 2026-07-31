@@ -566,7 +566,14 @@
         .match-center-team img { width:42px; height:42px; object-fit:contain; }
         .match-center-team-name { min-height:2.5em; font-size:.76rem; font-weight:900; line-height:1.22; overflow-wrap:anywhere; }
         .match-center-score-input { width:64px !important; height:58px; padding:0 !important; border-radius:12px !important; background:#0b0f14 !important; color:var(--text-main) !important; font:700 2.25rem/1 'Teko',sans-serif !important; text-align:center; }
+        .match-center-score-input::placeholder { color:rgba(255,255,255,.24); }
+        .match-center-score-caption { color:var(--text-muted); font-size:.58rem; font-weight:800; letter-spacing:.05em; }
         .match-center-versus { color:var(--text-muted); font:700 .84rem 'Teko',sans-serif; letter-spacing:.08em; text-align:center; }
+        .match-center-flow { display:grid; grid-template-columns:repeat(3,1fr); gap:.35rem; margin:0 0 1rem; }
+        .match-center-flow-step { min-width:0; display:flex; align-items:center; gap:.35rem; padding:.45rem .4rem; border:1px solid var(--border-color); border-radius:9px; color:var(--text-muted); font-size:.58rem; font-weight:800; line-height:1.2; }
+        .match-center-flow-step b { display:grid; place-items:center; flex:0 0 18px; width:18px; height:18px; border-radius:50%; background:rgba(255,255,255,.07); color:var(--text-main); font:700 .72rem/1 'Teko',sans-serif; }
+        .match-center-flow-step.is-primary { border-color:rgba(198,166,100,.4); color:var(--accent-gold-light); background:rgba(198,166,100,.08); }
+        .match-center-flow-step.is-primary b { background:var(--accent-gold); color:#101318; }
         .match-center-section { margin-top:1rem; }
         .match-center-section-heading { display:flex; align-items:center; justify-content:space-between; margin:0 0 .55rem; font-size:.8rem; font-weight:900; }
         .match-center-section-heading small { color:var(--text-muted); font-size:.62rem; font-weight:700; }
@@ -578,11 +585,13 @@
         .match-center-lineup-name img { width:24px; height:24px; object-fit:contain; }
         .match-center-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; margin-top:.7rem; }
         .match-center-actions .btn-secondary, .match-center-actions .share-action-btn { min-height:40px; width:100%; border-radius:10px; box-shadow:none; }
-        .match-center-save { margin-top:1rem; min-height:46px; border-radius:12px; }
+        .match-center-save-bar { margin-top:1rem; padding:.7rem; border:1px solid rgba(198,166,100,.25); border-radius:12px; background:linear-gradient(135deg,rgba(198,166,100,.1),var(--bg-card)); }
+        .match-center-save-copy { margin:0 0 .55rem; color:var(--text-muted); font-size:.65rem; line-height:1.45; }
+        .match-center-save { min-height:46px; border-radius:12px; }
         .match-center-events { margin-top:.3rem; padding:.25rem .8rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
         .match-center-events .event-row { padding:.7rem 0; }
         .match-event-type { color:var(--accent-gold-light); font-size:.64rem; font-weight:900; letter-spacing:.04em; }
-        @media (max-width:380px) { .match-center-scoreboard { grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr); gap:.35rem; padding:.85rem .45rem; } .match-center-score-input { width:54px !important; } .match-center-lineup-grid { grid-template-columns:1fr; } .match-center-mom { grid-template-columns:1fr; } }
+        @media (max-width:380px) { .match-center-scoreboard { grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr); gap:.35rem; padding:.85rem .45rem; } .match-center-score-input { width:54px !important; } .match-center-lineup-grid { grid-template-columns:1fr; } .match-center-mom { grid-template-columns:1fr; } .match-center-flow-step { padding:.42rem .28rem; font-size:.54rem; } }
 
         /* Roster: club composition at a glance */
         .roster-sheet-hero { text-align:center; padding:1rem; margin:-.15rem -.15rem 1rem; border:1px solid rgba(198,166,100,.24); border-radius:16px; background:linear-gradient(145deg,rgba(198,166,100,.13),var(--bg-card) 60%); }
@@ -1602,17 +1611,24 @@
                     <h3 class="match-center-title">MATCH CENTER</h3>
                     <div class="match-center-subtitle">公式試合記録を入力・管理</div>
                 </div>
+                <div class="match-center-flow" aria-label="入力の流れ">
+                    <div class="match-center-flow-step is-primary"><b>1</b><span>スコア</span></div>
+                    <div class="match-center-flow-step"><b>2</b><span>選手情報</span></div>
+                    <div class="match-center-flow-step"><b>3</b><span>保存</span></div>
+                </div>
                 <div class="match-center-scoreboard">
                     <div class="match-center-team">
                         <img src="${getTeamLogo(m.h)}" alt="">
                         <div class="match-center-team-name">${escapeHtml(m.h)}</div>
-                        <input type="number" id="input-hs" aria-label="${escapeHtml(m.h)}の得点" class="form-input match-center-score-input" inputmode="numeric" pattern="[0-9]*" min="0" max="20" value="${m.hs !== null ? m.hs : ''}">
+                        <div class="match-center-score-caption">得点</div>
+                        <input type="number" id="input-hs" aria-label="${escapeHtml(m.h)}の得点" class="form-input match-center-score-input" inputmode="numeric" pattern="[0-9]*" min="0" max="20" placeholder="0" value="${m.hs !== null ? m.hs : ''}">
                     </div>
                     <div class="match-center-versus">VS</div>
                     <div class="match-center-team">
                         <img src="${getTeamLogo(m.a)}" alt="">
                         <div class="match-center-team-name">${escapeHtml(m.a)}</div>
-                        <input type="number" id="input-as" aria-label="${escapeHtml(m.a)}の得点" class="form-input match-center-score-input" inputmode="numeric" pattern="[0-9]*" min="0" max="20" value="${m.as !== null ? m.as : ''}">
+                        <div class="match-center-score-caption">得点</div>
+                        <input type="number" id="input-as" aria-label="${escapeHtml(m.a)}の得点" class="form-input match-center-score-input" inputmode="numeric" pattern="[0-9]*" min="0" max="20" placeholder="0" value="${m.as !== null ? m.as : ''}">
                     </div>
                 </div>
                 <div class="match-center-section">
@@ -1629,7 +1645,10 @@
                         <div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(m.a)}" alt="">${escapeHtml(m.a)}</div>${renderAppearancePicker(m.a, 'away', details.appearances?.away || [])}</div>
                     </div>
                 </div>
-                <button class="btn-primary match-center-save" onclick="saveScoreToCloud('${m.id}')">試合情報を保存</button>
+                <div class="match-center-save-bar">
+                    <p class="match-center-save-copy">スコア、MOM、出場選手を確認してから保存してください。得点・カードの記録は下の「試合記録」から追加できます。</p>
+                    <button class="btn-primary match-center-save" onclick="saveScoreToCloud('${m.id}')">スコア・選手情報を保存</button>
+                </div>
                 <div class="match-center-section">
                     <div class="match-center-section-heading"><span>試合記録</span><small>得点・カード</small></div>
                     <div class="match-center-events">${renderMatchEventsForSheet(m)}</div>
@@ -1648,7 +1667,10 @@
         window.saveScoreToCloud = function(mId) {
             const hsVal = document.getElementById('input-hs').value.trim();
             const asVal = document.getElementById('input-as').value.trim();
-            if (hsVal === '' || asVal === '') return;
+            if (hsVal === '' || asVal === '') {
+                alert('両チームの得点を入力してから保存してください。');
+                return;
+            }
 
             const m = state.schedule.find(item => item.id === mId);
             if (m) {
@@ -3377,7 +3399,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=31'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=32'));
     }
 </script>
 </html>
