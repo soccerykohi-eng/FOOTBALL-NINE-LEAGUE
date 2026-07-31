@@ -1632,7 +1632,7 @@
                     </div>
                 </div>
                 <div class="match-center-save-bar">
-                    <p class="match-center-save-copy">まず試合スコアを保存します。MOMと出場選手を入力した場合も同時に保存されます。得点・カードは下の「試合記録」から追加できます。</p>
+                    <p class="match-center-save-copy">スコア、MOM、両チームの出場選手はすべて必須です。得点・カードの記録は下の「試合記録」から追加できます。</p>
                     <button class="btn-primary match-center-save" onclick="saveScoreToCloud('${m.id}')">スコア・選手情報を保存</button>
                 </div>
                 <div class="match-center-section">
@@ -1671,6 +1671,18 @@
                 alert('両チームの得点を入力してから保存してください。');
                 return;
             }
+            const motmName = document.getElementById('input-motm')?.value.trim() || '';
+            const selectedPlayers = side => [...document.querySelectorAll(`[data-appearance="${side}"]:checked`)].map(input => input.value);
+            const homeAppearances = selectedPlayers('home');
+            const awayAppearances = selectedPlayers('away');
+            if (!motmName) {
+                alert('MOMを選択してから保存してください。');
+                return;
+            }
+            if (!homeAppearances.length || !awayAppearances.length) {
+                alert('両チームの出場選手を1人以上選択してから保存してください。');
+                return;
+            }
 
             const m = state.schedule.find(item => item.id === mId);
             if (m) {
@@ -1685,12 +1697,10 @@
                 m.hs = homeScore;
                 m.as = awayScore;
                 const details = ensureMatchDetails(m);
-                const motmName = document.getElementById('input-motm')?.value.trim() || '';
-                details.motm = motmName ? { name: motmName, team: document.getElementById('input-motm-team')?.value || '' } : null;
-                const selectedPlayers = side => [...document.querySelectorAll(`[data-appearance="${side}"]:checked`)].map(input => input.value);
+                details.motm = { name: motmName, team: document.getElementById('input-motm-team')?.value || '' };
                 details.appearances = {
-                    home: selectedPlayers('home'),
-                    away: selectedPlayers('away')
+                    home: homeAppearances,
+                    away: awayAppearances
                 };
                 addActivity('試合結果を更新', `MW${m.mw} ${m.h} ${m.hs}-${m.as} ${m.a}`);
                 state.standingsDirty = true;
@@ -3399,7 +3409,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=33'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=34'));
     }
 </script>
 </html>
