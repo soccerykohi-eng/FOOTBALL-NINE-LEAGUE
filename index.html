@@ -583,6 +583,31 @@
         .match-center-events .event-row { padding:.7rem 0; }
         .match-event-type { color:var(--accent-gold-light); font-size:.64rem; font-weight:900; letter-spacing:.04em; }
         @media (max-width:380px) { .match-center-scoreboard { grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr); gap:.35rem; padding:.85rem .45rem; } .match-center-score-input { width:54px !important; } .match-center-lineup-grid { grid-template-columns:1fr; } .match-center-mom { grid-template-columns:1fr; } }
+
+        /* Roster: club composition at a glance */
+        .roster-sheet-hero { text-align:center; padding:1rem; margin:-.15rem -.15rem 1rem; border:1px solid rgba(198,166,100,.24); border-radius:16px; background:linear-gradient(145deg,rgba(198,166,100,.13),var(--bg-card) 60%); }
+        .roster-sheet-hero .team-logo-lg { width:68px !important; height:68px !important; margin-bottom:.45rem; }
+        .roster-sheet-title { font-family:'Teko',sans-serif; font-size:1.9rem; line-height:1; }
+        .roster-sheet-subtitle { margin-top:.3rem; color:var(--text-muted); font-size:.68rem; }
+        .roster-composition-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:.4rem; margin-top:.75rem; }
+        .roster-composition-item { padding:.45rem .2rem; border:1px solid var(--border-color); border-radius:10px; background:rgba(11,15,20,.48); }
+        .roster-composition-position { color:var(--text-muted); font-size:.57rem; font-weight:900; letter-spacing:.06em; }
+        .roster-composition-count { margin-top:.1rem; color:var(--accent-gold-light); font:700 1.25rem/1 'Teko',sans-serif; }
+        .roster-list-heading { display:flex; align-items:baseline; justify-content:space-between; margin:1rem 0 .55rem; }
+        .roster-list-heading strong { font-size:.84rem; }
+        .roster-list-heading span { color:var(--text-muted); font-size:.63rem; }
+        .roster-position-section + .roster-position-section { margin-top:1rem; }
+        .roster-position-header { display:flex; align-items:center; gap:.5rem; margin-bottom:.45rem; color:var(--accent-gold-light); font-size:.7rem; font-weight:900; letter-spacing:.08em; }
+        .roster-position-header::before { content:''; width:3px; height:14px; border-radius:999px; background:var(--accent-gold); }
+        .roster-position-header span { color:var(--text-muted); font-size:.62rem; letter-spacing:0; }
+        .roster-player-list { gap:.38rem; margin-top:0; }
+        .roster-player-card { min-height:54px; gap:.6rem; padding:.65rem .7rem; border-radius:12px; background:var(--bg-elevated); }
+        .roster-player-index { width:24px; color:var(--text-muted); font-size:1rem; }
+        .roster-player-name { font-size:.84rem; }
+        .roster-player-tags { margin-top:.22rem; }
+        .roster-player-tags span { border-radius:999px; padding:.15rem .38rem; font-size:.56rem; }
+        .roster-player-tags .position { min-width:30px; text-align:center; }
+        .roster-empty { padding:.9rem; border:1px dashed var(--border-color); border-radius:12px; color:var(--text-muted); text-align:center; font-size:.72rem; }
     </style>
 </head>
 <body>
@@ -2358,8 +2383,20 @@
             const canEditRoster = getAutomaticTransferPeriod().key === 'preseason';
             const counts = getRosterCounts(teamId);
             const players = getRoster(teamId).filter(player => player.status !== 'released' && player.status !== 'transferred');
-            const playerRows = players.length ? `<div class="roster-player-list">${players.map((player, index) => `<div class="roster-player-card"><div class="roster-player-index">${index + 1}</div><div class="roster-player-info"><div class="roster-player-name">${escapeHtml(player.name)}</div><div class="roster-player-tags"><span class="position">${escapeHtml(player.position || '未登録')}</span><span>${player.cardType === 'special' ? '特別カード' : 'ノーマルカード'}</span></div></div><button class="btn-secondary" onclick="removePlayer('${teamId}','${player.id}')" ${canEditRoster ? '' : 'disabled'}>削除</button></div>`).join('')}</div>` : `<div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.8rem;">登録選手はまだいません</div>`;
-            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:0.8rem;"><img src="${team.logo}" class="team-logo-lg" style="width:52px;height:52px;"><h3>${escapeHtml(team.name)}</h3><div class="roster-sheet-summary"><span>登録 ${counts.total}/25</span><span>特別 ${counts.special}/18</span><span>ノーマル ${counts.normal}</span></div></div>${canEditRoster ? '' : '<div class="market-note" style="margin-top:0.7rem;">名簿の追加・削除はシーズン準備期間のみ利用できます。</div>'}<div class="transfer-step-title">選手一覧</div>${playerRows}<button class="btn-primary" style="margin-top:0.9rem;" onclick="openAddPlayerSheet('${teamId}')" ${canEditRoster ? '' : 'disabled'}>＋ このチームに選手を登録</button>`;
+            const positions = ['FW', 'MF', 'DF', 'GK'];
+            const positionCounts = Object.fromEntries(positions.map(position => [position, players.filter(player => player.position === position).length]));
+            const groupedPlayers = positions.map(position => ({ position, players: players.filter(player => player.position === position) })).filter(group => group.players.length)
+                .concat(players.some(player => !positions.includes(player.position)) ? [{ position: '未登録', players: players.filter(player => !positions.includes(player.position)) }] : []);
+            const playerRows = players.length ? groupedPlayers.map(group => `
+                <section class="roster-position-section">
+                    <div class="roster-position-header">${group.position}<span>${group.players.length}名</span></div>
+                    <div class="roster-player-list">${group.players.map((player, index) => `<div class="roster-player-card"><div class="roster-player-index">${String(index + 1).padStart(2, '0')}</div><div class="roster-player-info"><div class="roster-player-name">${escapeHtml(player.name)}</div><div class="roster-player-tags"><span class="position">${escapeHtml(player.position || '未登録')}</span><span>${player.cardType === 'special' ? '特別カード' : 'ノーマルカード'}</span></div></div><button class="btn-secondary" onclick="removePlayer('${teamId}','${player.id}')" ${canEditRoster ? '' : 'disabled'}>削除</button></div>`).join('')}</div>
+                </section>`).join('') : `<div class="roster-empty">登録選手はまだいません</div>`;
+            document.getElementById('sheet-body').innerHTML = `
+                <div class="roster-sheet-hero"><img src="${team.logo}" class="team-logo-lg" alt=""><div class="roster-sheet-title">${escapeHtml(team.name)}</div><div class="roster-sheet-subtitle">SQUAD LIST · ${counts.total} PLAYERS</div><div class="roster-composition-grid">${positions.map(position => `<div class="roster-composition-item"><div class="roster-composition-position">${position}</div><div class="roster-composition-count">${positionCounts[position]}</div></div>`).join('')}</div><div class="roster-sheet-summary"><span>登録 ${counts.total}/25</span><span>特別 ${counts.special}/18</span><span>ノーマル ${counts.normal}</span></div></div>
+                ${canEditRoster ? '' : '<div class="market-note">名簿の追加・削除はシーズン準備期間のみ利用できます。</div>'}
+                <div class="roster-list-heading"><strong>選手一覧</strong><span>ポジション別</span></div>${playerRows}
+                <button class="btn-primary" style="margin-top:1rem;" onclick="openAddPlayerSheet('${teamId}')" ${canEditRoster ? '' : 'disabled'}>このチームに選手を登録</button>`;
             document.getElementById('sheet-overlay').classList.add('active');
         };
 
@@ -3334,7 +3371,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=29'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=30'));
     }
 </script>
 </html>
