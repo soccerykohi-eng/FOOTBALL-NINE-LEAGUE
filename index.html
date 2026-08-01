@@ -169,6 +169,10 @@
             display: none;
         }
 
+        .page[hidden] {
+            display: none !important;
+        }
+
         .page.active {
             display: block;
         }
@@ -815,7 +819,7 @@
         </section>
 
         <!-- PAGE 2: STANDINGS -->
-        <section id="page-standings" class="page">
+        <section id="page-standings" class="page" hidden>
             <div class="section-header">
                 <div class="section-title">順位表・記録</div>
                 <button class="share-action-btn" onclick="generateLineStandingsShareText()">順位表を共有</button>
@@ -847,7 +851,7 @@
         </section>
 
         <!-- PAGE 3: MATCHES -->
-        <section id="page-matches" class="page">
+        <section id="page-matches" class="page" hidden>
             <div class="section-header">
                 <div class="section-title">日程・結果</div>
                 <div style="display:flex;gap:0.4rem;align-items:center;">
@@ -860,7 +864,7 @@
         </section>
 
         <!-- PAGE 4: TEAMS -->
-        <section id="page-teams" class="page">
+        <section id="page-teams" class="page" hidden>
             <div class="section-header">
                 <div class="section-title">チーム一覧</div>
             </div>
@@ -868,7 +872,7 @@
         </section>
 
         <!-- PAGE 5: TRANSFER / PLAYERS -->
-        <section id="page-transfer" class="page">
+        <section id="page-transfer" class="page" hidden>
             <div class="section-header">
                 <div class="section-title">移籍センター</div>
             </div>
@@ -930,7 +934,7 @@
         </section>
 
         <!-- PAGE 6: NEWS -->
-        <section id="page-news" class="page">
+        <section id="page-news" class="page" hidden>
             <div class="section-header">
                 <div class="section-title">ニュース</div>
                 <div style="display:flex;gap:0.4rem;">
@@ -944,7 +948,7 @@
         </section>
 
         <!-- PAGE 7: RULES -->
-        <section id="page-rules" class="page">
+        <section id="page-rules" class="page" hidden>
             <div class="section-header">
                 <div class="section-title">リーグ規約</div>
             </div>
@@ -967,7 +971,7 @@
         </section>
 
         <!-- PAGE 8: HIRABAYASHI CUP -->
-        <section id="page-cup" class="page">
+        <section id="page-cup" class="page" hidden>
             <div id="hirabayashi-cup-content"></div>
         </section>
 
@@ -1435,11 +1439,17 @@
 
         // --- 画面ナビゲーション ---
         window.navigateTo = function(pageId, titleText, navEl) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(p => {
+                p.classList.remove('active');
+                p.hidden = true;
+            });
             document.querySelectorAll('#bottom-nav-element .nav-item').forEach(n => n.classList.remove('active'));
 
             const targetPage = document.getElementById(`page-${pageId}`);
-            if (targetPage) targetPage.classList.add('active');
+            if (targetPage) {
+                targetPage.hidden = false;
+                targetPage.classList.add('active');
+            }
 
             const pageTitleEl = document.getElementById('page-title-display');
             if (pageTitleEl) pageTitleEl.innerText = titleText;
@@ -3799,6 +3809,9 @@
         // 即時UI初期化
         function initAppUI() {
             removeDuplicatePages();
+            document.querySelectorAll('main.container .page[id]').forEach(page => {
+                page.hidden = !page.classList.contains('active');
+            });
             window.lucide?.createIcons({ attrs: { 'stroke-width': 1.8 } });
             const filterBar = document.getElementById('matches-filter-bar');
             const latestResultMw = getLatestResultMatchweek();
@@ -3837,7 +3850,17 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=55'));
+        let refreshingForUpdate = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshingForUpdate) return;
+            refreshingForUpdate = true;
+            window.location.reload();
+        });
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./service-worker.js?v=56', { updateViaCache: 'none' })
+                .then(registration => registration.update())
+                .catch(error => console.warn('Service Worker could not be updated', error));
+        });
     }
 </script>
 </html>
