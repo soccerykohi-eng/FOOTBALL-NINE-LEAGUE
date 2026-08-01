@@ -167,6 +167,8 @@
 
         .page {
             display: none;
+            min-width: 0;
+            max-width: 100%;
         }
 
         .page[hidden] {
@@ -576,9 +578,9 @@
         #page-home .edit-score-btn { min-height:34px; padding:4px 8px; font-size:.66rem; }
         .home-news-heading { display:flex; align-items:center; gap:.6rem; margin-top:.15rem; }
         .home-news-heading strong { font-size:.82rem; letter-spacing:.04em; }
-        #page-home .news-feed { margin:0; padding:.08rem .7rem; border-radius:12px; }
-        #page-home .news-item { padding:.65rem .05rem; gap:.28rem; }
-        #page-home .news-title { padding:0; overflow:hidden; font-size:.76rem; line-height:1.3; text-overflow:ellipsis; white-space:nowrap; }
+        #page-home .news-feed { width:100%; min-width:0; max-width:100%; margin:0; padding:.08rem .7rem; overflow:hidden; border-radius:12px; }
+        #page-home .news-item { width:100%; min-width:0; max-width:100%; padding:.65rem .05rem; overflow:hidden; gap:.28rem; }
+        #page-home .news-title { display:block; width:100%; min-width:0; max-width:100%; padding:0; overflow:hidden; font-size:.76rem; line-height:1.3; text-overflow:ellipsis; white-space:nowrap; }
         #page-home .news-category { font-size:.52rem; }
         #page-home .news-source, #page-home .news-date { font-size:.55rem; }
         @media (max-height:720px) { #page-home { gap:.5rem; } #page-home .hero-banner { padding:.62rem .7rem; } #page-home .hero-logo-large { width:48px; height:48px; } #page-home .hero-title { font-size:1.5rem; } #page-home .metric-card { padding:.42rem .25rem; } }
@@ -3668,7 +3670,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=58', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=59', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
