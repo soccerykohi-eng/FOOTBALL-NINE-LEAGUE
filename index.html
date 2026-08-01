@@ -1726,9 +1726,25 @@
                 </div>`).join('');
         }
 
+        function renderLeagueMatchCenter(match) {
+            const details = ensureMatchDetails(match);
+            const motmTeam = details.motm?.team === match.a ? match.a : match.h;
+            const goalEvents = details.events.filter(event => event.type === 'goal');
+            document.getElementById('sheet-body').innerHTML = `
+                <div class="match-center-header"><div class="match-center-kicker">MATCHWEEK ${match.mw}</div><h3 class="match-center-title">MATCH CENTER</h3><div class="match-center-subtitle">公式試合記録</div></div>
+                <div class="match-center-scoreboard"><div class="match-center-team"><img src="${getTeamLogo(match.h)}" alt=""><div class="match-center-team-name">${escapeHtml(match.h)}</div><div class="match-center-score-caption">得点</div><input type="number" id="input-hs" aria-label="${escapeHtml(match.h)}の得点" class="form-input match-center-score-input" inputmode="numeric" min="0" max="20" value="${match.hs ?? ''}" placeholder="0"></div><div class="match-center-versus">VS</div><div class="match-center-team"><img src="${getTeamLogo(match.a)}" alt=""><div class="match-center-team-name">${escapeHtml(match.a)}</div><div class="match-center-score-caption">得点</div><input type="number" id="input-as" aria-label="${escapeHtml(match.a)}の得点" class="form-input match-center-score-input" inputmode="numeric" min="0" max="20" value="${match.as ?? ''}" placeholder="0"></div></div>
+                <div class="match-center-section"><div class="match-center-section-heading"><span>試合情報</span><small>任意</small></div><div class="match-center-core"><span class="match-center-core-label">MOM</span><div class="match-center-mom"><select id="input-motm-team" aria-label="MOMのチーム" class="form-select" onchange="updateMotmPlayerOptions()"><option value="${escapeHtml(match.h)}" ${motmTeam === match.h ? 'selected' : ''}>${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}" ${motmTeam === match.a ? 'selected' : ''}>${escapeHtml(match.a)}</option></select><select id="input-motm" aria-label="MOMの選手" class="form-select">${matchEventPlayerOptions(motmTeam, 'MOMを選択', details.motm?.name || '')}</select></div><span class="match-center-core-label">出場選手</span><div class="match-center-lineup-grid"><div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(match.h)}" alt="">${escapeHtml(match.h)}</div>${renderAppearancePicker(match.h, 'league-home', details.appearances?.home || [])}</div><div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(match.a)}" alt="">${escapeHtml(match.a)}</div>${renderAppearancePicker(match.a, 'league-away', details.appearances?.away || [])}</div></div></div></div>
+                <div class="match-center-section"><div class="match-center-section-heading"><span>得点記録</span><small>任意</small></div><div class="event-entry-card"><div class="form-group"><label class="form-label">チーム</label><select id="league-goal-team" class="form-select" onchange="updateLeagueGoalOptions('${match.id}')"><option value="${escapeHtml(match.h)}">${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}">${escapeHtml(match.a)}</option></select></div><div class="form-group"><label class="form-label">得点者</label><select id="league-goal-player" class="form-select">${matchEventPlayerOptions(match.h, '得点者を選択')}</select></div><div class="form-group"><label class="form-label">アシスト</label><select id="league-goal-assist" class="form-select">${matchEventPlayerOptions(match.h, 'アシストなし')}</select></div></div><button class="btn-secondary" style="width:100%;" onclick="addLeagueGoal('${match.id}')">得点を追加</button><div class="match-center-events">${goalEvents.length ? goalEvents.map(event => `<div class="event-row"><div class="ranking-main"><div class="match-event-type">GOAL</div><div class="ranking-name">${escapeHtml(event.player)}</div><div class="ranking-team">${escapeHtml(event.team)}${event.assist ? ` ・ AS ${escapeHtml(event.assist)}` : ''}</div></div><button class="btn-secondary" onclick="deleteMatchEvent('${match.id}','${event.id}')">削除</button></div>`).join('') : '<div class="empty-state">得点記録はまだありません</div>'}</div></div>
+                <div class="match-center-save-bar"><button class="btn-primary match-center-save" onclick="saveScoreToCloud('${match.id}')">試合結果を保存</button></div>
+                <div class="match-center-utilities"><button class="share-action-btn" onclick="generateMatchShareText('${match.id}')">試合結果を共有</button><button class="btn-secondary" onclick="undoLastMatchChange()">直前の変更を戻す</button></div>${match.hs !== null ? `<button class="btn-danger" onclick="clearScoreInCloud('${match.id}')">スコアを取り消す</button>` : ''}<button class="btn-secondary event-entry-back" onclick="document.getElementById('sheet-overlay').classList.remove('active')">閉じる</button>`;
+        }
+
         window.openScoreInputSheet = function(mId) {
             const m = state.schedule.find(item => item.id === mId);
             if (!m) return;
+            renderLeagueMatchCenter(m);
+            document.getElementById('sheet-overlay').classList.add('active');
+            return;
             const details = ensureMatchDetails(m);
             const body = document.getElementById('sheet-body');
             body.innerHTML = `
@@ -1832,6 +1848,10 @@
             }
             document.getElementById('sheet-overlay').classList.remove('active');
         };
+
+        window.updateLeagueGoalOptions = function(mId) { const match = state.schedule.find(item => item.id === mId), team = document.getElementById('league-goal-team')?.value; if (!match || !team) return; document.getElementById('league-goal-player').innerHTML = matchEventPlayerOptions(team, '得点者を選択'); document.getElementById('league-goal-assist').innerHTML = matchEventPlayerOptions(team, 'アシストなし'); };
+        window.addLeagueGoal = function(mId) { const match = state.schedule.find(item => item.id === mId), player = document.getElementById('league-goal-player')?.value; if (!match || !player) return alert('得点者を選択してください。'); ensureMatchDetails(match).events.push({ id: `e_${Date.now()}_${Math.random().toString(16).slice(2)}`, type: 'goal', team: document.getElementById('league-goal-team').value, player, assist: document.getElementById('league-goal-assist').value || '', minute: 0 }); persistAppState(); renderLeagueMatchCenter(match); };
+        window.saveScoreToCloud = function(mId) { const hsVal = document.getElementById('input-hs')?.value.trim(), asVal = document.getElementById('input-as')?.value.trim(), match = state.schedule.find(item => item.id === mId); if (!match || hsVal === '' || asVal === '') return alert('両チームの得点を入力してから保存してください。'); const homeScore = Number(hsVal), awayScore = Number(asVal), totals = getRecordedGoalTotals(match); if ((totals.home || totals.away) && (totals.home !== homeScore || totals.away !== awayScore)) return alert(`得点記録とスコアが一致していません。${match.h}は${totals.home}件、${match.a}は${totals.away}件の得点記録です。`); takeMatchSnapshot(match, '試合結果の更新'); match.hs = homeScore; match.as = awayScore; const details = ensureMatchDetails(match), motm = document.getElementById('input-motm')?.value.trim(); details.motm = motm ? { name: motm, team: document.getElementById('input-motm-team')?.value || '' } : null; details.appearances = { home: [...document.querySelectorAll('[data-appearance="league-home"]:checked')].map(input => input.value), away: [...document.querySelectorAll('[data-appearance="league-away"]:checked')].map(input => input.value) }; addActivity('試合結果を更新', `MW${match.mw} ${match.h} ${match.hs}-${match.as} ${match.a}`); state.standingsDirty = true; refreshAllViews(); persistAppState(); document.getElementById('sheet-overlay').classList.remove('active'); };
 
         window.clearScoreInCloud = function(mId) {
             const m = state.schedule.find(item => item.id === mId);
@@ -3770,7 +3790,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=45'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=46'));
     }
 </script>
 </html>
