@@ -563,8 +563,7 @@
         .home-hero-description { margin-top:.26rem; color:var(--text-muted); font-size:.66rem; font-weight:700; }
         #page-home .dashboard-grid { margin:0; gap:.5rem; }
         #page-home .metric-card { padding:.64rem .35rem; border-radius:10px; }
-        .home-metric-brand { display:flex; align-items:center; justify-content:center; gap:.28rem; min-width:0; color:var(--text-muted); font-size:.58rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .home-metric-brand img { width:16px; height:16px; flex:0 0 auto; object-fit:contain; border-radius:4px; background:#0b0f14; }
+        .home-metric-logo { display:block; width:30px; height:30px; margin:.34rem auto .26rem; object-fit:contain; border-radius:8px; background:#0b0f14; }
         #page-home .metric-value { font-size:1.17rem; }
         #page-home .metric-value.metric-player-name { min-height:1.2em; font-size:.62rem; }
         #page-home .metric-detail { display:none; }
@@ -2292,8 +2291,8 @@
             const played = state.schedule.filter(match => match.hs !== null && match.as !== null).length;
             const dashboard = document.getElementById('home-dashboard');
             if (dashboard) dashboard.innerHTML = `
-                <div class="metric-card"><div class="home-metric-brand"><img src="${getTeamLogo(standings[0]?.name || '')}" alt=""><span>現在の首位</span></div><div class="metric-value">${escapeHtml(standings[0]?.name || '-')}</div></div>
-                <div class="metric-card"><div class="home-metric-brand"><img src="${getTeamLogo(topScorer?.team || '')}" alt=""><span>得点王</span></div><div class="metric-value metric-player-name" title="${escapeHtml(topScorer?.name || '得点記録なし')}">${escapeHtml(topScorer?.name || '得点記録なし')}</div><div class="metric-detail">${topScorer ? `${topScorer.goals} 得点` : ''}</div></div>
+                <div class="metric-card"><div class="metric-label">現在の首位</div><img class="home-metric-logo" src="${getTeamLogo(standings[0]?.name || '')}" alt="${escapeHtml(standings[0]?.name || '')}"><div class="metric-value">${escapeHtml(standings[0]?.name || '-')}</div></div>
+                <div class="metric-card"><div class="metric-label">得点王</div><img class="home-metric-logo" src="${getTeamLogo(topScorer?.team || '')}" alt="${escapeHtml(topScorer?.team || '')}"><div class="metric-value metric-player-name" title="${escapeHtml(topScorer?.name || '得点記録なし')}">${escapeHtml(topScorer?.name || '得点記録なし')}</div><div class="metric-detail">${topScorer ? `${topScorer.goals} 得点` : ''}</div></div>
                 <div class="metric-card"><div class="metric-label">消化試合</div><div class="metric-value">${played} / ${state.schedule.length}</div></div>`;
             const activityWrap = document.getElementById('home-activity-list');
             if (activityWrap) activityWrap.innerHTML = state.activityLog.length
@@ -3834,7 +3833,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=53'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=54'));
     }
 </script>
 </html>
