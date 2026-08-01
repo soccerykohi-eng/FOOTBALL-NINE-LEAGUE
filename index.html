@@ -549,6 +549,10 @@
         .detail-chip { padding:0.2rem 0.45rem; border-radius:999px; color:var(--text-muted); background:rgba(255,255,255,0.04); font-size:0.6rem; }
         .mom-detail-chip { display:inline-flex; align-items:center; gap:.35rem; color:var(--text-main); border:1px solid rgba(198,166,100,.28); background:rgba(198,166,100,.08); }
         .mom-mark { display:inline-grid; place-items:center; width:18px; height:18px; clip-path:polygon(50% 0,92% 24%,84% 78%,50% 100%,16% 78%,8% 24%); background:var(--accent-gold); color:#11151b; font:900 8px/1 'Teko',sans-serif; letter-spacing:-.03em; }
+        .news-pagination { display:flex; align-items:center; justify-content:center; gap:.35rem; margin:1rem 0 .35rem; }
+        .news-page-button { display:grid; place-items:center; min-width:34px; height:34px; padding:0 .45rem; border:1px solid var(--border-color); border-radius:9px; background:var(--bg-card); color:var(--text-muted); font:800 .72rem 'Noto Sans JP',sans-serif; cursor:pointer; }
+        .news-page-button.active { border-color:var(--accent-gold); background:var(--accent-gold); color:#111318; }
+        .news-page-button:disabled { opacity:.35; cursor:default; }
         .action-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:0.45rem; margin-top:0.7rem; }
         .empty-state { padding:1rem; text-align:center; color:var(--text-muted); font-size:0.74rem; }
 
@@ -904,6 +908,7 @@
             </div>
             <div id="news-notification-note" class="market-note" style="margin-bottom:0.7rem;">ニュースが公開されたときだけ通知します。</div>
             <div class="card news-feed" id="full-news-list"></div>
+            <nav id="news-pagination" class="news-pagination" aria-label="ニュースのページ送り"></nav>
         </section>
 
         <!-- PAGE 7: RULES -->
@@ -1533,14 +1538,19 @@
             return legacyLabels[category] || category;
         }
 
+        let currentNewsPage = 1;
+        const NEWS_PER_PAGE = 6;
+
         function renderNews() {
             const homeWrap = document.getElementById('home-news-preview');
             const fullWrap = document.getElementById('full-news-list');
-            if (!homeWrap || !fullWrap) return;
+            const paginationWrap = document.getElementById('news-pagination');
+            if (!homeWrap || !fullWrap || !paginationWrap) return;
 
             if (state.news.length === 0) {
                 homeWrap.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:1rem;">ニュースはありません</div>`;
                 fullWrap.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:1rem;">ニュースはありません</div>`;
+                paginationWrap.innerHTML = '';
                 return;
             }
 
@@ -1555,8 +1565,26 @@
                     </button>
                 `).join('');
             homeWrap.innerHTML = renderNewsItems(state.news.slice(0, 3));
-            fullWrap.innerHTML = renderNewsItems(state.news);
+            const totalPages = Math.ceil(state.news.length / NEWS_PER_PAGE);
+            currentNewsPage = Math.min(Math.max(currentNewsPage, 1), totalPages);
+            const start = (currentNewsPage - 1) * NEWS_PER_PAGE;
+            fullWrap.innerHTML = renderNewsItems(state.news.slice(start, start + NEWS_PER_PAGE));
+            paginationWrap.innerHTML = totalPages > 1 ? `
+                <button class="news-page-button" type="button" onclick="goToNewsPage(${currentNewsPage - 1})" ${currentNewsPage === 1 ? 'disabled' : ''} aria-label="前のページ">‹</button>
+                ${Array.from({ length: totalPages }, (_, index) => {
+                    const page = index + 1;
+                    return `<button class="news-page-button ${page === currentNewsPage ? 'active' : ''}" type="button" onclick="goToNewsPage(${page})" ${page === currentNewsPage ? 'aria-current="page"' : ''}>${page}</button>`;
+                }).join('')}
+                <button class="news-page-button" type="button" onclick="goToNewsPage(${currentNewsPage + 1})" ${currentNewsPage === totalPages ? 'disabled' : ''} aria-label="次のページ">›</button>` : '';
         }
+
+        window.goToNewsPage = function(page) {
+            const totalPages = Math.ceil(state.news.length / NEWS_PER_PAGE);
+            if (page < 1 || page > totalPages || page === currentNewsPage) return;
+            currentNewsPage = page;
+            renderNews();
+            document.getElementById('page-news')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
 
         window.openNewsDetailSheet = function(newsId) {
             const item = state.news.find(n => n.id === newsId);
@@ -1636,6 +1664,7 @@
                 sourceTeamId: sourceTeam?.id || '',
                 sourceName: sourceTeam?.name || 'FNL運営'
             });
+            currentNewsPage = 1;
             renderNews();
             Promise.resolve(persistAppState())
                 .then(() => window.notifyNewsPublished?.(newsId))
@@ -3792,7 +3821,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=48'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=49'));
     }
 </script>
 </html>
