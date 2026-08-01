@@ -573,6 +573,8 @@
         .home-metric-logo { display:block; width:30px; height:30px; margin:.34rem auto .26rem; object-fit:contain; border-radius:8px; background:#0b0f14; }
         #page-home .metric-value { font-size:1.17rem; }
         #page-home .metric-value.metric-player-name { min-height:1.2em; font-size:.62rem; }
+        #page-home .home-progress-card { display:flex; flex-direction:column; }
+        #page-home .home-progress-card .metric-value { flex:1; display:flex; align-items:center; justify-content:center; margin:0; padding-top:.12rem; font-size:2rem; line-height:1; letter-spacing:.025em; }
         #page-home .metric-detail { display:none; }
         #page-home .match-card-mobile { margin:0; padding:.8rem .85rem; gap:.55rem; border-radius:12px; }
         #page-home .match-card-top { min-height:16px; }
@@ -2307,7 +2309,7 @@
             if (dashboard) dashboard.innerHTML = `
                 <div class="metric-card"><div class="metric-label">現在の首位</div><img class="home-metric-logo" src="${getTeamLogo(standings[0]?.name || '')}" alt="${escapeHtml(standings[0]?.name || '')}"><div class="metric-value">${escapeHtml(standings[0]?.name || '-')}</div></div>
                 <div class="metric-card"><div class="metric-label">得点王</div><img class="home-metric-logo" src="${getTeamLogo(topScorer?.team || '')}" alt="${escapeHtml(topScorer?.team || '')}"><div class="metric-value metric-player-name" title="${escapeHtml(topScorer?.name || '得点記録なし')}">${escapeHtml(topScorer?.name || '得点記録なし')}</div><div class="metric-detail">${topScorer ? `${topScorer.goals} 得点` : ''}</div></div>
-                <div class="metric-card"><div class="metric-label">消化試合</div><div class="metric-value">${played} / ${state.schedule.length}</div></div>`;
+                <div class="metric-card home-progress-card"><div class="metric-label">消化試合</div><div class="metric-value">${played} / ${state.schedule.length}</div></div>`;
             const activityWrap = document.getElementById('home-activity-list');
             if (activityWrap) activityWrap.innerHTML = state.activityLog.length
                 ? state.activityLog.slice(0, 3).map(item => `<div class="activity-row"><div class="ranking-main"><div class="ranking-name">${escapeHtml(item.title)}</div><div class="activity-detail">${escapeHtml(item.detail || '')}</div></div></div>`).join('')
@@ -3857,7 +3859,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=56', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=57', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
