@@ -273,7 +273,6 @@ function applyRemoteState(remote) {
   saveStateToStorage();
   refreshAllViews();
   renderNews();
-  renderTransferCenter?.();
   applyingRemote = false;
   setStatus("クラウド同期済み", true);
 }

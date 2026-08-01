@@ -287,7 +287,6 @@
         }
 
         .match-main-row { display: flex; align-items: center; justify-content: space-between; }
-        .match-info-side { display: flex; flex-direction: column; gap: 2px; width: 50px; flex-shrink: 0; }
         .match-sec-badge { font-size: 0.65rem; color: var(--accent-gold); font-weight: bold; }
 
         .match-teams-center {
@@ -297,7 +296,6 @@
         .match-team-box { display: flex; align-items: center; gap: 6px; flex: 1; overflow: hidden; }
         .match-team-box.home { justify-content: flex-end; text-align: right; }
         .match-team-box.away { justify-content: flex-start; text-align: left; }
-        .match-team-name { font-size: 0.8rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         .match-score-pill {
             background: #0b0f14; border: 1px solid var(--border-color); padding: 0.2rem 0.5rem;
@@ -372,12 +370,6 @@
         .cup-stage { display:grid; grid-template-columns:30px 1fr; gap:.65rem; padding:.85rem 0; }
         .cup-stage + .cup-stage { border-top:1px solid var(--border-color); }
         .cup-stage-number { display:grid; place-items:center; align-self:start; width:30px; height:30px; border-radius:9px; background:rgba(198,166,100,.12); color:var(--accent-gold-light); font:700 1rem/1 'Teko',sans-serif; }
-        .cup-stage-title { color:var(--text-main); font-size:.8rem; font-weight:900; }
-        .cup-stage-copy { margin-top:.27rem; color:var(--text-muted); font-size:.69rem; line-height:1.55; }
-        .cup-points-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:.4rem; }
-        .cup-point { padding:.6rem .2rem; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-card); text-align:center; }
-        .cup-point b { display:block; color:var(--accent-gold-light); font:700 1.4rem/1 'Teko',sans-serif; }
-        .cup-point span { display:block; margin-top:.18rem; color:var(--text-muted); font-size:.56rem; font-weight:800; }
         .cup-rule-list { padding:.05rem .85rem; border:1px solid var(--border-color); border-radius:14px; background:var(--bg-card); }
         .cup-rule { padding:.75rem 0; color:#d7dbe2; font-size:.72rem; line-height:1.5; }
         .cup-rule + .cup-rule { border-top:1px solid var(--border-color); }
@@ -544,12 +536,12 @@
         .roster-player-tags { display:flex; gap:0.25rem; flex-wrap:wrap; margin-top:0.28rem; }
         .roster-player-tags span { padding:0.14rem 0.32rem; border-radius:4px; color:var(--text-muted); background:rgba(255,255,255,0.05); font-size:0.57rem; font-weight:700; }
         .roster-player-tags .position { color:var(--accent-gold-light); background:rgba(198,166,100,0.12); }
-        .ranking-row,.event-row,.activity-row { display:flex; align-items:center; gap:0.55rem; padding:0.65rem 0; border-bottom:1px solid var(--border-color); }
-        .ranking-row:last-child,.event-row:last-child,.activity-row:last-child { border-bottom:0; }
+        .ranking-row,.event-row { display:flex; align-items:center; gap:0.55rem; padding:0.65rem 0; border-bottom:1px solid var(--border-color); }
+        .ranking-row:last-child,.event-row:last-child { border-bottom:0; }
         .ranking-position { width:24px; color:var(--accent-gold); font:700 1.15rem 'Teko',sans-serif; text-align:center; }
         .ranking-main { min-width:0; flex:1; }
         .ranking-name { font-size:0.78rem; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .ranking-team,.activity-detail { color:var(--text-muted); font-size:0.62rem; }
+        .ranking-team { color:var(--text-muted); font-size:0.62rem; }
         .ranking-number { color:var(--accent-gold-light); font:700 1.35rem 'Teko',sans-serif; }
         .match-detail-summary { display:flex; flex-wrap:wrap; gap:0.35rem; margin-top:0.55rem; }
         .detail-chip { padding:0.2rem 0.45rem; border-radius:999px; color:var(--text-muted); background:rgba(255,255,255,0.04); font-size:0.6rem; }
@@ -578,7 +570,7 @@
         #page-home .metric-detail { display:none; }
         #page-home .match-card-mobile { margin:0; padding:.8rem .85rem; gap:.55rem; border-radius:12px; }
         #page-home .match-card-top { min-height:16px; }
-        #page-home .match-team-name, #page-home .match-team-box span { font-size:.74rem; }
+        #page-home .match-team-box span { font-size:.74rem; }
         #page-home .team-logo-img { width:22px; height:22px; }
         #page-home .match-score-pill { min-width:48px; padding:.14rem .4rem; font-size:1.22rem; }
         #page-home .edit-score-btn { min-height:34px; padding:4px 8px; font-size:.66rem; }
@@ -590,7 +582,6 @@
         #page-home .news-category { font-size:.52rem; }
         #page-home .news-source, #page-home .news-date { font-size:.55rem; }
         @media (max-height:720px) { #page-home { gap:.5rem; } #page-home .hero-banner { padding:.62rem .7rem; } #page-home .hero-logo-large { width:48px; height:48px; } #page-home .hero-title { font-size:1.5rem; } #page-home .metric-card { padding:.42rem .25rem; } }
-        .action-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:0.45rem; margin-top:0.7rem; }
         .empty-state { padding:1rem; text-align:center; color:var(--text-muted); font-size:0.74rem; }
 
         /* モーダルシート */
@@ -658,9 +649,8 @@
         .match-status-badge { padding:3px 8px; border-radius:999px; border:1px solid var(--border-color); color:var(--text-muted); font-size:.62rem; font-weight:800; letter-spacing:.04em; }
         .match-status-badge.is-finished { color:var(--accent-gold-light); border-color:rgba(198,166,100,.45); background:rgba(198,166,100,.08); }
         .match-main-row { gap:8px; }
-        .match-info-side { display:none; }
         .match-teams-center { padding:0; gap:8px; }
-        .match-team-name, .match-team-box span { font-size:.84rem; font-weight:800; }
+        .match-team-box span { font-size:.84rem; font-weight:800; }
         .match-score-pill { min-width:56px; padding:.24rem .55rem; border-radius:10px; font-size:1.5rem; }
         .edit-score-btn { min-height:36px; border-radius:9px; background:var(--bg-elevated); }
         .standings-table th { border-bottom:0; padding:.35rem .25rem .55rem; }
@@ -693,7 +683,6 @@
         .match-center-section { margin-top:1.15rem; }
         .match-center-section-heading { display:flex; align-items:center; justify-content:space-between; margin:0 0 .6rem; font-size:.84rem; font-weight:900; }
         .match-center-section-heading small { color:var(--text-muted); font-size:.62rem; font-weight:700; }
-        .match-center-panel { padding:.8rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
         .match-center-core { padding:.8rem; border:1px solid var(--border-color); border-radius:14px; background:var(--bg-card); }
         .match-center-core-label { display:block; margin:0 0 .45rem; color:var(--text-muted); font-size:.6rem; font-weight:900; letter-spacing:.06em; }
         .match-center-core-label + .match-center-mom { margin-bottom:.8rem; }
@@ -702,8 +691,6 @@
         .match-center-lineup { min-width:0; padding:.75rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
         .match-center-lineup-name { display:flex; align-items:center; gap:.45rem; margin-bottom:.55rem; font-size:.76rem; font-weight:900; }
         .match-center-lineup-name img { width:24px; height:24px; object-fit:contain; }
-        .match-center-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; }
-        .match-center-actions .btn-secondary, .match-center-actions .share-action-btn { min-height:40px; width:100%; border-radius:10px; box-shadow:none; }
         .match-center-save-bar { margin-top:1.15rem; padding:.65rem; border:1px solid rgba(198,166,100,.32); border-radius:14px; background:linear-gradient(135deg,rgba(198,166,100,.12),var(--bg-card)); }
         .match-center-save { min-height:48px; border-radius:11px; }
         .match-center-events { margin-top:.7rem; padding:.25rem .8rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
@@ -711,18 +698,8 @@
         .match-event-type { color:var(--accent-gold-light); font-size:.64rem; font-weight:900; letter-spacing:.04em; }
         .match-center-utilities { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; margin-top:.7rem; }
         .match-center-utilities .btn-secondary, .match-center-utilities .share-action-btn { min-height:36px; width:100%; border-radius:9px; box-shadow:none; font-size:.68rem; }
-        .event-sheet-header { margin:0 0 1rem; padding:.15rem .1rem .85rem; border-bottom:1px solid var(--border-color); }
-        .event-sheet-kicker { color:var(--accent-gold); font-size:.62rem; font-weight:900; letter-spacing:.1em; }
-        .event-sheet-title { margin:.18rem 0 0; font:700 1.85rem/1 'Teko',sans-serif; letter-spacing:.03em; }
-        .event-sheet-match { margin-top:.35rem; color:var(--text-muted); font-size:.67rem; font-weight:700; }
         .event-entry-card { padding:.8rem; border:1px solid var(--border-color); border-radius:14px; background:var(--bg-card); }
         .event-entry-card .form-group:last-child { margin-bottom:0; }
-        .event-type-switch { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.45rem; margin-bottom:.8rem; }
-        .event-type-choice { position:relative; cursor:pointer; }
-        .event-type-choice input { position:absolute; opacity:0; pointer-events:none; }
-        .event-type-choice span { display:flex; align-items:center; justify-content:center; min-height:40px; border:1px solid var(--border-color); border-radius:10px; color:var(--text-muted); font-size:.7rem; font-weight:800; }
-        .event-type-choice input:checked + span { border-color:rgba(198,166,100,.6); background:rgba(198,166,100,.12); color:var(--accent-gold-light); }
-        .event-entry-save { width:100%; min-height:46px; margin-top:.8rem; border-radius:11px; }
         .event-entry-back { width:100%; min-height:38px; margin-top:.5rem; border-radius:10px; box-shadow:none; }
         @media (max-width:380px) { .match-center-scoreboard { grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr); gap:.35rem; padding:.85rem .45rem; } .match-center-score-input { width:54px !important; } .match-center-lineup-grid { grid-template-columns:1fr; } .match-center-mom { grid-template-columns:1fr; } }
 
@@ -1771,10 +1748,6 @@
             );
         }
 
-        function playerDatalist(id, names) {
-            return `<datalist id="${id}">${[...new Set(names)].map(name => `<option value="${escapeHtml(name)}"></option>`).join('')}</datalist>`;
-        }
-
         function renderAppearancePicker(teamName, side, selectedNames = []) {
             const players = getAppearancePickerNames(teamName);
             if (!players.length) return `<div class="empty-state">先に「移籍」ページで選手を登録してください</div>`;
@@ -1784,21 +1757,6 @@
         function matchEventPlayerOptions(teamName, placeholder = '選手を選択', selectedName = '') {
             const players = getRosterNamesByTeamName(teamName);
             return `<option value="">${placeholder}</option>${players.map(name => `<option value="${escapeHtml(name)}" ${name === selectedName ? 'selected' : ''}>${escapeHtml(name)}</option>`).join('')}`;
-        }
-
-        function renderMatchEventsForSheet(match) {
-            const details = ensureMatchDetails(match);
-            if (!details.events.length) return `<div class="empty-state">得点・カード記録はまだありません</div>`;
-            const labels = { goal: 'GOAL', yellow: 'YELLOW CARD', red: 'RED CARD' };
-            return details.events.slice().sort((a,b) => Number(a.minute || 0) - Number(b.minute || 0)).map(event => `
-                <div class="event-row">
-                    <div class="ranking-main">
-                        <div class="match-event-type">${labels[event.type] || '記録'}${event.minute ? ` · ${event.minute}'` : ''}</div>
-                        <div class="ranking-name">${escapeHtml(event.player || '')}</div>
-                        <div class="ranking-team">${escapeHtml(event.team || '')}${event.assist ? ` ・ AS ${escapeHtml(event.assist)}` : ''}</div>
-                    </div>
-                    <button class="btn-secondary" onclick="deleteMatchEvent('${match.id}','${event.id}')">削除</button>
-                </div>`).join('');
         }
 
         function renderLeagueMatchCenter(match) {
@@ -1818,63 +1776,6 @@
             const m = state.schedule.find(item => item.id === mId);
             if (!m) return;
             renderLeagueMatchCenter(m);
-            document.getElementById('sheet-overlay').classList.add('active');
-            return;
-            const details = ensureMatchDetails(m);
-            const body = document.getElementById('sheet-body');
-            body.innerHTML = `
-                <div class="match-center-header">
-                    <div class="match-center-kicker">MATCHWEEK ${m.mw}</div>
-                    <h3 class="match-center-title">MATCH CENTER</h3>
-                    <div class="match-center-subtitle">公式試合記録</div>
-                </div>
-                <div class="match-center-scoreboard">
-                    <div class="match-center-team">
-                        <img src="${getTeamLogo(m.h)}" alt="">
-                        <div class="match-center-team-name">${escapeHtml(m.h)}</div>
-                        <div class="match-center-score-caption">得点</div>
-                        <input type="number" id="input-hs" aria-label="${escapeHtml(m.h)}の得点" class="form-input match-center-score-input" inputmode="numeric" pattern="[0-9]*" min="0" max="20" placeholder="0" value="${m.hs !== null ? m.hs : ''}">
-                    </div>
-                    <div class="match-center-versus">VS</div>
-                    <div class="match-center-team">
-                        <img src="${getTeamLogo(m.a)}" alt="">
-                        <div class="match-center-team-name">${escapeHtml(m.a)}</div>
-                        <div class="match-center-score-caption">得点</div>
-                        <input type="number" id="input-as" aria-label="${escapeHtml(m.a)}の得点" class="form-input match-center-score-input" inputmode="numeric" pattern="[0-9]*" min="0" max="20" placeholder="0" value="${m.as !== null ? m.as : ''}">
-                    </div>
-                </div>
-                <div class="match-center-section">
-                    <div class="match-center-section-heading"><span>試合情報</span></div>
-                    <div class="match-center-core">
-                        <span class="match-center-core-label">MOM</span>
-                        <div class="match-center-mom">
-                        <select id="input-motm-team" aria-label="MOMのチーム" class="form-select" onchange="updateMotmPlayerOptions()"><option value="${escapeHtml(m.h)}" ${details.motm?.team === m.h ? 'selected' : ''}>${escapeHtml(m.h)}</option><option value="${escapeHtml(m.a)}" ${details.motm?.team === m.a ? 'selected' : ''}>${escapeHtml(m.a)}</option></select>
-                        <select id="input-motm" aria-label="MOMの選手" class="form-select">${matchEventPlayerOptions(details.motm?.team || m.h, 'MOMを選択', details.motm?.name || '')}</select>
-                        </div>
-                        <span class="match-center-core-label">出場選手</span>
-                        <div class="match-center-lineup-grid">
-                        <div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(m.h)}" alt="">${escapeHtml(m.h)}</div>${renderAppearancePicker(m.h, 'home', details.appearances?.home || [])}</div>
-                        <div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(m.a)}" alt="">${escapeHtml(m.a)}</div>${renderAppearancePicker(m.a, 'away', details.appearances?.away || [])}</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="match-center-save-bar">
-                    <button class="btn-primary match-center-save" onclick="saveScoreToCloud('${m.id}')">試合結果を保存</button>
-                </div>
-                <div class="match-center-section">
-                    <div class="match-center-section-heading"><span>追加記録</span><small>得点・カード</small></div>
-                    <div class="match-center-actions">
-                        <button class="btn-secondary" onclick="openMatchEventSheet('${m.id}','goal')">得点を追加</button>
-                        <button class="btn-secondary" onclick="openMatchEventSheet('${m.id}','yellow')">カードを追加</button>
-                    </div>
-                    <div class="match-center-events">${renderMatchEventsForSheet(m)}</div>
-                </div>
-                <div class="match-center-utilities">
-                    <button class="share-action-btn" onclick="generateMatchShareText('${m.id}')">試合結果を共有</button>
-                    <button class="btn-secondary" onclick="undoLastMatchChange()">直前の変更を戻す</button>
-                </div>
-                ${m.hs !== null ? `<button class="btn-danger" onclick="clearScoreInCloud('${m.id}')">スコアを取り消す</button>` : ''}
-            `;
             document.getElementById('sheet-overlay').classList.add('active');
         };
 
@@ -1931,80 +1832,10 @@
             document.getElementById('sheet-overlay').classList.remove('active');
         };
 
-        window.openMatchEventSheet = function(mId, type = 'goal') {
-            const m = state.schedule.find(item => item.id === mId);
-            if (!m) return;
-            const isCardEntry = type === 'yellow' || type === 'red';
-            const title = isCardEntry ? 'カードを追加' : '得点を追加';
-            const typeField = isCardEntry
-                ? `<div class="event-type-switch" aria-label="カードの種類"><label class="event-type-choice"><input type="radio" name="event-type" value="yellow" ${type === 'yellow' ? 'checked' : ''}><span>イエロー</span></label><label class="event-type-choice"><input type="radio" name="event-type" value="red" ${type === 'red' ? 'checked' : ''}><span>レッド</span></label></div>`
-                : '<input id="event-type" type="hidden" value="goal">';
-            const body = document.getElementById('sheet-body');
-            body.innerHTML = `
-                <div class="event-sheet-header"><div class="event-sheet-kicker">${isCardEntry ? 'CARD RECORD' : 'GOAL RECORD'}</div><h3 class="event-sheet-title">${title}</h3><div class="event-sheet-match">${escapeHtml(m.h)} vs ${escapeHtml(m.a)}</div></div>
-                <div class="event-entry-card">
-                    ${typeField}
-                    <div class="form-group"><label class="form-label">チーム</label><select id="event-team" class="form-select" onchange="updateMatchEventPlayerOptions('${m.id}')"><option>${escapeHtml(m.h)}</option><option>${escapeHtml(m.a)}</option></select></div>
-                    <div class="form-group"><label class="form-label">選手</label><select id="event-player" class="form-select">${matchEventPlayerOptions(m.h)}</select></div>
-                    ${isCardEntry ? '' : `<div class="form-group"><label class="form-label">アシスト</label><select id="event-assist" class="form-select">${matchEventPlayerOptions(m.h, 'なし')}</select></div>`}
-                </div>
-                <button class="btn-primary event-entry-save" onclick="saveMatchEvent('${m.id}')">記録を追加</button>
-                <button class="btn-secondary event-entry-back" onclick="openScoreInputSheet('${m.id}')">試合センターへ戻る</button>`;
-        };
-
-        window.toggleAssistField = function() {
-            const field = document.getElementById('assist-field');
-            const selectedType = document.querySelector('input[name="event-type"]:checked')?.value || document.getElementById('event-type')?.value;
-            if (field) field.style.display = selectedType === 'goal' ? 'block' : 'none';
-        };
-
-        window.updateMatchEventPlayerOptions = function(mId) {
-            const match = state.schedule.find(item => item.id === mId);
-            const teamName = document.getElementById('event-team')?.value;
-            if (!match || !teamName) return;
-            const player = document.getElementById('event-player');
-            const assist = document.getElementById('event-assist');
-            if (player) player.innerHTML = matchEventPlayerOptions(teamName);
-            if (assist) assist.innerHTML = matchEventPlayerOptions(teamName, 'アシストなし');
-        };
-
         window.updateMotmPlayerOptions = function() {
             const teamName = document.getElementById('input-motm-team')?.value;
             const motm = document.getElementById('input-motm');
             if (teamName && motm) motm.innerHTML = matchEventPlayerOptions(teamName, 'MOMを選択');
-        };
-
-        window.saveMatchEvent = function(mId) {
-            const m = state.schedule.find(item => item.id === mId);
-            const player = document.getElementById('event-player')?.value.trim();
-            if (!m || !player) {
-                alert('選手を選択してから記録を追加してください。');
-                return;
-            }
-            const type = document.querySelector('input[name="event-type"]:checked')?.value || document.getElementById('event-type')?.value;
-            const team = document.getElementById('event-team').value;
-            if (type === 'goal' && m.hs !== null && m.as !== null) {
-                const totals = getRecordedGoalTotals(m);
-                const scoreLimit = team === m.h ? Number(m.hs) : Number(m.as);
-                const recorded = team === m.h ? totals.home : totals.away;
-                if (recorded >= scoreLimit) {
-                    alert('このチームの得点記録は、保存済みのスコアを超えて追加できません。先にスコアを修正してください。');
-                    return;
-                }
-            }
-            takeMatchSnapshot(m, '試合記録の追加');
-            ensureMatchDetails(m).events.push({
-                id: `e_${Date.now()}_${Math.random().toString(16).slice(2)}`,
-                type,
-                team,
-                player,
-                assist: type === 'goal' ? document.getElementById('event-assist')?.value.trim() || '' : '',
-                minute: 0
-            });
-            addActivity('試合記録を追加', `${player} ・ MW${m.mw} ${m.h} vs ${m.a}`);
-            refreshAllViews();
-            persistAppState();
-            openScoreInputSheet(m.id);
         };
 
         window.deleteMatchEvent = function(mId, eventId) {
@@ -2310,10 +2141,6 @@
                 <div class="metric-card"><div class="metric-label">現在の首位</div><img class="home-metric-logo" src="${getTeamLogo(standings[0]?.name || '')}" alt="${escapeHtml(standings[0]?.name || '')}"><div class="metric-value">${escapeHtml(standings[0]?.name || '-')}</div></div>
                 <div class="metric-card"><div class="metric-label">得点王</div><img class="home-metric-logo" src="${getTeamLogo(topScorer?.team || '')}" alt="${escapeHtml(topScorer?.team || '')}"><div class="metric-value metric-player-name" title="${escapeHtml(topScorer?.name || '得点記録なし')}">${escapeHtml(topScorer?.name || '得点記録なし')}</div><div class="metric-detail">${topScorer ? `${topScorer.goals} 得点` : ''}</div></div>
                 <div class="metric-card home-progress-card"><div class="metric-label">消化試合</div><div class="metric-value">${played} / ${state.schedule.length}</div></div>`;
-            const activityWrap = document.getElementById('home-activity-list');
-            if (activityWrap) activityWrap.innerHTML = state.activityLog.length
-                ? state.activityLog.slice(0, 3).map(item => `<div class="activity-row"><div class="ranking-main"><div class="ranking-name">${escapeHtml(item.title)}</div><div class="activity-detail">${escapeHtml(item.detail || '')}</div></div></div>`).join('')
-                : `<div class="empty-state">更新履歴はまだありません</div>`;
         }
 
         // --- 描画更新 ---
@@ -3422,16 +3249,9 @@
             const match = getCupMatch(matchId); if (!match) return;
             renderCupMatchCenter(match);
             document.getElementById('sheet-overlay').classList.add('active');
-            return;
-            const details = ensureCupDetails(match), playerOptions = team => matchEventPlayerOptions(team, '選手を選択');
-            const motmTeam = details.motm?.team === match.a ? match.a : match.h;
-            document.getElementById('sheet-body').innerHTML = `<div class="match-center-header"><div class="match-center-kicker">HIRABAYASHI CUP</div><h3 class="match-center-title">${escapeHtml(match.label)}</h3><div class="match-center-subtitle">${escapeHtml(match.h)} vs ${escapeHtml(match.a)}</div></div><div class="match-center-scoreboard"><div class="match-center-team"><img src="${getTeamLogo(match.h)}" alt=""><div class="match-center-team-name">${escapeHtml(match.h)}</div><input type="number" id="cup-hs" class="form-input match-center-score-input" min="0" value="${match.hs ?? ''}" placeholder="0"></div><div class="match-center-versus">VS</div><div class="match-center-team"><img src="${getTeamLogo(match.a)}" alt=""><div class="match-center-team-name">${escapeHtml(match.a)}</div><input type="number" id="cup-as" class="form-input match-center-score-input" min="0" value="${match.as ?? ''}" placeholder="0"></div></div><div class="form-group"><label class="form-label">同点時のPK勝者（同点で終了した場合のみ選択）</label><select id="cup-pk" class="form-select"><option value="">PKなし / 未選択</option><option value="${escapeHtml(match.h)}" ${match.pkWinner === match.h ? 'selected' : ''}>${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}" ${match.pkWinner === match.a ? 'selected' : ''}>${escapeHtml(match.a)}</option></select></div><div class="form-group"><label class="form-label">MOM</label><div class="match-center-mom"><select id="cup-motm-team" class="form-select" onchange="updateCupMotmOptions('${match.id}')"><option value="${escapeHtml(match.h)}" ${motmTeam === match.h ? 'selected' : ''}>${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}" ${motmTeam === match.a ? 'selected' : ''}>${escapeHtml(match.a)}</option></select><select id="cup-motm" class="form-select">${matchEventPlayerOptions(motmTeam, 'MOMを選択', details.motm?.name || '')}</select></div></div><button class="btn-primary match-center-save" onclick="saveCupMatch('${match.id}')">試合結果を保存</button><div class="match-center-section"><div class="match-center-section-heading"><span>得点・カード記録</span></div><div class="event-entry-card"><div class="form-group"><select id="cup-event-type" class="form-select"><option value="goal">得点</option><option value="yellow">イエローカード</option><option value="red">レッドカード</option></select></div><div class="form-group"><select id="cup-event-team" class="form-select" onchange="updateCupEventOptions('${match.id}')"><option value="${escapeHtml(match.h)}">${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}">${escapeHtml(match.a)}</option></select></div><div class="form-group"><select id="cup-event-player" class="form-select">${playerOptions(match.h)}</select></div><div class="form-group"><select id="cup-event-assist" class="form-select">${matchEventPlayerOptions(match.h,'アシストなし')}</select></div></div><button class="btn-secondary" style="width:100%;" onclick="addCupEvent('${match.id}')">記録を追加</button><div class="match-center-events">${details.events.length ? details.events.map(event => `<div class="event-row"><div class="ranking-main"><div class="match-event-type">${escapeHtml(event.type.toUpperCase())}</div><div class="ranking-name">${escapeHtml(event.player)}</div><div class="ranking-team">${escapeHtml(event.team)}${event.assist ? ` ・ AS ${escapeHtml(event.assist)}` : ''}</div></div><button class="btn-secondary" onclick="deleteCupEvent('${match.id}','${event.id}')">削除</button></div>`).join('') : '<div class="empty-state">記録はまだありません</div>'}</div></div><button class="btn-secondary event-entry-back" onclick="closeCupSheet()">閉じる</button>`;
-            document.getElementById('sheet-overlay').classList.add('active');
         };
-        window.updateCupEventOptions = function(matchId) { const match = getCupMatch(matchId), team = document.getElementById('cup-event-team')?.value; if (!match || !team) return; document.getElementById('cup-event-player').innerHTML = matchEventPlayerOptions(team); document.getElementById('cup-event-assist').innerHTML = matchEventPlayerOptions(team, 'アシストなし'); };
         window.updateCupGoalOptions = function(matchId) { const match = getCupMatch(matchId), team = document.getElementById('cup-goal-team')?.value; if (!match || !team) return; document.getElementById('cup-goal-player').innerHTML = matchEventPlayerOptions(team, '得点者を選択'); document.getElementById('cup-goal-assist').innerHTML = matchEventPlayerOptions(team, 'アシストなし'); };
         window.updateCupMotmOptions = function(matchId) { const match = getCupMatch(matchId), team = document.getElementById('cup-motm-team')?.value; if (!match || !team) return; document.getElementById('cup-motm').innerHTML = matchEventPlayerOptions(team, 'MOMを選択'); };
-        window.addCupEvent = function(matchId) { const match = getCupMatch(matchId), player = document.getElementById('cup-event-player')?.value; if (!match || !player) return alert('選手を選択してください。'); ensureCupDetails(match).events.push({ id: `hc_e_${Date.now()}`, type: document.getElementById('cup-event-type').value, team: document.getElementById('cup-event-team').value, player, assist: document.getElementById('cup-event-type').value === 'goal' ? document.getElementById('cup-event-assist').value : '' }); persistAppState(); openCupMatchSheet(matchId); };
         window.addCupGoal = function(matchId) { const match = getCupMatch(matchId), player = document.getElementById('cup-goal-player')?.value; if (!match || !player) return alert('得点者を選択してください。'); ensureCupDetails(match).events.push({ id: `hc_e_${Date.now()}`, type: 'goal', team: document.getElementById('cup-goal-team').value, player, assist: document.getElementById('cup-goal-assist').value || '' }); persistAppState(); renderCupMatchCenter(match); };
         window.saveCupMatch = function(matchId) { const match = getCupMatch(matchId), hs = document.getElementById('cup-hs')?.value, as = document.getElementById('cup-as')?.value, pkWinner = document.getElementById('cup-pk')?.value || ''; if (!match || hs === '' || as === '') return alert('両チームの得点を入力してください。'); if (Number(hs) === Number(as) && !pkWinner) return alert('同点の場合はPK勝者を選択してください。'); if (Number(hs) !== Number(as) && pkWinner) return alert('PK勝者は同点の場合だけ選択できます。'); match.hs = Number(hs); match.as = Number(as); match.pkWinner = pkWinner; const details = ensureCupDetails(match), motm = document.getElementById('cup-motm')?.value.trim(); details.motm = motm ? { name: motm, team: document.getElementById('cup-motm-team').value } : null; details.appearances = { home: [...document.querySelectorAll('[data-appearance="cup-home"]:checked')].map(input => input.value), away: [...document.querySelectorAll('[data-appearance="cup-away"]:checked')].map(input => input.value) }; syncCupKnockout(); persistAppState(); document.getElementById('sheet-overlay').classList.remove('active'); renderHirabayashiCup(); };
         window.deleteCupEvent = function(matchId, eventId) { const match = getCupMatch(matchId); if (!match) return; ensureCupDetails(match).events = ensureCupDetails(match).events.filter(event => event.id !== eventId); persistAppState(); openCupMatchSheet(matchId); };
@@ -3799,18 +3619,8 @@
             document.getElementById('sheet-overlay').classList.remove('active');
         };
 
-        // ブラウザの復元処理などで同じページが重複した場合は、最初の表示だけを残す
-        function removeDuplicatePages() {
-            const seenIds = new Set();
-            document.querySelectorAll('main.container .page[id]').forEach(page => {
-                if (seenIds.has(page.id)) page.remove();
-                else seenIds.add(page.id);
-            });
-        }
-
         // 即時UI初期化
         function initAppUI() {
-            removeDuplicatePages();
             document.querySelectorAll('main.container .page[id]').forEach(page => {
                 page.hidden = !page.classList.contains('active');
             });
@@ -3838,7 +3648,6 @@
 
             refreshAllViews();
             renderNews();
-            renderTransferCenter();
         }
 
 
@@ -3859,7 +3668,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=57', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=58', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
