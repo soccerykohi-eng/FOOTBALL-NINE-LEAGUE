@@ -817,7 +817,6 @@
                     <button class="tab-button active" data-player-ranking-tab="goals" onclick="switchPlayerRanking('goals',this)">得点</button>
                     <button class="tab-button" data-player-ranking-tab="assists" onclick="switchPlayerRanking('assists',this)">アシスト</button>
                     <button class="tab-button" data-player-ranking-tab="mom" onclick="switchPlayerRanking('mom',this)">MOM</button>
-                    <button class="tab-button" data-player-ranking-tab="cards" onclick="switchPlayerRanking('cards',this)">カード</button>
                 </div>
                 <div class="section-header"><div class="section-title" id="player-ranking-title">得点ランキング</div><button class="btn-secondary" id="player-ranking-full-button" onclick="openFullPlayerRanking('goals')">全順位</button></div>
                 <div class="card" id="player-ranking"></div>
@@ -2075,7 +2074,7 @@
             return [...map.values()];
         }
 
-        function renderRankingRows(players, valueRenderer, limit = 3) {
+        function renderRankingRows(players, valueRenderer, limit = 5) {
             if (!players.length) return `<div class="empty-state">試合センターで選手記録を入力すると表示されます</div>`;
             return players.slice(0, limit).map((player, index) => `
                 <div class="ranking-row">
@@ -2102,18 +2101,13 @@
                     title: 'MOMランキング',
                     players: [...stats].filter(player => player.motm > 0).sort((a,b) => b.motm - a.motm || b.appearances - a.appearances),
                     valueRenderer: player => `${player.motm}`
-                },
-                cards: {
-                    title: 'カード記録',
-                    players: [...stats].filter(player => player.yellow > 0 || player.red > 0).sort((a,b) => (b.yellow + b.red) - (a.yellow + a.red) || b.red - a.red),
-                    valueRenderer: player => `<span style="font-size:0.72rem;color:var(--text-muted);">黄 ${player.yellow}・赤 ${player.red}</span>`
                 }
             };
             return rankings[type];
         }
 
         function renderPlayerRankings() {
-            const type = state.playerRankingType || 'goals';
+            const type = ['goals', 'assists', 'mom'].includes(state.playerRankingType) ? state.playerRankingType : 'goals';
             const ranking = getPlayerRanking(type);
             const wrap = document.getElementById('player-ranking');
             const title = document.getElementById('player-ranking-title');
@@ -3839,7 +3833,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=50'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=51'));
     }
 </script>
 </html>
