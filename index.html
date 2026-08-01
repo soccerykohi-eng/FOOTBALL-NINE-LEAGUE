@@ -547,6 +547,8 @@
         .ranking-number { color:var(--accent-gold-light); font:700 1.35rem 'Teko',sans-serif; }
         .match-detail-summary { display:flex; flex-wrap:wrap; gap:0.35rem; margin-top:0.55rem; }
         .detail-chip { padding:0.2rem 0.45rem; border-radius:999px; color:var(--text-muted); background:rgba(255,255,255,0.04); font-size:0.6rem; }
+        .mom-detail-chip { display:inline-flex; align-items:center; gap:.35rem; color:var(--text-main); border:1px solid rgba(198,166,100,.28); background:rgba(198,166,100,.08); }
+        .mom-mark { display:inline-grid; place-items:center; width:18px; height:18px; clip-path:polygon(50% 0,92% 24%,84% 78%,50% 100%,16% 78%,8% 24%); background:var(--accent-gold); color:#11151b; font:900 8px/1 'Teko',sans-serif; letter-spacing:-.03em; }
         .action-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:0.45rem; margin-top:0.7rem; }
         .empty-state { padding:1rem; text-align:center; color:var(--text-muted); font-size:0.74rem; }
 
@@ -2331,7 +2333,7 @@
                                 <div class="match-team-box away"><img src="${awayLogo}" class="team-logo-img"><span>${escapeHtml(m.a)}</span></div>
                             </div>
                         </div>
-                        ${(goalCount || cardCount || details.motm?.name) ? `<div class="match-detail-summary">${goalCount ? `<span class="detail-chip">⚽ ${goalCount}件</span>` : ''}${cardCount ? `<span class="detail-chip">カード ${cardCount}件</span>` : ''}${details.motm?.name ? `<span class="detail-chip">⭐ ${escapeHtml(details.motm.name)}</span>` : ''}</div>` : ''}
+                        ${(goalCount || cardCount || details.motm?.name) ? `<div class="match-detail-summary">${goalCount ? `<span class="detail-chip">⚽ ${goalCount}件</span>` : ''}${cardCount ? `<span class="detail-chip">カード ${cardCount}件</span>` : ''}${details.motm?.name ? `<span class="detail-chip mom-detail-chip"><span class="mom-mark" aria-label="MOM">MOM</span>${escapeHtml(details.motm.name)}</span>` : ''}</div>` : ''}
                         <button class="edit-score-btn" onclick="openScoreInputSheet('${m.id}')">MATCH CENTERを開く</button>
                     </div>
                 `;
@@ -3790,7 +3792,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=47'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=48'));
     }
 </script>
 </html>
