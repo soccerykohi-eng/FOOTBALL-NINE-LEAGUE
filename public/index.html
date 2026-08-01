@@ -81,6 +81,7 @@
             align-items: center;
             gap: 8px;
             cursor: pointer;
+            min-width: 0;
         }
 
         .fnl-logo-header {
@@ -115,6 +116,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            flex: 0 0 auto;
         }
 
         .sync-badge {
@@ -160,7 +162,7 @@
             max-width: 640px;
             margin: 0 auto;
             /* 短いページでも画面の高さを保ち、iOSで固定ナビが跳ねないようにする */
-            min-height: calc(100dvh - var(--header-height) - var(--nav-height) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+            min-height: calc(100dvh - var(--header-height) - var(--nav-height) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 1.2rem);
         }
 
         .page {
@@ -549,12 +551,13 @@
         .detail-chip { padding:0.2rem 0.45rem; border-radius:999px; color:var(--text-muted); background:rgba(255,255,255,0.04); font-size:0.6rem; }
         .mom-detail-chip { display:inline-flex; align-items:center; gap:.35rem; color:var(--text-main); border:1px solid rgba(198,166,100,.28); background:rgba(198,166,100,.08); }
         .mom-mark { display:inline-grid; place-items:center; width:18px; height:18px; clip-path:polygon(50% 0,92% 24%,84% 78%,50% 100%,16% 78%,8% 24%); background:var(--accent-gold); color:#11151b; font:900 8px/1 'Teko',sans-serif; letter-spacing:-.03em; }
-        .news-pagination { display:flex; align-items:center; justify-content:center; gap:.35rem; margin:1rem 0 .35rem; }
+        .news-pagination { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:.35rem; margin:1rem 0 .35rem; }
         .news-page-button { display:grid; place-items:center; min-width:34px; height:34px; padding:0 .45rem; border:1px solid var(--border-color); border-radius:9px; background:var(--bg-card); color:var(--text-muted); font:800 .72rem 'Noto Sans JP',sans-serif; cursor:pointer; }
         .news-page-button.active { border-color:var(--accent-gold); background:var(--accent-gold); color:#111318; }
         .news-page-button:disabled { opacity:.35; cursor:default; }
         /* Home: one-screen league snapshot */
-        #page-home { display:grid; gap:.85rem; align-content:start; }
+        #page-home { gap:.85rem; align-content:start; }
+        #page-home.active { display:grid; }
         #page-home .hero-banner { display:flex; align-items:center; gap:.9rem; padding:.92rem 1rem; margin:0; text-align:left; border-radius:14px; }
         #page-home .hero-logo-large { flex:0 0 auto; width:66px; height:66px; margin:0; border-radius:10px; }
         .home-hero-copy { min-width:0; flex:1; }
@@ -594,13 +597,13 @@
         .sheet-overlay.active { opacity: 1; pointer-events: auto; }
         .sheet-content {
             background: var(--bg-card); width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px;
-            padding: 1.2rem; transform: translateY(100%); transition: transform 0.2s ease-out;
+            padding: 2.6rem 1.2rem calc(1.2rem + env(safe-area-inset-bottom, 0px)); transform: translateY(100%); transition: transform 0.2s ease-out;
             border-top: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; position: relative;
             -webkit-overflow-scrolling: touch;
         }
 
         .sheet-overlay.active .sheet-content { transform: translateY(0); }
-        .sheet-bar { width: 32px; height: 4px; background: var(--border-color); border-radius: 2px; margin: 0 auto 0.8rem; }
+        .sheet-bar { position:absolute; top:.82rem; left:50%; width:32px; height:4px; margin:0; border-radius:2px; background:var(--border-color); transform:translateX(-50%); }
         .sheet-close-button {
             position: absolute; top: 0.55rem; right: 0.7rem; border: 1px solid var(--border-color);
             color: var(--text-muted); background: var(--bg-elevated); border-radius: 999px; padding: 0.3rem 0.65rem;
@@ -761,6 +764,18 @@
         .news-composer-publish-note::before { content:''; width:6px; height:6px; margin-top:.28rem; flex:0 0 auto; border-radius:50%; background:var(--accent-gold); }
         .news-composer-submit { min-height:46px; margin-top:.75rem; border-radius:12px; }
         @media (max-width:380px) { .news-composer-meta { grid-template-columns:1fr; } }
+        #teams-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+        #teams-grid > .card { min-width:0; }
+        #teams-grid > .card > div { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        @media (max-width:360px) {
+            header { padding-left:.6rem; padding-right:.6rem; }
+            .fnl-brand-sub, #sync-text-status { display:none; }
+            .sync-badge { padding:6px; }
+            .current-page-title { max-width:92px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        }
+        @media (max-width:340px) {
+            #teams-grid { grid-template-columns:1fr !important; }
+        }
     </style>
 </head>
 <body>
@@ -1860,17 +1875,8 @@
             }
             const motmName = document.getElementById('input-motm')?.value.trim() || '';
             const selectedPlayers = side => [...document.querySelectorAll(`[data-appearance="${side}"]:checked`)].map(input => input.value);
-            const homeAppearances = selectedPlayers('home');
-            const awayAppearances = selectedPlayers('away');
-            if (!motmName) {
-                alert('MOMを選択してから保存してください。');
-                return;
-            }
-            if (!homeAppearances.length || !awayAppearances.length) {
-                alert('両チームの出場選手を1人以上選択してから保存してください。');
-                return;
-            }
-
+            const homeAppearances = selectedPlayers('league-home');
+            const awayAppearances = selectedPlayers('league-away');
             const m = state.schedule.find(item => item.id === mId);
             if (m) {
                 const homeScore = parseInt(hsVal, 10);
@@ -1884,7 +1890,7 @@
                 m.hs = homeScore;
                 m.as = awayScore;
                 const details = ensureMatchDetails(m);
-                details.motm = { name: motmName, team: document.getElementById('input-motm-team')?.value || '' };
+                details.motm = motmName ? { name: motmName, team: document.getElementById('input-motm-team')?.value || '' } : null;
                 details.appearances = {
                     home: homeAppearances,
                     away: awayAppearances
@@ -1899,8 +1905,6 @@
 
         window.updateLeagueGoalOptions = function(mId) { const match = state.schedule.find(item => item.id === mId), team = document.getElementById('league-goal-team')?.value; if (!match || !team) return; document.getElementById('league-goal-player').innerHTML = matchEventPlayerOptions(team, '得点者を選択'); document.getElementById('league-goal-assist').innerHTML = matchEventPlayerOptions(team, 'アシストなし'); };
         window.addLeagueGoal = function(mId) { const match = state.schedule.find(item => item.id === mId), player = document.getElementById('league-goal-player')?.value; if (!match || !player) return alert('得点者を選択してください。'); ensureMatchDetails(match).events.push({ id: `e_${Date.now()}_${Math.random().toString(16).slice(2)}`, type: 'goal', team: document.getElementById('league-goal-team').value, player, assist: document.getElementById('league-goal-assist').value || '', minute: 0 }); persistAppState(); renderLeagueMatchCenter(match); };
-        window.saveScoreToCloud = function(mId) { const hsVal = document.getElementById('input-hs')?.value.trim(), asVal = document.getElementById('input-as')?.value.trim(), match = state.schedule.find(item => item.id === mId); if (!match || hsVal === '' || asVal === '') return alert('両チームの得点を入力してから保存してください。'); const homeScore = Number(hsVal), awayScore = Number(asVal), totals = getRecordedGoalTotals(match); if ((totals.home || totals.away) && (totals.home !== homeScore || totals.away !== awayScore)) return alert(`得点記録とスコアが一致していません。${match.h}は${totals.home}件、${match.a}は${totals.away}件の得点記録です。`); takeMatchSnapshot(match, '試合結果の更新'); match.hs = homeScore; match.as = awayScore; const details = ensureMatchDetails(match), motm = document.getElementById('input-motm')?.value.trim(); details.motm = motm ? { name: motm, team: document.getElementById('input-motm-team')?.value || '' } : null; details.appearances = { home: [...document.querySelectorAll('[data-appearance="league-home"]:checked')].map(input => input.value), away: [...document.querySelectorAll('[data-appearance="league-away"]:checked')].map(input => input.value) }; addActivity('試合結果を更新', `MW${match.mw} ${match.h} ${match.hs}-${match.as} ${match.a}`); state.standingsDirty = true; refreshAllViews(); persistAppState(); document.getElementById('sheet-overlay').classList.remove('active'); };
-
         window.clearScoreInCloud = function(mId) {
             const m = state.schedule.find(item => item.id === mId);
             if (m) {
@@ -3395,6 +3399,7 @@
                     <div class="match-center-versus">VS</div>
                     <div class="match-center-team"><img src="${getTeamLogo(match.a)}" alt=""><div class="match-center-team-name">${escapeHtml(match.a)}</div><div class="match-center-score-caption">得点</div><input type="number" id="cup-as" class="form-input match-center-score-input" min="0" inputmode="numeric" value="${match.as ?? ''}" placeholder="0"></div>
                 </div>
+                <div class="form-group"><label class="form-label">同点時のPK勝者</label><select id="cup-pk" class="form-select"><option value="">PKなし / 未選択</option><option value="${escapeHtml(match.h)}" ${match.pkWinner === match.h ? 'selected' : ''}>${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}" ${match.pkWinner === match.a ? 'selected' : ''}>${escapeHtml(match.a)}</option></select></div>
                 <div class="match-center-section"><div class="match-center-section-heading"><span>試合情報</span></div><div class="match-center-core"><span class="match-center-core-label">MOM</span><div class="match-center-mom"><select id="cup-motm-team" class="form-select" onchange="updateCupMotmOptions('${match.id}')"><option value="${escapeHtml(match.h)}" ${motmTeam === match.h ? 'selected' : ''}>${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}" ${motmTeam === match.a ? 'selected' : ''}>${escapeHtml(match.a)}</option></select><select id="cup-motm" class="form-select">${matchEventPlayerOptions(motmTeam, 'MOMを選択', details.motm?.name || '')}</select></div><span class="match-center-core-label">出場選手</span><div class="match-center-lineup-grid"><div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(match.h)}" alt="">${escapeHtml(match.h)}</div>${renderAppearancePicker(match.h, 'cup-home', details.appearances.home)}</div><div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(match.a)}" alt="">${escapeHtml(match.a)}</div>${renderAppearancePicker(match.a, 'cup-away', details.appearances.away)}</div></div></div></div>
                 <div class="match-center-section"><div class="match-center-section-heading"><span>得点記録</span></div><div class="event-entry-card"><div class="form-group"><label class="form-label">チーム</label><select id="cup-goal-team" class="form-select" onchange="updateCupGoalOptions('${match.id}')"><option value="${escapeHtml(match.h)}">${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}">${escapeHtml(match.a)}</option></select></div><div class="form-group"><label class="form-label">得点者</label><select id="cup-goal-player" class="form-select">${matchEventPlayerOptions(match.h, '得点者を選択')}</select></div><div class="form-group"><label class="form-label">アシスト</label><select id="cup-goal-assist" class="form-select">${matchEventPlayerOptions(match.h, 'アシストなし')}</select></div></div><button class="btn-secondary" style="width:100%;" onclick="addCupGoal('${match.id}')">得点を追加</button><div class="match-center-events">${goalEvents.length ? goalEvents.map(event => `<div class="event-row"><div class="ranking-main"><div class="match-event-type">GOAL</div><div class="ranking-name">${escapeHtml(event.player)}</div><div class="ranking-team">${escapeHtml(event.team)}${event.assist ? ` ・ AS ${escapeHtml(event.assist)}` : ''}</div></div><button class="btn-secondary" onclick="deleteCupEvent('${match.id}','${event.id}')">削除</button></div>`).join('') : '<div class="empty-state">得点記録はまだありません</div>'}</div></div>
                 <div class="match-center-save-bar"><button class="btn-primary match-center-save" onclick="saveCupMatch('${match.id}')">試合結果を保存</button></div>
@@ -3418,7 +3423,6 @@
         window.addCupGoal = function(matchId) { const match = getCupMatch(matchId), player = document.getElementById('cup-goal-player')?.value; if (!match || !player) return alert('得点者を選択してください。'); ensureCupDetails(match).events.push({ id: `hc_e_${Date.now()}`, type: 'goal', team: document.getElementById('cup-goal-team').value, player, assist: document.getElementById('cup-goal-assist').value || '' }); persistAppState(); renderCupMatchCenter(match); };
         window.saveCupMatch = function(matchId) { const match = getCupMatch(matchId), hs = document.getElementById('cup-hs')?.value, as = document.getElementById('cup-as')?.value, pkWinner = document.getElementById('cup-pk')?.value || ''; if (!match || hs === '' || as === '') return alert('両チームの得点を入力してください。'); if (Number(hs) === Number(as) && !pkWinner) return alert('同点の場合はPK勝者を選択してください。'); if (Number(hs) !== Number(as) && pkWinner) return alert('PK勝者は同点の場合だけ選択できます。'); match.hs = Number(hs); match.as = Number(as); match.pkWinner = pkWinner; const details = ensureCupDetails(match), motm = document.getElementById('cup-motm')?.value.trim(); details.motm = motm ? { name: motm, team: document.getElementById('cup-motm-team').value } : null; details.appearances = { home: [...document.querySelectorAll('[data-appearance="cup-home"]:checked')].map(input => input.value), away: [...document.querySelectorAll('[data-appearance="cup-away"]:checked')].map(input => input.value) }; syncCupKnockout(); persistAppState(); document.getElementById('sheet-overlay').classList.remove('active'); renderHirabayashiCup(); };
         window.deleteCupEvent = function(matchId, eventId) { const match = getCupMatch(matchId); if (!match) return; ensureCupDetails(match).events = ensureCupDetails(match).events.filter(event => event.id !== eventId); persistAppState(); openCupMatchSheet(matchId); };
-        window.saveCupMatch = function(matchId) { const match = getCupMatch(matchId), hs = document.getElementById('cup-hs')?.value, as = document.getElementById('cup-as')?.value, pkWinner = document.getElementById('cup-pk')?.value || ''; if (!match || hs === '' || as === '') return alert('両チームの得点を入力してください。'); if (Number(hs) === Number(as) && !pkWinner) return alert('同点の場合はPK勝者を選択してください。'); if (Number(hs) !== Number(as) && pkWinner) return alert('PK勝者は同点の場合だけ選択できます。'); match.hs = Number(hs); match.as = Number(as); match.pkWinner = pkWinner; const motm = document.getElementById('cup-motm')?.value.trim(); ensureCupDetails(match).motm = motm ? { name: motm, team: document.getElementById('cup-motm-team').value } : null; syncCupKnockout(); persistAppState(); document.getElementById('sheet-overlay').classList.remove('active'); renderHirabayashiCup(); };
         window.closeCupSheet = function() { document.getElementById('sheet-overlay').classList.remove('active'); renderHirabayashiCup(); };
 
         function renderRules() {
@@ -3833,7 +3837,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=54'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=55'));
     }
 </script>
 </html>
