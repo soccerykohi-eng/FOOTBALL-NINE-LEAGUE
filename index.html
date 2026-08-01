@@ -553,6 +553,34 @@
         .news-page-button { display:grid; place-items:center; min-width:34px; height:34px; padding:0 .45rem; border:1px solid var(--border-color); border-radius:9px; background:var(--bg-card); color:var(--text-muted); font:800 .72rem 'Noto Sans JP',sans-serif; cursor:pointer; }
         .news-page-button.active { border-color:var(--accent-gold); background:var(--accent-gold); color:#111318; }
         .news-page-button:disabled { opacity:.35; cursor:default; }
+        /* Home: one-screen league snapshot */
+        #page-home { display:grid; gap:.7rem; align-content:start; }
+        #page-home .hero-banner { display:flex; align-items:center; gap:.8rem; padding:.78rem .85rem; margin:0; text-align:left; border-radius:14px; }
+        #page-home .hero-logo-large { flex:0 0 auto; width:58px; height:58px; margin:0; border-radius:10px; }
+        .home-hero-copy { min-width:0; flex:1; }
+        #page-home .hero-subtitle { margin:0 0 .1rem; font-size:.58rem; letter-spacing:.12em; }
+        #page-home .hero-title { margin:0; font-size:1.72rem; line-height:.9; letter-spacing:.025em; }
+        .home-hero-description { margin-top:.22rem; color:var(--text-muted); font-size:.62rem; font-weight:700; }
+        #page-home .dashboard-grid { margin:0; gap:.42rem; }
+        #page-home .metric-card { padding:.52rem .3rem; border-radius:10px; }
+        #page-home .metric-value { font-size:1.08rem; }
+        #page-home .metric-value.metric-player-name { min-height:1.2em; font-size:.62rem; }
+        #page-home .metric-detail { display:none; }
+        #page-home .match-card-mobile { margin:0; padding:.68rem .75rem; gap:.45rem; border-radius:12px; }
+        #page-home .match-card-top { min-height:16px; }
+        #page-home .match-team-name, #page-home .match-team-box span { font-size:.74rem; }
+        #page-home .team-logo-img { width:22px; height:22px; }
+        #page-home .match-score-pill { min-width:48px; padding:.14rem .4rem; font-size:1.22rem; }
+        #page-home .edit-score-btn { min-height:30px; padding:4px 8px; font-size:.63rem; }
+        .home-news-heading { display:flex; align-items:center; justify-content:space-between; gap:.6rem; margin-top:.1rem; }
+        .home-news-heading strong { font-size:.78rem; letter-spacing:.04em; }
+        .home-news-link { border:0; padding:0; background:transparent; color:var(--accent-gold-light); font:800 .63rem 'Noto Sans JP',sans-serif; cursor:pointer; }
+        #page-home .news-feed { margin:0; padding:.08rem .7rem; border-radius:12px; }
+        #page-home .news-item { padding:.58rem .05rem; gap:.26rem; }
+        #page-home .news-title { padding:0; overflow:hidden; font-size:.72rem; line-height:1.3; text-overflow:ellipsis; white-space:nowrap; }
+        #page-home .news-category { font-size:.52rem; }
+        #page-home .news-source, #page-home .news-date { font-size:.55rem; }
+        @media (max-height:720px) { #page-home { gap:.5rem; } #page-home .hero-banner { padding:.62rem .7rem; } #page-home .hero-logo-large { width:48px; height:48px; } #page-home .hero-title { font-size:1.5rem; } #page-home .metric-card { padding:.42rem .25rem; } }
         .action-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:0.45rem; margin-top:0.7rem; }
         .empty-state { padding:1rem; text-align:center; color:var(--text-muted); font-size:0.74rem; }
 
@@ -763,21 +791,11 @@
         <section id="page-home" class="page active">
             <div class="hero-banner">
                 <img class="hero-logo-large" src="./fnl-logo.png" alt="FNL ロゴ">
-                <div class="hero-subtitle" id="current-season-label">SEASON 1 - 2026</div>
-                <div class="hero-title">FOOTBALL NINE LEAGUE</div>
-                <p style="font-size: 0.75rem; color: var(--text-muted);">全9チーム公式ポータル</p>
+                <div class="home-hero-copy"><div class="hero-subtitle" id="current-season-label">SEASON 1 - 2026</div><div class="hero-title">FOOTBALL NINE LEAGUE</div><p class="home-hero-description">9クラブ公式ポータル</p></div>
             </div>
             <div id="home-dashboard" class="dashboard-grid"></div>
-
-            <div class="section-header">
-                <div class="section-title">次の試合／最新結果</div>
-            </div>
             <div class="match-card-mobile" style="background: var(--bg-card); border-color: rgba(198, 166, 100, 0.4);" id="home-featured-match"></div>
-
-            <div class="section-header" style="margin-top: 1.2rem;">
-                <div class="section-title">トピックス</div>
-                <button class="btn-secondary" onclick="openPostNewsSheet()">＋ 投稿</button>
-            </div>
+            <div class="home-news-heading"><strong>最新ニュース</strong><button class="home-news-link" onclick="navigateTo('news','ニュース')">すべて見る</button></div>
             <div class="card news-feed" id="home-news-preview"></div>
         </section>
 
@@ -1564,7 +1582,7 @@
                         <div class="news-title">${escapeHtml(n.title)}</div>
                     </button>
                 `).join('');
-            homeWrap.innerHTML = renderNewsItems(state.news.slice(0, 3));
+            homeWrap.innerHTML = renderNewsItems(state.news.slice(0, 1));
             const totalPages = Math.ceil(state.news.length / NEWS_PER_PAGE);
             currentNewsPage = Math.min(Math.max(currentNewsPage, 1), totalPages);
             const start = (currentNewsPage - 1) * NEWS_PER_PAGE;
@@ -3821,7 +3839,7 @@
 <script type="module" src="./firebase-sync.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=49'));
+        window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=50'));
     }
 </script>
 </html>
