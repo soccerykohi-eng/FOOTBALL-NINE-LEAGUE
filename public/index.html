@@ -348,7 +348,9 @@
         table.mobile-table th { color: var(--text-muted); font-size: 0.68rem; padding: 0.4rem 0.2rem; border-bottom: 1px solid var(--border-color); text-align: center; }
         table.mobile-table td { padding: 0.55rem 0.2rem; border-bottom: 1px solid rgba(255,255,255,0.03); text-align: center; }
 
-        .team-col { text-align: left !important; font-weight: 700; display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .team-col { min-width:0; text-align:left !important; font-weight:700; }
+        .standings-team-cell { display:flex; min-width:0; align-items:center; gap:6px; }
+        .standings-team-cell > span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .rank-num { font-family: 'Teko', sans-serif; font-size: 1.1rem; font-weight: bold; width: 18px; color: var(--text-muted); }
         .pts-badge { font-family: 'Teko', sans-serif; font-size: 1.1rem; font-weight: bold; color: var(--accent-gold); }
 
@@ -2220,7 +2222,7 @@
             const list = calculateStandings();
             let html = `<table class="mobile-table standings-table"><thead><tr><th>#</th><th style="text-align:left">チーム</th><th class="table-number">試</th><th class="table-number">勝</th><th class="table-number">差</th><th class="table-number">点</th></tr></thead><tbody>`;
             list.forEach(t => {
-                html += `<tr onclick="openStandingsTeamSheet('${escapeHtml(t.name)}')"><td class="rank-num ${t.rank <= 3 ? 'rank-highlight' : ''}">${t.rank}</td><td class="team-col"><img src="${t.logo}" class="team-logo-img"><span>${escapeHtml(t.name)}</span></td><td class="table-number">${t.p}</td><td class="table-number">${t.w}</td><td class="table-number">${t.gd > 0 ? '+'+t.gd : t.gd}</td><td class="pts-badge table-number">${t.pts}</td></tr>`;
+                html += `<tr onclick="openStandingsTeamSheet('${escapeHtml(t.name)}')"><td class="rank-num ${t.rank <= 3 ? 'rank-highlight' : ''}">${t.rank}</td><td class="team-col"><span class="standings-team-cell"><img src="${t.logo}" class="team-logo-img"><span>${escapeHtml(t.name)}</span></span></td><td class="table-number">${t.p}</td><td class="table-number">${t.w}</td><td class="table-number">${t.gd > 0 ? '+'+t.gd : t.gd}</td><td class="pts-badge table-number">${t.pts}</td></tr>`;
             });
             html += `</tbody></table>`;
             card.innerHTML = html;
@@ -3725,7 +3727,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=66', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=67', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
