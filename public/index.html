@@ -231,6 +231,7 @@
         .filter-scroll::-webkit-scrollbar { display: none; }
 
         .chip {
+            flex: 0 0 auto;
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             color: var(--text-muted);
@@ -240,6 +241,11 @@
             border-radius: 20px;
             white-space: nowrap;
             cursor: pointer;
+        }
+
+        #matches-filter-bar .chip {
+            min-width: 56px;
+            text-align: center;
         }
 
         .chip.active {
@@ -3683,7 +3689,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=61', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=62', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
