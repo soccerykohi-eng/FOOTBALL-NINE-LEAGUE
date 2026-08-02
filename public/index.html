@@ -567,6 +567,19 @@
         .news-page-button { display:grid; place-items:center; min-width:34px; height:34px; padding:0 .45rem; border:1px solid var(--border-color); border-radius:9px; background:var(--bg-card); color:var(--text-muted); font:800 .72rem 'Noto Sans JP',sans-serif; cursor:pointer; }
         .news-page-button.active { border-color:var(--accent-gold); background:var(--accent-gold); color:#111318; }
         .news-page-button:disabled { opacity:.35; cursor:default; }
+        #page-news > .section-header { margin-bottom:.45rem; }
+        #page-news > .section-header .section-title { font-size:1.08rem; }
+        #page-news > .section-header .section-title::before { height:16px; }
+        #page-news > .section-header .btn-secondary { min-height:30px; padding:.3rem .5rem; font-size:.62rem; }
+        #page-news #news-notification-note { display:none; }
+        #page-news .news-feed { padding:.1rem .65rem; margin-bottom:0; border-radius:12px; }
+        #page-news .news-item { min-height:52px; padding:.46rem 0; gap:.2rem; }
+        #page-news .news-title { display:block; width:100%; padding:0; overflow:hidden; font-size:.76rem; line-height:1.25; text-overflow:ellipsis; white-space:nowrap; }
+        #page-news .news-meta { gap:.28rem; }
+        #page-news .news-category { padding:.12rem .34rem; font-size:.54rem; }
+        #page-news .news-source, #page-news .news-date { font-size:.56rem; }
+        #page-news .news-pagination { gap:.28rem; margin:.5rem 0 0; }
+        #page-news .news-page-button { min-width:30px; height:30px; border-radius:8px; font-size:.66rem; }
         /* Home: one-screen league snapshot */
         #page-home { gap:.85rem; align-content:start; }
         #page-home.active { display:grid; }
@@ -3702,7 +3715,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=63', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=64', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
