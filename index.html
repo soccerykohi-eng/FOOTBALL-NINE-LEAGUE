@@ -706,13 +706,15 @@
         #page-standings > .section-header .share-action-btn { min-height:30px; padding:0 9px; font-size:.64rem; }
         #page-standings > .tab-bar { margin-bottom:.45rem; padding:3px; }
         #page-standings > .tab-bar .tab-button { min-height:32px; padding:.35rem .2rem; font-size:.66rem; }
-        #stats-pane-teams #standings-card { padding:.25rem .5rem; margin-bottom:0; }
-        #stats-pane-teams .standings-table { font-size:.74rem; }
-        #stats-pane-teams .standings-table th { height:28px; padding:.2rem .15rem; font-size:.62rem; }
-        #stats-pane-teams .standings-table tbody tr { height:38px; }
-        #stats-pane-teams .standings-table td { padding:.36rem .15rem; }
-        #stats-pane-teams .standings-table .team-logo-img { width:21px; height:21px; }
-        #stats-pane-teams .standings-table .rank-num { font-size:1rem; }
+        #stats-pane-teams #standings-card { padding:.4rem .65rem; margin-bottom:0; }
+        #stats-pane-teams .standings-table { font-size:.78rem; }
+        #stats-pane-teams .standings-table th { height:32px; padding:.25rem .18rem; font-size:.64rem; }
+        #stats-pane-teams .standings-table tbody tr { height:45px; }
+        #stats-pane-teams .standings-table td { padding:.47rem .18rem; }
+        #stats-pane-teams .standings-table .standings-team-cell { gap:7px; }
+        #stats-pane-teams .standings-table .team-logo-img { width:24px; height:24px; }
+        #stats-pane-teams .standings-table .rank-num { font-size:1.08rem; }
+        #stats-pane-teams .standings-table .pts-badge { font-size:1.14rem; }
         .team-sheet-hero { text-align:center; padding:1.1rem 1rem 1rem; margin:-.2rem -.2rem .9rem; background:linear-gradient(145deg,rgba(198,166,100,.14),var(--bg-card) 62%); border:1px solid rgba(198,166,100,.22); border-radius:16px; }
         .team-sheet-hero .team-logo-lg { width:88px !important; height:88px !important; margin-bottom:.6rem; }
         .team-sheet-hero h3 { font-size:2rem !important; }
@@ -3728,7 +3730,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=68', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=69', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
