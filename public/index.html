@@ -385,6 +385,15 @@
         .cup-stage { display:grid; grid-template-columns:30px 1fr; gap:.65rem; padding:.85rem 0; }
         .cup-stage + .cup-stage { border-top:1px solid var(--border-color); }
         .cup-stage-number { display:grid; place-items:center; align-self:start; width:30px; height:30px; border-radius:9px; background:rgba(198,166,100,.12); color:var(--accent-gold-light); font:700 1rem/1 'Teko',sans-serif; }
+        .cup-guide-panel .cup-format-card { position:relative; overflow:hidden; border-color:rgba(198,166,100,.24); background:linear-gradient(145deg,rgba(18,89,52,.13),var(--bg-card) 46%); }
+        .cup-guide-panel .cup-format-card::before { content:'TOURNAMENT FORMAT'; display:block; padding:.7rem 0 .2rem; color:var(--accent-gold-light); font:700 .67rem/1 'Teko',sans-serif; letter-spacing:.16em; }
+        .cup-guide-panel .cup-stage { grid-template-columns:34px minmax(0,1fr); gap:.75rem; padding:1rem 0; }
+        .cup-guide-panel .cup-stage-number { width:34px; height:34px; border:1px solid rgba(198,166,100,.24); border-radius:10px; background:rgba(198,166,100,.09); font-size:1.08rem; letter-spacing:.04em; }
+        .cup-guide-panel .cup-stage b { display:block; margin:.05rem 0 .38rem; color:#f5f6f8; font-family:'M PLUS 1p','Noto Sans JP',sans-serif; font-size:.82rem; font-weight:900; line-height:1.4; letter-spacing:.045em; }
+        .cup-guide-panel .cup-stage p { margin:0; color:#b9c0ca; font-family:'Noto Sans JP',sans-serif; font-size:.72rem; font-weight:500; line-height:1.72; letter-spacing:.018em; text-wrap:pretty; }
+        .cup-guide-panel .cup-section-title { display:flex; align-items:center; gap:.5rem; font-family:'M PLUS 1p','Noto Sans JP',sans-serif; font-size:.82rem; font-weight:900; letter-spacing:.06em; }
+        .cup-guide-panel .cup-section-title::before { content:''; width:3px; height:1em; border-radius:999px; background:var(--accent-gold); }
+        .cup-guide-panel .cup-club span { font-family:'M PLUS 1p','Noto Sans JP',sans-serif; font-weight:800; letter-spacing:.015em; }
         .cup-rule-list { padding:.05rem .85rem; border:1px solid var(--border-color); border-radius:14px; background:var(--bg-card); }
         .cup-rule { padding:.75rem 0; color:#d7dbe2; font-size:.72rem; line-height:1.5; }
         .cup-rule + .cup-rule { border-top:1px solid var(--border-color); }
@@ -3232,7 +3241,7 @@
                     <div class="cup-record-grid"><div class="cup-record-card"><b>${escapeHtml(topGoals?.name || '記録なし')}</b><span>得点王 ${topGoals?.goals || 0} GOALS</span></div><div class="cup-record-card"><b>${escapeHtml(topAssists?.name || '記録なし')}</b><span>アシスト王 ${topAssists?.assists || 0} ASSISTS</span></div><div class="cup-record-card"><b>${getCupAllMatches().filter(match => match.hs !== null).length}</b><span>試合結果</span></div></div>
                     <div class="cup-section"><h3 class="cup-section-title">個人記録</h3><div class="cup-rule-list">${playerStats.length ? playerStats.sort((a,b) => b.goals - a.goals || b.assists - a.assists).map((row,index) => `<div class="cup-standing-row"><span class="cup-standing-rank">${index + 1}</span><span>${escapeHtml(row.name)}<small style="display:block;color:var(--text-muted)">${escapeHtml(row.team)}</small></span><span>${row.goals}G</span><span>${row.assists}A</span><span></span></div>`).join('') : '<div class="empty-state">試合記録を入力すると、得点・アシストのランキングが表示されます。</div>'}</div></div>
                 </section>
-                <section class="cup-panel ${cup.activeTab === 'guide' ? 'active' : ''}"><div class="cup-format-card"><div class="cup-stage"><div class="cup-stage-number">01</div><div><b>グループステージ</b><p>3組の総当たり戦。各組上位2クラブが決勝トーナメントへ進出します。</p></div></div><div class="cup-stage"><div class="cup-stage-number">02</div><div><b>敗者復活戦</b><p>各組3位の3クラブによる総当たり戦。上位2クラブが決勝トーナメントへ進出します。</p></div></div><div class="cup-stage"><div class="cup-stage-number">03</div><div><b>決勝トーナメント</b><p>準々決勝、準決勝、3位決定戦、決勝。10分、延長戦・PK戦あり。</p></div></div></div><div class="cup-section"><h3 class="cup-section-title">参加クラブ</h3><div class="cup-club-grid">${clubs}</div></div></section>`;
+                <section class="cup-panel cup-guide-panel ${cup.activeTab === 'guide' ? 'active' : ''}"><div class="cup-format-card"><div class="cup-stage"><div class="cup-stage-number">01</div><div><b>グループステージ</b><p>3組の総当たり戦。各組上位2クラブが決勝トーナメントへ進出します。</p></div></div><div class="cup-stage"><div class="cup-stage-number">02</div><div><b>敗者復活戦</b><p>各組3位の3クラブによる総当たり戦。上位2クラブが決勝トーナメントへ進出します。</p></div></div><div class="cup-stage"><div class="cup-stage-number">03</div><div><b>決勝トーナメント</b><p>準々決勝、準決勝、3位決定戦、決勝。10分、延長戦・PK戦あり。</p></div></div></div><div class="cup-section"><h3 class="cup-section-title">参加クラブ</h3><div class="cup-club-grid">${clubs}</div></div></section>`;
         }
 
         window.switchCupTab = function(tab) { ensureHirabayashiCupState().activeTab = tab; renderHirabayashiCup(); };
@@ -3715,7 +3724,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=64', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=65', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
