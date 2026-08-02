@@ -692,9 +692,10 @@
         .match-team-box span { font-size:.84rem; font-weight:800; }
         .match-score-pill { min-width:56px; padding:.24rem .55rem; border-radius:10px; font-size:1.5rem; }
         .edit-score-btn { min-height:36px; border-radius:9px; background:var(--bg-elevated); }
-        .standings-table th { border-bottom:0; padding:.35rem .25rem .55rem; }
-        .standings-table td { border-bottom:0; padding:.68rem .25rem; }
-        .standings-table tbody tr + tr td { border-top:1px solid rgba(255,255,255,.06); }
+        .standings-table { border-collapse:separate; border-spacing:0; }
+        .standings-table th { border-bottom:1px solid rgba(255,255,255,.09); padding:.35rem .25rem .55rem; }
+        .standings-table td { border-bottom:1px solid rgba(255,255,255,.06); padding:.68rem .25rem; }
+        .standings-table tbody tr:last-child td { border-bottom:0; }
         .standings-table .table-number { text-align:right; }
         .standings-table .rank-highlight { color:var(--text-main); border-left:3px solid var(--accent-gold); padding-left:.3rem; }
         #page-standings > .section-header { margin-bottom:.45rem; }
@@ -3724,7 +3725,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=65', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=66', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
