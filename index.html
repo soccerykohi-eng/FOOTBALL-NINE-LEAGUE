@@ -718,8 +718,9 @@
         .team-sheet-hero h3 { font-size:2rem !important; }
         .team-result-timeline { position:relative; display:flex; align-items:center; gap:.7rem; padding:.7rem 0 .7rem .7rem; border-left:2px solid rgba(255,255,255,.11); }
         .team-result-timeline + .team-result-timeline { margin-top:.15rem; }
-        .team-result-marker { width:40px; color:var(--text-muted); font:700 .9rem 'Teko',sans-serif; }
-        .team-result-marker.win { color:var(--accent-gold-light); }
+        .team-result-marker { display:grid; place-items:center; width:42px; min-width:42px; height:23px; border:1px solid rgba(255,255,255,.08); border-radius:7px; background:rgba(255,255,255,.035); color:var(--text-muted); font:700 .82rem/1 'Teko',sans-serif; letter-spacing:.04em; }
+        .team-result-marker.win { border-color:rgba(16,185,129,.3); background:rgba(16,185,129,.1); color:var(--accent-green); }
+        .team-result-marker.lose { border-color:rgba(239,68,68,.3); background:rgba(239,68,68,.1); color:var(--accent-red); }
         .team-result-score { color:var(--text-main); font:700 1.3rem/1 'Teko',sans-serif; }
 
         /* Match center: official match record */
@@ -3647,7 +3648,7 @@
                 const other = isHome ? match.as : match.hs;
                 const opponent = isHome ? match.a : match.h;
                 const result = own > other ? 'WIN' : own < other ? 'LOSE' : 'DRAW';
-                return `<div class="team-result-timeline"><div class="team-result-marker ${result === 'WIN' ? 'win' : ''}">${result}</div><div class="ranking-main"><div class="ranking-name">MATCHWEEK ${match.mw} vs ${escapeHtml(opponent)}</div><div class="ranking-team">${isHome ? 'ホーム' : 'アウェイ'}</div></div><div class="team-result-score">${own}-${other}</div></div>`;
+                return `<div class="team-result-timeline"><div class="team-result-marker ${result.toLowerCase()}">${result}</div><div class="ranking-main"><div class="ranking-name">MATCHWEEK ${match.mw} vs ${escapeHtml(opponent)}</div><div class="ranking-team">${isHome ? 'ホーム' : 'アウェイ'}</div></div><div class="team-result-score">${own}-${other}</div></div>`;
             }).join('') || `<div class="empty-state">確定した試合結果はまだありません</div>`;
             const teamNews = state.news.filter(item => item.sourceType === 'team' && item.sourceTeamId === raw.id).slice(0, 3);
             const newsRows = teamNews.map(item => `<div class="news-item" onclick="openNewsDetailSheet('${item.id}')"><div class="news-meta"><span class="news-date">${escapeHtml(item.date)}</span><span class="news-category">${escapeHtml(getNewsCategoryLabel(item))}</span></div><div class="news-title">${escapeHtml(item.title)}</div></div>`).join('') || `<div class="empty-state">${escapeHtml(raw.name)} メディアからのニュースはまだありません</div>`;
@@ -3727,7 +3728,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=67', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=68', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
