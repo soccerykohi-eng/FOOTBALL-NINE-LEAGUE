@@ -39,7 +39,9 @@
 
         html {
             min-height: 100%;
+            width: 100%;
             background: var(--bg-body);
+            overflow-x: clip;
         }
 
         body {
@@ -56,6 +58,9 @@
             min-height: 100dvh;
             overscroll-behavior-y: none;
         }
+
+        img, svg, video, canvas { max-width: 100%; }
+        button, input, select, textarea { max-width: 100%; min-width: 0; font: inherit; }
 
         /* ヘッダー */
         header {
@@ -158,6 +163,7 @@
 
         /* コンテナ */
         .container {
+            width: 100%;
             padding: 1.25rem 1rem;
             max-width: 640px;
             margin: 0 auto;
@@ -184,8 +190,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 0.75rem;
             margin-bottom: 0.8rem;
         }
+
+        .section-header > *, .card > *, .match-card-mobile > * { min-width: 0; }
 
         .section-title {
             font-family: 'M PLUS 1p', 'Noto Sans JP', sans-serif;
@@ -199,6 +208,8 @@
             gap: 8px;
             line-height: 1.2;
             text-shadow: none;
+            min-width: 0;
+            overflow-wrap: anywhere;
         }
 
         .section-title::before {
@@ -332,7 +343,7 @@
         .team-logo-lg { width: 56px; height: 56px; border-radius: 50%; object-fit: contain; margin: 0 auto 0.4rem; display: block; }
 
         /* 順位表テーブル */
-        table.mobile-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        table.mobile-table { width: 100%; max-width:100%; border-collapse: collapse; table-layout:fixed; font-size: 0.82rem; }
         table.mobile-table th { color: var(--text-muted); font-size: 0.68rem; padding: 0.4rem 0.2rem; border-bottom: 1px solid var(--border-color); text-align: center; }
         table.mobile-table td { padding: 0.55rem 0.2rem; border-bottom: 1px solid rgba(255,255,255,0.03); text-align: center; }
 
@@ -447,7 +458,7 @@
             position: fixed; bottom: 0; left: 0; width: 100%; height: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
             padding-bottom: env(safe-area-inset-bottom, 0px);
             background: rgba(13,17,25,0.96); backdrop-filter:blur(16px); border-top: 1px solid var(--border-color);
-            display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
             transform: translate3d(0, 0, 0);
             -webkit-transform: translate3d(0, 0, 0);
         }
@@ -455,7 +466,7 @@
         .nav-item {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: var(--text-muted); text-decoration: none; font-size: 0.6rem; font-weight: 700;
-            width: 20%; height: 100%; gap: 2px; cursor: pointer; position: relative;
+            flex:1 1 20%; width:auto; max-width:128px; height: 100%; gap: 2px; cursor: pointer; position: relative;
         }
 
         .nav-item.active { color: var(--accent-gold); }
@@ -597,7 +608,7 @@
 
         .sheet-overlay.active { opacity: 1; pointer-events: auto; }
         .sheet-content {
-            background: var(--bg-card); width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px;
+            background: var(--bg-card); width: 100%; max-width:640px; margin:0 auto; border-top-left-radius: 16px; border-top-right-radius: 16px;
             padding: 2.6rem 1.2rem calc(1.2rem + env(safe-area-inset-bottom, 0px)); transform: translateY(100%); transition: transform 0.2s ease-out;
             border-top: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; position: relative;
             -webkit-overflow-scrolling: touch;
@@ -623,6 +634,12 @@
             width: 100%; background: var(--bg-body); border: 1px solid var(--border-color);
             border-radius: 6px; padding: 0.5rem 0.7rem; color: var(--text-main); font-size: 0.82rem; outline: none;
         }
+
+        .dashboard-grid > *, .tab-bar > *, .cup-hero-stats > *, .cup-record-grid > *,
+        .more-menu-grid > *, .roster-composition-grid > *, .news-composer-meta > *,
+        .match-center-lineup-grid > *, .match-center-utilities > * { min-width:0; }
+        .match-team-box span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .market-step-body button, .rule-editor-actions button { white-space:normal; overflow-wrap:anywhere; }
 
         .copy-textarea {
             width: 100%; height: 120px; background: #000; color: var(--accent-green); border: 1px solid var(--border-color);
@@ -759,6 +776,16 @@
             .fnl-brand-sub, #sync-text-status { display:none; }
             .sync-badge { padding:6px; }
             .current-page-title { max-width:92px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        }
+        @media (max-width:480px) {
+            .container { padding-left:.75rem; padding-right:.75rem; }
+            .card, .match-card-mobile { padding-left:.8rem; padding-right:.8rem; }
+            .section-title { font-size:1.12rem; }
+            .more-menu-grid { gap:.45rem; }
+            .more-menu-button { padding:.85rem .25rem; }
+        }
+        @media (min-width:700px) {
+            .sheet-content { border-left:1px solid var(--border-color); border-right:1px solid var(--border-color); }
         }
         @media (max-width:340px) {
             #teams-grid { grid-template-columns:1fr !important; }
@@ -3672,7 +3699,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=60', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=61', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
