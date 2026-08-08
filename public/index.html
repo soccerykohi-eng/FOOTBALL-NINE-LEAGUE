@@ -812,8 +812,8 @@
         .team-directory-card:active { transform:scale(.975); border-color:rgba(198,166,100,.4); }
         .team-directory-rank { align-self:flex-start; color:var(--text-muted); font:700 .62rem/1 'Teko',sans-serif; letter-spacing:.08em; }
         .team-directory-rank b { margin-left:.16rem; color:var(--accent-gold-light); font-size:.83rem; }
-        .team-directory-crest { display:grid; width:55px; height:55px; margin-top:.05rem; place-items:center; border:1px solid rgba(255,255,255,.09); border-radius:50%; background:rgba(6,9,13,.55); box-shadow:0 9px 20px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.05); }
-        .team-directory-logo { width:43px; height:43px; flex:0 0 auto; object-fit:contain; }
+        .team-directory-crest { display:grid; width:55px; height:55px; margin-top:.05rem; overflow:hidden; place-items:center; border:1px solid rgba(255,255,255,.09); border-radius:50%; background:rgba(6,9,13,.55); box-shadow:0 9px 20px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.05); }
+        .team-directory-logo { width:43px; height:43px; flex:0 0 auto; border-radius:50%; clip-path:circle(50% at 50% 50%); object-fit:cover; }
         .team-directory-name { display:-webkit-box; min-height:2.35em; margin-top:.42rem; overflow:hidden; color:var(--text-main); font-size:.67rem; font-weight:900; line-height:1.18; letter-spacing:-.01em; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
         .team-directory-meta { display:flex; margin-top:auto; align-items:baseline; gap:.16rem; color:var(--accent-gold-light); font:700 .9rem/1 'Teko',sans-serif; white-space:nowrap; }
         .team-directory-meta small { color:var(--text-muted); font:.55rem/1 'Noto Sans JP',sans-serif; letter-spacing:.06em; }
