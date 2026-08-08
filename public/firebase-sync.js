@@ -264,6 +264,7 @@ function applyRemoteState(remote) {
   if (Array.isArray(remote.seasonArchive)) state.seasonArchive = remote.seasonArchive;
   if (remote.seasonInfo && typeof remote.seasonInfo === "object") state.seasonInfo = remote.seasonInfo;
   if (remote.regulations && typeof remote.regulations === "object") state.regulations = remote.regulations;
+  if (remote.hirabayashiCup && typeof remote.hirabayashiCup === "object") state.hirabayashiCup = remote.hirabayashiCup;
   if (Object.prototype.hasOwnProperty.call(remote, "previousSeasonSnapshot")) state.previousSeasonSnapshot = remote.previousSeasonSnapshot;
   if (Object.prototype.hasOwnProperty.call(remote, "lastMatchSnapshot")) state.lastMatchSnapshot = remote.lastMatchSnapshot;
   state.lastSavedAt = remote.updatedAt || state.lastSavedAt;
