@@ -50,6 +50,44 @@ const cloneData = value => value === undefined ? undefined : JSON.parse(JSON.str
 const sameData = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 const currentStatePayload = () => Object.fromEntries(syncFields.map(field => [field, cloneData(state[field])]));
 const cloudRecoveryKey = "fnl-cloud-recovery-v1";
+const partialLeagueRecoveryKey = "fnl-season1-partial-recovery-20260812-v1";
+
+async function recoverConfirmedSeasonOneResults() {
+  if (localStorage.getItem(partialLeagueRecoveryKey) === "done") return;
+  if (!initialCloudStateLoaded || !lastSyncedPayload || Number(state.seasonInfo?.number || 1) !== 1) return;
+  const confirmed = {
+    m_61: [1, 3],
+    m_64: [0, 1],
+    m_65: [1, 2],
+    m_67: [0, 3],
+    m_69: [4, 2],
+    m_70: [3, 4],
+    m_72: [6, 1]
+  };
+  const restored = [];
+  state.schedule.forEach(match => {
+    const score = confirmed[match.id];
+    if (!score || match.hs !== null || match.as !== null) return;
+    match.hs = score[0];
+    match.as = score[1];
+    restored.push(match.id);
+  });
+  if (!restored.length) {
+    localStorage.setItem(partialLeagueRecoveryKey, "done");
+    return;
+  }
+  state.standingsDirty = true;
+  saveStateToStorage();
+  refreshAllViews();
+  try {
+    await state.dbSaveFn();
+    localStorage.setItem(partialLeagueRecoveryKey, "done");
+    setStatus("試合結果を復元しました", true);
+  } catch (error) {
+    console.error("Confirmed match recovery failed", error);
+    setStatus("試合結果の復元を再試行します", false);
+  }
+}
 
 function storeCloudRecoverySnapshot(remote) {
   if (!remote || !Array.isArray(remote.schedule)) return;
@@ -309,6 +347,7 @@ function startListening() {
     pendingRemotePayload = remote;
     if (pendingSaveCount) return;
     applyRemoteState(remote);
+    recoverConfirmedSeasonOneResults();
   }, (error) => {
     console.error("Firestore listener failed", error);
     setStatus("同期エラー", false);
