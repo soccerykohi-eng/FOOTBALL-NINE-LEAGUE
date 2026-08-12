@@ -50,7 +50,7 @@ const cloneData = value => value === undefined ? undefined : JSON.parse(JSON.str
 const sameData = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 const currentStatePayload = () => Object.fromEntries(syncFields.map(field => [field, cloneData(state[field])]));
 const cloudRecoveryKey = "fnl-cloud-recovery-v1";
-const partialLeagueRecoveryKey = "fnl-season1-partial-recovery-20260812-v3";
+const partialLeagueRecoveryKey = "fnl-season1-partial-recovery-20260812-v5";
 
 async function recoverConfirmedSeasonOneResults() {
   if (localStorage.getItem(partialLeagueRecoveryKey) === "done") return;
@@ -60,10 +60,12 @@ async function recoverConfirmedSeasonOneResults() {
     m_63: [2, 1],
     m_64: [0, 1],
     m_65: [1, 2],
+    m_66: [5, 1],
     m_67: [0, 3],
     m_68: [1, 0],
     m_69: [4, 2],
     m_70: [3, 4],
+    m_71: [2, 7],
     m_72: [6, 1]
   };
   const restored = [];

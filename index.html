@@ -4371,7 +4371,7 @@
         }
     </script>
 <script src="./firebase-config.js"></script>
-<script type="module" src="./firebase-sync.js?v=4"></script>
+<script type="module" src="./firebase-sync.js?v=5"></script>
 <script>
     if ('serviceWorker' in navigator) {
         let refreshingForUpdate = false;
@@ -4381,7 +4381,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=80', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=81', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
