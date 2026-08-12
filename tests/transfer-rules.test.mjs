@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const html = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+const firebaseSync = fs.readFileSync(new URL('../public/firebase-sync.js', import.meta.url), 'utf8');
 
 function functionSource(name) {
   const start = html.indexOf(`function ${name}(`);
@@ -77,3 +78,12 @@ assert.match(html, /setTeams\('hc_sf1', cupWinner\(qf\[0\]\), cupWinner\(qf\[1\]
 assert.match(html, /setTeams\('hc_sf2', cupWinner\(qf\[2\]\), cupWinner\(qf\[3\]\)/);
 assert.match(html, /setTeams\('hc_final', cupWinner\(sf1\), cupWinner\(sf2\)/);
 console.log('Hirabayashi Cup bracket tests passed');
+
+assert.match(html, /A: \['MGR United', 'YSC YOSHIDA', 'Koganei 3KSC'\]/);
+assert.match(html, /B: \['Katsukou FC', 'Kasuga United', 'BAYASHI JAPAN'\]/);
+assert.match(html, /C: \['FC Koshi', 'Manchester Cow', 'FC ARG'\]/);
+assert.match(html, /standings\.slice\(0, 3\), standings\.slice\(3, 6\), standings\.slice\(6, 9\)/);
+assert.match(html, /if \(cup\.groupDraw\?\.locked\) return alert\('グループの組み合わせは確定済み/);
+assert.match(firebaseSync, /remote\.hirabayashiCup\?\.groupDraw\?\.locked/);
+assert.match(firebaseSync, /平林杯のグループ組み合わせは確定済みのため変更できません/);
+console.log('Hirabayashi Cup group draw tests passed');

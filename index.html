@@ -1296,16 +1296,39 @@
             return state.regulations;
         }
 
-        function createHirabayashiCupState() {
-            const clubs = RAW_TEAMS.map(team => team.name);
-            const groups = { A: clubs.slice(0, 3), B: clubs.slice(3, 6), C: clubs.slice(6, 9) };
-            const groupMatches = Object.entries(groups).flatMap(([group, teams]) => [
-                { id: `hc_g${group}_1`, stage: 'group', group, label: `GROUP ${group}`, h: teams[0], a: teams[1], hs: null, as: null, pkWinner: '', details: { events: [], motm: null, appearances: { home: [], away: [] } } },
-                { id: `hc_g${group}_2`, stage: 'group', group, label: `GROUP ${group}`, h: teams[1], a: teams[2], hs: null, as: null, pkWinner: '', details: { events: [], motm: null, appearances: { home: [], away: [] } } },
-                { id: `hc_g${group}_3`, stage: 'group', group, label: `GROUP ${group}`, h: teams[2], a: teams[0], hs: null, as: null, pkWinner: '', details: { events: [], motm: null, appearances: { home: [], away: [] } } }
-            ]);
-            return { groups, groupMatches, repechageMatches: [], knockoutMatches: [], activeTab: 'groups', activeGroup: 'A' };
+        const CURRENT_CUP_GROUPS = {
+            A: ['MGR United', 'YSC YOSHIDA', 'Koganei 3KSC'],
+            B: ['Katsukou FC', 'Kasuga United', 'BAYASHI JAPAN'],
+            C: ['FC Koshi', 'Manchester Cow', 'FC ARG']
+        };
+
+        function createCupGroupMatches(groups, previousMatches = []) {
+            const previousByPair = new Map(previousMatches.map(match => [`${match.group}|${[match.h, match.a].sort().join('|')}`, match]));
+            return Object.entries(groups).flatMap(([group, teams]) => [[0,1],[1,2],[2,0]].map(([home, away], index) => {
+                const previous = previousByPair.get(`${group}|${[teams[home], teams[away]].sort().join('|')}`);
+                return previous ? { ...previous, id: `hc_g${group}_${index + 1}`, group, label: `GROUP ${group}`, h: teams[home], a: teams[away] }
+                    : { id: `hc_g${group}_${index + 1}`, stage: 'group', group, label: `GROUP ${group}`, h: teams[home], a: teams[away], hs: null, as: null, pkWinner: '', details: { events: [], motm: null, appearances: { home: [], away: [] } } };
+            }));
         }
+
+        function createHirabayashiCupState() {
+            const groups = JSON.parse(JSON.stringify(CURRENT_CUP_GROUPS));
+            return {
+                groups,
+                groupMatches: createCupGroupMatches(groups),
+                repechageMatches: [], knockoutMatches: [], activeTab: 'groups', activeGroup: 'A',
+                groupDraw: { locked: true, method: 'fixed-2026', season: 1, currentFixedApplied: true, confirmedAt: '2026-08-12T00:00:00+09:00', standingsSnapshot: [] }
+            };
+        }
+
+        function createPendingHirabayashiCupState(seasonNumber) {
+            return {
+                groups: { A: [], B: [], C: [] }, groupMatches: [], repechageMatches: [], knockoutMatches: [], activeTab: 'groups', activeGroup: 'A',
+                groupDraw: { locked: false, method: 'ranked-pots', season: Number(seasonNumber || 1), confirmedAt: '', standingsSnapshot: [] }
+            };
+        }
+
+        let cupGroupMigrationSavePending = false;
 
         function ensureHirabayashiCupState() {
             if (!state.hirabayashiCup || typeof state.hirabayashiCup !== 'object') state.hirabayashiCup = createHirabayashiCupState();
@@ -1317,6 +1340,16 @@
             if (!Array.isArray(cup.knockoutMatches)) cup.knockoutMatches = [];
             if (!cup.activeTab) cup.activeTab = 'groups';
             if (!cup.activeGroup) cup.activeGroup = 'A';
+            if (!cup.groupDraw || typeof cup.groupDraw !== 'object') cup.groupDraw = { locked: false, method: 'legacy', season: Number(state.seasonInfo?.number || 1), confirmedAt: '', standingsSnapshot: [] };
+            const currentSeason = Number(state.seasonInfo?.number || 1);
+            if (currentSeason === 1 && !cup.groupDraw.currentFixedApplied) {
+                cup.groups = JSON.parse(JSON.stringify(CURRENT_CUP_GROUPS));
+                cup.groupMatches = createCupGroupMatches(cup.groups, cup.groupMatches);
+                cup.repechageMatches = [];
+                cup.knockoutMatches = [];
+                cup.groupDraw = { locked: true, method: 'fixed-2026', season: 1, currentFixedApplied: true, confirmedAt: new Date().toISOString(), standingsSnapshot: [] };
+                cupGroupMigrationSavePending = true;
+            }
             return cup;
         }
 
@@ -2189,12 +2222,14 @@
                 seasonInfo: JSON.parse(JSON.stringify(state.seasonInfo)),
                 schedule: JSON.parse(JSON.stringify(state.schedule)),
                 seasonArchive: JSON.parse(JSON.stringify(state.seasonArchive)),
-                transferMarket: JSON.parse(JSON.stringify(state.transferMarket))
+                transferMarket: JSON.parse(JSON.stringify(state.transferMarket)),
+                hirabayashiCup: JSON.parse(JSON.stringify(state.hirabayashiCup))
             };
             window.archiveCurrentSeason(true);
             const generatedSeason = createRandomSeasonSchedule(number);
             state.seasonInfo = { number, year, scheduleAssignment: generatedSeason.assignment };
             state.schedule = generatedSeason.schedule;
+            state.hirabayashiCup = createPendingHirabayashiCupState(number);
             const market = getMarket();
             market.periodMilestones = {};
             market.releasePlans = {};
@@ -2241,6 +2276,7 @@
             state.schedule = snapshot.schedule;
             state.seasonArchive = snapshot.seasonArchive;
             state.transferMarket = snapshot.transferMarket;
+            if (snapshot.hirabayashiCup) state.hirabayashiCup = snapshot.hirabayashiCup;
             state.previousSeasonSnapshot = null;
             state.standingsDirty = true;
             addActivity('シーズン更新を取り消し', `Season ${state.seasonInfo.number} - ${state.seasonInfo.year}`);
@@ -3777,6 +3813,10 @@
             const wrap = document.getElementById('hirabayashi-cup-content');
             if (!wrap) return;
             const cup = ensureHirabayashiCupState();
+            if (cupGroupMigrationSavePending && state.dbSaveFn) {
+                cupGroupMigrationSavePending = false;
+                setTimeout(() => persistAppState().catch(error => console.error('Cup group migration failed', error)), 0);
+            }
             syncCupKnockout();
             const qualifiers = getCupQualifiers();
             const activeGroup = cup.activeGroup;
@@ -3791,8 +3831,10 @@
             ];
             const groupMatches = cup.groupMatches.filter(match => match.group === activeGroup).map(createCupMatchCard).join('');
             const repechage = cup.repechageMatches.length ? cup.repechageMatches.map(createCupMatchCard).join('') : `<div class="cup-qualifier-note">グループステージの全試合結果を登録すると、各組3位のクラブによる敗者復活戦を作成できます。</div>`;
-            const allGroupsFinished = cup.groupMatches.every(match => match.hs !== null && match.as !== null && (match.hs !== match.as || match.pkWinner));
+            const allGroupsFinished = cup.groupMatches.length === 9 && cup.groupMatches.every(match => match.hs !== null && match.as !== null && (match.hs !== match.as || match.pkWinner));
             const allRepechageFinished = cup.repechageMatches.length && cup.repechageMatches.every(match => match.hs !== null && match.as !== null && (match.hs !== match.as || match.pkWinner));
+            const leagueFinished = state.schedule.length > 0 && state.schedule.every(isMatchCompleted);
+            const groupDrawLocked = !!cup.groupDraw?.locked;
             wrap.innerHTML = `
                 <div class="cup-hero"><img class="cup-hero-image" src="./hirabayashi-cup.png" alt="平林杯ロゴ"><div class="cup-eyebrow">FNL OFFICIAL CUP</div><h2 class="cup-title"><span>HIRABAYASHI</span> <span>CUP</span></h2><p class="cup-subtitle">平林杯 ・ 9 CLUB TOURNAMENT</p><div class="cup-hero-stats"><div class="cup-hero-stat"><b>9</b><span>CLUBS</span></div><div class="cup-hero-stat"><b>3</b><span>GROUPS</span></div><div class="cup-hero-stat"><b>8</b><span>FINALISTS</span></div></div></div>
                 <div class="cup-hub-tabs">
@@ -3800,7 +3842,9 @@
                 </div>
                 <section class="cup-panel ${cup.activeTab === 'groups' ? 'active' : ''}">
                     <div class="cup-group-switcher">${['A','B','C'].map(group => `<button class="${activeGroup === group ? 'active' : ''}" onclick="switchCupGroup('${group}')">GROUP ${group}</button>`).join('')}</div>
-                    <button class="btn-secondary" style="width:100%;margin-bottom:.7rem;" onclick="openCupGroupSetup()">グループ編成を設定</button>
+                    ${groupDrawLocked
+                        ? `<div class="market-note" style="margin-bottom:.7rem;">組み合わせ確定済み${cup.groupDraw?.method === 'ranked-pots' ? ' ・ リーグ最終順位による3ポット抽選' : ' ・ 今大会の固定組み合わせ'}</div>`
+                        : `<div class="market-note" style="margin-bottom:.7rem;">${leagueFinished ? 'リーグ最終順位が確定しました。ポット1（1〜3位）、ポット2（4〜6位）、ポット3（7〜9位）から各グループへ1クラブずつ抽選します。' : 'リーグ全日程が終了すると、グループ抽選会を実行できます。'}</div><button class="btn-primary" style="width:100%;margin-bottom:.7rem;" onclick="openCupDrawCeremony()" ${leagueFinished ? '' : 'disabled'}>グループ抽選会を始める</button>`}
                     <div class="cup-rule-list">${groupRows.map(row => `<div class="cup-standing-row"><span class="cup-standing-rank">${row.rank}</span><span class="cup-standing-team"><img src="${getTeamLogo(row.name)}" alt=""><span>${escapeHtml(row.name)}</span></span><span>${row.p}試</span><span>${row.gd > 0 ? '+' : ''}${row.gd}</span><b>${row.pts}点</b></div>`).join('')}</div>
                     <div class="cup-section"><h3 class="cup-section-title">GROUP ${activeGroup} 試合</h3><div class="cup-match-list">${groupMatches}</div></div>
                 </section>
@@ -3821,8 +3865,54 @@
 
         window.switchCupTab = function(tab) { ensureHirabayashiCupState().activeTab = tab; renderHirabayashiCup(); };
         window.switchCupGroup = function(group) { ensureHirabayashiCupState().activeGroup = group; renderHirabayashiCup(); };
+        function shuffledCupPot(items) {
+            const result = items.slice();
+            for (let index = result.length - 1; index > 0; index--) {
+                const swapIndex = Math.floor(Math.random() * (index + 1));
+                [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+            }
+            return result;
+        }
+
+        window.openCupDrawCeremony = function() {
+            const cup = ensureHirabayashiCupState();
+            if (cup.groupDraw?.locked) return alert('グループの組み合わせは確定済みです。');
+            if (!state.schedule.length || !state.schedule.every(isMatchCompleted)) return alert('リーグ全日程の結果が確定してから抽選できます。');
+            const standings = calculateStandings();
+            if (standings.length !== 9) return alert('リーグ順位9クラブ分が確定していません。');
+            const pots = [standings.slice(0, 3), standings.slice(3, 6), standings.slice(6, 9)];
+            document.getElementById('sheet-body').innerHTML = `<div class="news-composer-header"><div class="news-composer-kicker">HIRABAYASHI CUP DRAW</div><h3 class="news-composer-title">グループ抽選会</h3><div class="news-composer-copy">各ポットから1クラブずつ、GROUP A・B・Cへ抽選します。確定後は変更できません。</div></div>${pots.map((pot, index) => `<div class="card" style="padding:.7rem;margin-bottom:.55rem"><b>POT ${index + 1}</b><div style="font-size:.72rem;color:var(--text-muted);margin-top:.3rem">${pot.map(team => `${team.rank}位 ${escapeHtml(team.name)}`).join('<br>')}</div></div>`).join('')}<button class="btn-primary" onclick="runCupGroupDraw()">抽選を実行して確定</button><button class="btn-secondary event-entry-back" onclick="closeCupSheet()">閉じる</button>`;
+            document.getElementById('sheet-overlay').classList.add('active');
+        };
+
+        window.runCupGroupDraw = function() {
+            const cup = ensureHirabayashiCupState();
+            if (cup.groupDraw?.locked) return alert('グループの組み合わせは確定済みです。');
+            if (!state.schedule.length || !state.schedule.every(isMatchCompleted)) return alert('リーグ全日程の結果が確定してから抽選できます。');
+            const standings = calculateStandings();
+            if (standings.length !== 9) return alert('リーグ順位9クラブ分が確定していません。');
+            if (!confirm('3ポット方式で抽選し、この組み合わせを確定しますか？確定後は変更できません。')) return;
+            const pots = [standings.slice(0, 3), standings.slice(3, 6), standings.slice(6, 9)].map(pot => shuffledCupPot(pot));
+            const groups = { A: [], B: [], C: [] };
+            ['A', 'B', 'C'].forEach((group, groupIndex) => { groups[group] = pots.map(pot => pot[groupIndex].name); });
+            cup.groups = groups;
+            cup.groupMatches = createCupGroupMatches(groups);
+            cup.repechageMatches = [];
+            cup.knockoutMatches = [];
+            cup.groupDraw = {
+                locked: true, method: 'ranked-pots', season: Number(state.seasonInfo?.number || 1), confirmedAt: new Date().toISOString(),
+                standingsSnapshot: standings.map(team => ({ rank: team.rank, name: team.name })), pots: pots.map(pot => pot.map(team => team.name)), groups: JSON.parse(JSON.stringify(groups))
+            };
+            addActivity('平林杯グループ抽選を確定', `Season ${state.seasonInfo?.number || 1} ・ 3ポット方式`);
+            persistAppState();
+            document.getElementById('sheet-overlay').classList.remove('active');
+            renderHirabayashiCup();
+        };
+
         window.openCupGroupSetup = function() {
             const cup = ensureHirabayashiCupState();
+            if (cup.groupDraw?.locked) return alert('グループの組み合わせは確定済みのため変更できません。');
+            if (cup.groupDraw?.method === 'ranked-pots') return alert('グループ編成はリーグ終了後の抽選会からのみ確定できます。');
             if (getCupAllMatches().some(match => match.hs !== null)) return alert('試合結果を登録した後はグループ編成を変更できません。必要な場合は結果を取り消してから設定してください。');
             const options = selected => RAW_TEAMS.map(team => `<option value="${escapeHtml(team.name)}" ${team.name === selected ? 'selected' : ''}>${escapeHtml(team.name)}</option>`).join('');
             const fields = ['A','B','C'].flatMap(group => cup.groups[group].map((team, index) => `<div class="form-group"><label class="form-label">GROUP ${group} ${index + 1}</label><select class="form-select" data-cup-group="${group}" data-cup-slot="${index}">${options(team)}</select></div>`)).join('');
@@ -3830,13 +3920,16 @@
             document.getElementById('sheet-overlay').classList.add('active');
         };
         window.saveCupGroupSetup = function() {
+            const cup = ensureHirabayashiCupState();
+            if (cup.groupDraw?.locked) return alert('グループの組み合わせは確定済みのため変更できません。');
+            if (cup.groupDraw?.method === 'ranked-pots') return alert('グループ編成はリーグ終了後の抽選会からのみ確定できます。');
             const values = [...document.querySelectorAll('[data-cup-group]')];
             const teams = values.map(input => input.value);
             if (new Set(teams).size !== RAW_TEAMS.length) return alert('同じクラブが複数回選ばれています。9クラブを1回ずつ選択してください。');
-            const cup = ensureHirabayashiCupState(), groups = { A: [], B: [], C: [] };
+            const groups = { A: [], B: [], C: [] };
             values.forEach(input => { groups[input.dataset.cupGroup][Number(input.dataset.cupSlot)] = input.value; });
             cup.groups = groups;
-            cup.groupMatches = Object.entries(groups).flatMap(([group, groupTeams]) => [[0,1],[1,2],[2,0]].map(([home, away], index) => ({ id: `hc_g${group}_${index + 1}`, stage: 'group', group, label: `GROUP ${group}`, h: groupTeams[home], a: groupTeams[away], hs: null, as: null, pkWinner: '', details: { events: [], motm: null } })));
+            cup.groupMatches = createCupGroupMatches(groups);
             cup.repechageMatches = []; cup.knockoutMatches = []; cup.activeTab = 'groups';
             persistAppState(); document.getElementById('sheet-overlay').classList.remove('active'); renderHirabayashiCup();
         };
@@ -4295,7 +4388,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=74', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=75', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });

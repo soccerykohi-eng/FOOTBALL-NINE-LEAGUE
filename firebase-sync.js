@@ -315,6 +315,15 @@ state.dbSaveFn = () => {
       if (basePayload && changedFields.includes("transferMarket") && !sameData(remote.transferMarket, basePayload.transferMarket)) {
         throw new Error("他の端末で移籍市場が更新されました。最新状態を読み込んでからもう一度操作してください。");
       }
+      if (basePayload && changedFields.includes("hirabayashiCup") && !sameData(remote.hirabayashiCup, basePayload.hirabayashiCup)) {
+        throw new Error("他の端末で平林杯が更新されました。最新状態を読み込んでからもう一度操作してください。");
+      }
+      if (remote.hirabayashiCup?.groupDraw?.locked && changedFields.includes("hirabayashiCup")) {
+        const localCup = localPayload.hirabayashiCup || {};
+        if (!sameData(localCup.groups, remote.hirabayashiCup.groups) || !sameData(localCup.groupDraw, remote.hirabayashiCup.groupDraw)) {
+          throw new Error("平林杯のグループ組み合わせは確定済みのため変更できません。");
+        }
+      }
       if (basePayload && changedFields.includes("rosters")) {
         const teamIds = new Set([
           ...Object.keys(basePayload.rosters || {}),
