@@ -100,7 +100,7 @@ function storeCloudRecoverySnapshot(remote) {
     const marker = remote.updatedAt || remote.serverUpdatedAt?.toDate?.()?.toISOString?.() || "";
     if (existing[0]?.marker === marker && marker) return;
     const payload = Object.fromEntries(syncFields.map(field => [field, cloneData(remote[field])]));
-    const next = [{ marker, savedAt: new Date().toISOString(), payload }, ...existing].slice(0, 2);
+    const next = [{ marker, savedAt: new Date().toISOString(), payload }, ...existing].slice(0, 10);
     localStorage.setItem(cloudRecoveryKey, JSON.stringify(next));
   } catch (error) {
     console.warn("Cloud recovery snapshot could not be stored", error);

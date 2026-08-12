@@ -2593,6 +2593,23 @@
                 const currentMessages = new Set(inspectRosterIntegrity(currentPayload?.rosters || {}).issues.map(issue => issue.message));
                 errors.push(...integrity.issues.map(issue => issue.message).filter(message => !currentMessages.has(message)));
             }
+            if (changedFields.includes('schedule') && Array.isArray(currentPayload?.schedule) && Array.isArray(payload?.schedule)) {
+                const currentSeason = Number(currentPayload?.seasonInfo?.number || 1);
+                const nextSeason = Number(payload?.seasonInfo?.number || 1);
+                if (currentSeason === nextSeason) {
+                    const nextById = new Map(payload.schedule.map(match => [match?.id, match]));
+                    const lostResults = currentPayload.schedule.filter(match => {
+                        const next = nextById.get(match?.id);
+                        return isMatchCompleted(match) && (!next || !isMatchCompleted(next));
+                    });
+                    if (payload.schedule.length !== currentPayload.schedule.length) {
+                        errors.push('同一シーズンの日程数が変更されたため、保存を中止しました。');
+                    }
+                    if (lostResults.length > 1) {
+                        errors.push(`確定済みの試合結果が${lostResults.length}試合まとめて消える変更を検出したため、保存を中止しました。`);
+                    }
+                }
+            }
             return { valid: errors.length === 0, errors };
         };
 
@@ -4371,7 +4388,7 @@
         }
     </script>
 <script src="./firebase-config.js"></script>
-<script type="module" src="./firebase-sync.js?v=5"></script>
+<script type="module" src="./firebase-sync.js?v=6"></script>
 <script>
     if ('serviceWorker' in navigator) {
         let refreshingForUpdate = false;
@@ -4381,7 +4398,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=81', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=82', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
