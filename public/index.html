@@ -495,7 +495,7 @@
         .edit-mode-button { min-height:32px; padding:.34rem .58rem; border:1px solid var(--border-color); border-radius:9px; background:var(--bg-elevated); color:var(--text-muted); font:800 .64rem 'Noto Sans JP',sans-serif; cursor:pointer; white-space:nowrap; }
         body.edit-mode .edit-mode-button { color:var(--accent-gold-light); border-color:rgba(198,166,100,.55); background:rgba(198,166,100,.12); }
         body:not(.edit-mode) .edit-only { display:none !important; }
-        body:not(.edit-mode) #page-transfer .transfer-pane button:not(.transfer-tab-button), body:not(.edit-mode) #page-rules [data-rules-tab="manage"] { display:none !important; }
+        body:not(.edit-mode) #page-transfer .transfer-pane button:not(.transfer-tab-button):not(.transfer-menu-card):not(.transfer-club-select):not(.transfer-next-button), body:not(.edit-mode) #page-rules [data-rules-tab="manage"] { display:none !important; }
         body:not(.edit-mode) input[data-record-input], body:not(.edit-mode) select[data-record-input] { pointer-events:none; opacity:.72; }
         .view-mode-note { display:flex; align-items:center; gap:.5rem; margin-bottom:.75rem; padding:.62rem .72rem; border:1px solid var(--border-color); border-radius:11px; background:var(--bg-card); color:var(--text-muted); font-size:.68rem; line-height:1.45; }
         body.edit-mode .view-mode-note { display:none; }
@@ -3241,7 +3241,7 @@
             else if (isMidseason) nextAction = { view:'trades', title:'トレードを確認', copy:'公開中の選手と届いた提案を確認できます。', button:'トレードを開く' };
             if (isEndseason && !protectionDone) nextAction = { view:'endseason', title:'プロテクト選手を決める', copy:`${selectedTeam.name}のドラフト対象外選手を確定します。`, button:'終了時市場を開く' };
             else if (isEndseason) nextAction = { view:'endseason', title:'ドラフトの進行を確認', copy:'1巡目の提出と2巡目以降の指名状況を確認できます。', button:'ドラフトを開く' };
-            if (nextActionWrap) nextActionWrap.innerHTML = `<div class="transfer-next-card"><div class="transfer-next-eyebrow">次に行う操作</div><div class="transfer-next-title">${escapeHtml(nextAction.title)}</div><div class="transfer-next-copy">${escapeHtml(nextAction.copy)}</div><button class="btn-primary" onclick="switchTransferView('${nextAction.view}')">${escapeHtml(nextAction.button)}</button></div>`;
+            if (nextActionWrap) nextActionWrap.innerHTML = `<div class="transfer-next-card"><div class="transfer-next-eyebrow">次に行う操作</div><div class="transfer-next-title">${escapeHtml(nextAction.title)}</div><div class="transfer-next-copy">${escapeHtml(nextAction.copy)}</div><button class="btn-primary transfer-next-button" onclick="switchTransferView('${nextAction.view}')">${escapeHtml(nextAction.button)}</button></div>`;
             if (menuGrid) menuGrid.innerHTML = `
                 <button class="transfer-menu-card" onclick="openRosterSheet('${selectedTeamId}')"><span class="transfer-menu-icon">01</span><b>選手名簿</b><span>${escapeHtml(selectedTeam.name)}の登録選手</span></button>
                 <button class="transfer-menu-card" onclick="switchTransferView('midseason')"><span class="transfer-menu-icon">02</span><b>中間移籍市場</b><span>放出・ドラフト・獲得結果</span></button>
