@@ -863,6 +863,188 @@
             .team-directory-name { font-size:.6rem; }
             .team-directory-meta { font-size:.8rem; }
         }
+        /* FNL MATCHDAY UI -------------------------------------------------
+           閲覧時は情報を主役にし、編集操作は同じ画面でも明確に区別する。
+           色ではなく余白・文字サイズ・面の高さで情報階層を作る。 */
+        :root {
+            --bg-body:#090d12;
+            --bg-card:#11171f;
+            --bg-elevated:#171e27;
+            --border-color:rgba(255,255,255,.075);
+            --text-main:#f4f6f8;
+            --text-muted:#87909d;
+            --accent-gold:#c8a861;
+            --accent-gold-light:#e0c680;
+            --nav-height:68px;
+            --header-height:60px;
+        }
+        html { background:#05070a; }
+        body { letter-spacing:.005em; }
+        header {
+            padding-right:14px;
+            padding-left:14px;
+            background:rgba(9,13,18,.94);
+            border-bottom-color:rgba(255,255,255,.06);
+            backdrop-filter:blur(20px) saturate(130%);
+        }
+        .header-logo-wrap { gap:10px; }
+        .fnl-logo-header { width:32px; height:32px; border-radius:8px; }
+        .fnl-brand-title { font-size:1.36rem; letter-spacing:.045em; }
+        .fnl-brand-sub { margin-top:1px; font-size:.5rem; letter-spacing:.11em; }
+        .current-page-title {
+            max-width:88px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+            padding:0; border:0; background:transparent; color:var(--text-muted);
+            font-size:.61rem; letter-spacing:.09em;
+        }
+        .sync-badge { padding:5px 8px; border-color:rgba(255,255,255,.06); background:var(--bg-card); }
+        .sync-dot.online { box-shadow:none; }
+        .container { padding:18px 16px 24px; }
+        .page.active { animation:fnlPageIn .2s ease both; }
+        @keyframes fnlPageIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+        .section-header { min-height:32px; margin-bottom:12px; }
+        .section-title {
+            gap:9px; color:var(--text-main); font-family:'M PLUS 1p','Noto Sans JP',sans-serif;
+            font-size:1rem; font-weight:900; letter-spacing:.015em;
+        }
+        .section-title::before { width:3px; height:18px; border-radius:999px; background:var(--accent-gold); }
+        .card,.match-card-mobile,.metric-card,.market-step,.rule-chapter,
+        .transfer-status-card,.transfer-summary-card,.roster-team-card,.roster-player-card,
+        .cup-match-card,.cup-record-card,.cup-format-card,.cup-rule-list,.event-entry-card,
+        .match-center-core,.match-center-lineup,.match-center-events,.history-card,.recovery-card {
+            border-color:var(--border-color); border-radius:14px; background:var(--bg-card); box-shadow:none;
+        }
+        .card { padding:15px; margin-bottom:16px; }
+        .btn-primary,.btn-secondary,.edit-score-btn,.share-action-btn {
+            min-height:42px; border-radius:11px; box-shadow:none; font-weight:800;
+        }
+        .btn-primary { border:1px solid var(--accent-gold); background:var(--accent-gold); color:#111318; }
+        .btn-secondary,.edit-score-btn,.share-action-btn { border:1px solid var(--border-color); background:var(--bg-elevated); color:var(--text-main); }
+        button:focus-visible,.card[onclick]:focus-visible,.news-item:focus-visible,.team-directory-card:focus-visible {
+            outline:2px solid var(--accent-gold); outline-offset:2px;
+        }
+        .form-label { color:#aab1bb; font-size:.72rem; }
+        .form-input,select,textarea { min-height:44px!important; border-radius:11px!important; background:#0c1117!important; }
+
+        /* ホーム：スコア、順位、ニュースへ自然に視線が流れる密度 */
+        #page-home { gap:14px; }
+        #page-home .hero-banner {
+            position:relative; padding:16px; border:1px solid var(--border-color); border-radius:16px;
+            background:var(--bg-card); overflow:hidden;
+        }
+        #page-home .hero-banner::after {
+            content:''; position:absolute; right:0; top:0; width:3px; height:100%; background:var(--accent-gold); opacity:.7;
+        }
+        #page-home .hero-logo-large { width:56px; height:56px; border-radius:12px; }
+        #page-home .hero-subtitle { color:var(--accent-gold); font-size:.56rem; }
+        #page-home .hero-title { font-size:1.72rem; letter-spacing:.035em; }
+        .home-hero-description { font-size:.62rem; }
+        #page-home .dashboard-grid { gap:8px; }
+        #page-home .metric-card { min-height:92px; padding:12px 7px; border-radius:13px; }
+        .metric-label { font-size:.58rem; letter-spacing:.025em; }
+        .metric-value { color:var(--text-main); font-size:1.3rem; }
+        #page-home .home-progress-card .metric-value { color:var(--accent-gold-light); }
+        .home-metric-logo { width:28px; height:28px; background:transparent; }
+        #page-home .match-card-mobile { padding:14px; border-color:var(--border-color)!important; }
+        .match-card-mobile { overflow:hidden; }
+        .match-score-pill { border:1px solid rgba(200,168,97,.3); border-radius:10px; background:#090d12; color:var(--text-main); }
+        .home-news-heading { margin:0; }
+        #page-home .news-feed { padding:2px 12px; border:1px solid var(--border-color); }
+
+        /* 共通の切替。大きなページ切替と小さなランキング切替を別の階層にする */
+        .tab-bar { gap:4px; padding:4px; border-radius:13px; background:#0c1117; }
+        .tab-button { min-height:40px; border-radius:9px; font-size:.7rem; }
+        .tab-button.active { background:var(--bg-elevated); color:var(--text-main); box-shadow:inset 0 -2px 0 var(--accent-gold); }
+        .ranking-tab-bar { gap:6px; }
+        .ranking-tab-bar .tab-button { min-height:34px; border-radius:9px; background:transparent; }
+        .ranking-tab-bar .tab-button.active { border-color:rgba(200,168,97,.45); background:rgba(200,168,97,.08); color:var(--accent-gold-light); box-shadow:none; }
+
+        /* 試合一覧・順位表 */
+        .mw-selector { scrollbar-width:none; }
+        .mw-chip,.chip { min-height:36px; border-radius:10px!important; }
+        .match-card-top { padding-bottom:7px; border-bottom:1px solid var(--border-color); }
+        .match-status,.status-badge { border-radius:7px; letter-spacing:.035em; }
+        .standings-table { border-collapse:separate; border-spacing:0; }
+        .standings-table th { height:32px; color:#747e8b; font-size:.6rem; letter-spacing:.035em; }
+        .standings-table td { height:48px; border-bottom-color:rgba(255,255,255,.055); }
+        .standings-table tbody tr { position:relative; }
+        .standings-table tbody tr td:first-child { border-left:3px solid transparent; }
+        .standings-table tbody tr:nth-child(1) td:first-child { border-left-color:var(--accent-gold); }
+        .ranking-row { min-height:48px; }
+
+        /* チーム一覧と詳細 */
+        .team-directory-card {
+            min-height:126px; padding:12px 8px; border-radius:15px;
+            background:var(--bg-card); border-color:var(--border-color);
+        }
+        .team-directory-card::before,.team-directory-card::after { display:none; }
+        .team-directory-logo-shell { background:transparent!important; border:0!important; }
+        .team-directory-card:active { border-color:rgba(200,168,97,.38); }
+        .team-sheet-hero,.roster-sheet-hero,.news-composer-header {
+            border-color:var(--border-color); background:var(--bg-card); border-radius:16px;
+        }
+        .team-sheet-hero .team-logo-lg { width:80px!important; height:80px!important; }
+        .roster-position-header { color:var(--text-main); }
+        .roster-position-header::before { background:var(--accent-gold); }
+
+        /* ニュース：一般的なニュースアプリ同様、見出しと発信元を優先 */
+        #page-news .news-feed { padding:2px 14px; border:1px solid var(--border-color); border-radius:14px; }
+        .news-item { min-height:82px; padding:14px 0; }
+        .news-title { color:var(--text-main); font-size:.83rem; line-height:1.5; }
+        .news-category { border:0!important; background:rgba(200,168,97,.1)!important; color:var(--accent-gold-light)!important; }
+        .news-page-button { border-radius:9px; background:transparent; }
+        .news-page-button.active { border-color:var(--accent-gold); background:var(--accent-gold); color:#111318; }
+
+        /* マッチセンター：入力順は維持しつつ、一つの業務フォームに見せる */
+        .match-center-header { margin-bottom:12px; }
+        .match-center-scoreboard { padding:16px 12px; border-color:var(--border-color); background:var(--bg-card); }
+        .match-center-core { padding:14px; }
+        .match-center-core-label { color:var(--text-muted); letter-spacing:.06em; }
+        .match-center-save-bar { padding:12px; border-color:rgba(200,168,97,.3); background:#0d1218; }
+        .match-step { border-radius:14px; }
+        .match-step::before { background:rgba(200,168,97,.12); }
+        .match-review { border-color:rgba(200,168,97,.28); background:var(--bg-card); }
+
+        /* 閲覧と運営の境界 */
+        .edit-mode-button { min-height:34px; border-radius:9px; background:var(--bg-card); }
+        body.edit-mode header { border-bottom-color:rgba(200,168,97,.38); }
+        body.edit-mode .edit-mode-button { background:var(--accent-gold); border-color:var(--accent-gold); color:#111318; }
+        .view-mode-note { padding:10px 12px; border-radius:11px; background:#0d1218; }
+        .transfer-quick-guide,.market-note { background:#0d1218; border-color:var(--border-color); }
+
+        /* 下部ナビ：主要5機能を親指で迷わず選べる */
+        .bottom-nav {
+            padding:5px 8px env(safe-area-inset-bottom,0px); background:rgba(9,13,18,.97);
+            border-top-color:rgba(255,255,255,.07); backdrop-filter:blur(20px) saturate(130%);
+        }
+        .nav-item { min-width:0; gap:3px; color:#77818e; font-size:.58rem; }
+        .nav-svg-icon { width:21px; height:21px; stroke-width:1.75; }
+        .nav-item.active { color:var(--text-main); }
+        .nav-item.active .nav-svg-icon { color:var(--accent-gold); }
+        .nav-item.active::before { top:0; width:24px; height:2px; background:var(--accent-gold); }
+        .more-menu-grid { gap:10px; }
+        .more-menu-button { min-height:88px; border-radius:13px; background:var(--bg-card); }
+
+        .sheet-overlay { background:rgba(0,0,0,.7); backdrop-filter:blur(4px); }
+        .sheet-content { border-top:1px solid var(--border-color); border-radius:20px 20px 0 0; background:#0e141b; }
+        .sheet-close-button { min-height:40px; padding:0 12px; border-radius:10px; background:var(--bg-elevated); }
+
+        /* 勝敗以外で彩度の高い色を増やさない */
+        .win,.result-win { color:#58b985!important; }
+        .lose,.result-lose { color:#dd6b72!important; }
+        .draw,.result-draw { color:var(--text-muted)!important; }
+        @media (max-width:360px) {
+            .container { padding-right:12px; padding-left:12px; }
+            .fnl-brand-sub { display:none; }
+            .sync-badge { padding-right:6px; padding-left:6px; }
+            #page-home .hero-title { font-size:1.5rem; }
+            #page-home .metric-card { min-height:86px; }
+            .nav-item { font-size:.54rem; }
+        }
+        @media (prefers-reduced-motion:reduce) {
+            *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; transition-duration:.01ms!important; }
+        }
+
         @media (min-width:481px) {
             body { box-shadow:0 0 48px rgba(0,0,0,.5); }
             header, .bottom-nav { border-left:1px solid rgba(255,255,255,.05); border-right:1px solid rgba(255,255,255,.05); }
