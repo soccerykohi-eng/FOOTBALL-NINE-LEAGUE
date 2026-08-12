@@ -3,11 +3,17 @@ import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gsta
 import { getFirestore, doc, runTransaction, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { deleteToken, getMessaging, getToken, isSupported, onMessage } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-messaging.js";
 
-const setStatus = (text, online = false) => {
+const setStatus = (text, online = false, stateName = online ? "saved" : "error", savedAt = "") => {
   document.getElementById("sync-dot-indicator")?.classList.toggle("online", online);
   const label = document.getElementById("sync-text-status");
   if (label) label.textContent = text;
+  const badge = document.getElementById("sync-status-badge");
+  if (badge) badge.dataset.state = stateName;
+  const time = document.getElementById("sync-saved-at");
+  if (time) time.textContent = savedAt ? `${new Date(savedAt).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })} 保存` : "";
 };
+
+window.setAppSaveStatus = (text, stateName = "dirty") => setStatus(text, stateName === "saved", stateName);
 
 const config = window.FNL_FIREBASE_CONFIG;
 if (!config?.apiKey) {
@@ -100,7 +106,14 @@ function storeCloudRecoverySnapshot(remote) {
     const marker = remote.updatedAt || remote.serverUpdatedAt?.toDate?.()?.toISOString?.() || "";
     if (existing[0]?.marker === marker && marker) return;
     const payload = Object.fromEntries(syncFields.map(field => [field, cloneData(remote[field])]));
-    const next = [{ marker, savedAt: new Date().toISOString(), payload }, ...existing].slice(0, 10);
+    const cloudBackup = remote.scheduleBackup?.schedule ? {
+      marker: `cloud-backup-${remote.scheduleBackup.backedUpAt || "latest"}`,
+      savedAt: remote.scheduleBackup.backedUpAt || new Date().toISOString(),
+      payload: { ...payload, schedule: cloneData(remote.scheduleBackup.schedule), seasonInfo: cloneData(remote.scheduleBackup.seasonInfo || payload.seasonInfo) }
+    } : null;
+    const next = [{ marker, savedAt: new Date().toISOString(), payload }, ...(cloudBackup ? [cloudBackup] : []), ...existing]
+      .filter((item, index, items) => items.findIndex(candidate => candidate.marker === item.marker) === index)
+      .slice(0, 10);
     localStorage.setItem(cloudRecoveryKey, JSON.stringify(next));
   } catch (error) {
     console.warn("Cloud recovery snapshot could not be stored", error);
@@ -333,7 +346,7 @@ function applyRemoteState(remote) {
   refreshAllViews();
   renderNews();
   applyingRemote = false;
-  setStatus("クラウド同期済み", true);
+  setStatus("保存済み", true, "saved", remote.updatedAt || new Date().toISOString());
 }
 
 function startListening() {
@@ -342,7 +355,7 @@ function startListening() {
     if (!snapshot.exists()) {
       lastSyncedPayload = currentStatePayload();
       initialCloudStateLoaded = true;
-      setStatus("クラウド同期準備完了", true);
+      setStatus("保存準備完了", true, "saved");
       return;
     }
     const remote = snapshot.data();
@@ -366,12 +379,16 @@ state.dbSaveFn = () => {
   const localPayload = currentStatePayload();
   const basePayload = lastSyncedPayload ? cloneData(lastSyncedPayload) : null;
   pendingSaveCount += 1;
+  setStatus("保存中", true, "saving");
   const save = async () => {
     if (!auth.currentUser) await signInAnonymously(auth);
     const changedFields = basePayload
       ? syncFields.filter(field => !sameData(localPayload[field], basePayload[field]))
       : syncFields;
-    if (!changedFields.length) return;
+    if (!changedFields.length) {
+      setStatus("保存済み", true, "saved", state.lastSavedAt || new Date().toISOString());
+      return;
+    }
     const updatedAt = new Date().toISOString();
     state.lastSavedAt = updatedAt;
     await runTransaction(db, async transaction => {
@@ -411,13 +428,22 @@ state.dbSaveFn = () => {
       if (validation && !validation.valid) {
         throw new Error(`保存を中止しました。\n${validation.errors.join("\n")}`);
       }
-      transaction.set(leagueRef, { ...patch, updatedAt, serverUpdatedAt: serverTimestamp() }, { merge: true });
+      const cloudScheduleBackup = snapshot.exists() && changedFields.includes("schedule") ? {
+          schedule: cloneData(remote.schedule || []),
+          seasonInfo: cloneData(remote.seasonInfo || {}),
+          backedUpAt: new Date().toISOString(),
+          completedMatches: (remote.schedule || []).filter(match => match.hs !== null && match.as !== null).length
+        } : remote.scheduleBackup;
+      transaction.set(leagueRef, { ...patch, ...(cloudScheduleBackup ? { scheduleBackup: cloudScheduleBackup } : {}), updatedAt, serverUpdatedAt: serverTimestamp() }, { merge: true });
     });
-    setStatus("クラウド同期済み", true);
+    setStatus("保存済み", true, "saved", updatedAt);
   };
   const queuedSave = saveQueue.then(save, save);
   saveQueue = queuedSave.catch(() => {});
-  return queuedSave.finally(() => {
+  return queuedSave.catch(error => {
+    setStatus("保存失敗", false, "error");
+    throw error;
+  }).finally(() => {
     pendingSaveCount -= 1;
     if (!pendingSaveCount && pendingRemotePayload) {
       const remote = pendingRemotePayload;
@@ -429,7 +455,7 @@ state.dbSaveFn = () => {
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    setStatus("クラウド同期中", true);
+    setStatus("読み込み中", true, "saving");
     startListening();
   }
 });

@@ -491,6 +491,38 @@
         .more-menu-button.active { color:var(--accent-gold-light); border-color:var(--accent-gold); background:rgba(198,166,100,0.12); }
         .more-menu-button .nav-svg-icon { width:24px; height:24px; }
 
+        /* 閲覧と編集を明確に分離する。初期状態は安全な閲覧モード。 */
+        .edit-mode-button { min-height:32px; padding:.34rem .58rem; border:1px solid var(--border-color); border-radius:9px; background:var(--bg-elevated); color:var(--text-muted); font:800 .64rem 'Noto Sans JP',sans-serif; cursor:pointer; white-space:nowrap; }
+        body.edit-mode .edit-mode-button { color:var(--accent-gold-light); border-color:rgba(198,166,100,.55); background:rgba(198,166,100,.12); }
+        body:not(.edit-mode) .edit-only { display:none !important; }
+        body:not(.edit-mode) #page-transfer .transfer-pane button:not(.transfer-tab-button), body:not(.edit-mode) #page-rules [data-rules-tab="manage"] { display:none !important; }
+        body:not(.edit-mode) input[data-record-input], body:not(.edit-mode) select[data-record-input] { pointer-events:none; opacity:.72; }
+        .view-mode-note { display:flex; align-items:center; gap:.5rem; margin-bottom:.75rem; padding:.62rem .72rem; border:1px solid var(--border-color); border-radius:11px; background:var(--bg-card); color:var(--text-muted); font-size:.68rem; line-height:1.45; }
+        body.edit-mode .view-mode-note { display:none; }
+        .save-status-time { display:block; margin-top:.05rem; color:var(--text-muted); font-size:.52rem; line-height:1; }
+        .sync-badge[data-state="dirty"] .sync-dot { background:#d6a84b; }
+        .sync-badge[data-state="saving"] .sync-dot { animation:pulse 1s infinite; }
+        .sync-badge[data-state="error"] .sync-dot { background:#ef6464; }
+        @keyframes pulse { 50% { opacity:.35; } }
+
+        .match-step { position:relative; margin-top:.85rem; padding:.85rem; border:1px solid var(--border-color); border-radius:14px; background:var(--bg-card); }
+        .match-step::before { content:attr(data-step); position:absolute; top:.72rem; left:.72rem; width:24px; height:24px; display:grid; place-items:center; border-radius:999px; background:rgba(198,166,100,.14); color:var(--accent-gold-light); font:800 .7rem 'Noto Sans JP',sans-serif; }
+        .match-step-title { margin:0 0 .75rem 2rem; font-size:.82rem; font-weight:900; }
+        .match-review { padding:.85rem; border:1px solid rgba(198,166,100,.35); border-radius:14px; background:linear-gradient(145deg,rgba(198,166,100,.1),var(--bg-card)); }
+        .match-review-score { display:flex; align-items:center; justify-content:center; gap:.7rem; margin:.65rem 0; font:800 2rem/1 'Teko',sans-serif; }
+        .match-review-meta { display:grid; gap:.42rem; color:var(--text-muted); font-size:.7rem; }
+        .history-card { margin-bottom:.55rem; padding:.75rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
+        .history-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:.6rem; }
+        .history-card-title { font-size:.76rem; font-weight:900; }
+        .history-card-time { color:var(--text-muted); font-size:.58rem; white-space:nowrap; }
+        .history-card-detail { margin-top:.28rem; color:var(--text-muted); font-size:.67rem; line-height:1.45; }
+        .recovery-card { display:grid; grid-template-columns:1fr auto; gap:.65rem; align-items:center; margin-bottom:.5rem; padding:.72rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
+        .recovery-card b { display:block; font-size:.72rem; }
+        .recovery-card span { color:var(--text-muted); font-size:.62rem; }
+        .transfer-quick-guide { margin:.55rem 0 .7rem; padding:.75rem; border:1px solid rgba(198,166,100,.25); border-radius:12px; background:linear-gradient(135deg,rgba(198,166,100,.08),var(--bg-card)); }
+        .transfer-quick-guide b { display:block; font-size:.76rem; }
+        .transfer-quick-guide span { display:block; margin-top:.25rem; color:var(--text-muted); font-size:.67rem; line-height:1.45; }
+
         .transfer-club-card { display:flex; align-items:center; gap:0.7rem; padding:0.7rem; background:linear-gradient(135deg,var(--bg-elevated),var(--bg-card)); border:1px solid var(--border-color); border-left:2px solid rgba(198,166,100,0.55); border-radius:3px 9px 3px 9px; margin-bottom:0.5rem; cursor:pointer; }
         .transfer-club-card img { width:36px; height:36px; object-fit:contain; border-radius:6px; }
         .transfer-count { margin-left:auto; color:var(--accent-gold-light); font-family:'Teko'; font-size:1.25rem; font-weight:700; }
@@ -850,10 +882,11 @@
         </div>
 
         <div class="header-right-status">
-            <div class="sync-badge">
+            <div class="sync-badge" id="sync-status-badge" data-state="loading">
                 <span class="sync-dot" id="sync-dot-indicator"></span>
-                <span id="sync-text-status">Firebase 接続済み</span>
+                <span><span id="sync-text-status">読み込み中</span><span class="save-status-time" id="sync-saved-at"></span></span>
             </div>
+            <button type="button" class="edit-mode-button" id="edit-mode-toggle" onclick="toggleEditMode()">編集</button>
             <div class="current-page-title" id="page-title-display">HOME</div>
         </div>
     </header>
@@ -897,8 +930,8 @@
             </div>
             <div class="stats-pane" id="stats-pane-seasons">
                 <div class="market-note" style="margin-bottom:0.7rem;">現在の順位・選手記録をシーズンの記録として保存できます。試合データは削除されません。</div>
-                <button class="btn-primary" id="archive-season-button" onclick="archiveCurrentSeason()">Season 1 の記録を保存</button>
-                <button class="btn-secondary" style="width:100%;margin-top:0.5rem;" onclick="openNextSeasonSheet()">次のシーズンを開始</button>
+                <button class="btn-primary edit-only" id="archive-season-button" onclick="archiveCurrentSeason()">Season 1 の記録を保存</button>
+                <button class="btn-secondary edit-only" style="width:100%;margin-top:0.5rem;" onclick="openNextSeasonSheet()">次のシーズンを開始</button>
                 <div id="undo-season-transition"></div>
                 <div class="section-header" style="margin-top:1rem;"><div class="section-title">シーズン履歴</div></div>
                 <div class="card" id="season-archive-list"></div>
@@ -932,7 +965,8 @@
                 <div class="section-title">移籍センター</div>
             </div>
             <div id="market-phase-banner" style="margin-top:0.45rem;"></div>
-            <div id="transfer-checklist"></div>
+            <div id="transfer-quick-guide" class="transfer-quick-guide"></div>
+            <details class="market-step"><summary><span>進行状況を確認</span></summary><div class="market-step-body" id="transfer-checklist"></div></details>
             <div class="transfer-summary-grid" id="player-summary"></div>
             <div class="transfer-tab-bar">
                 <button class="transfer-tab-button active" data-transfer-tab="rosters" onclick="switchTransferView('rosters',this)">名簿</button>
@@ -944,7 +978,7 @@
             <div class="transfer-pane active" id="transfer-pane-rosters">
             <div class="section-header transfer-pane-header">
                 <div class="section-title">選手名簿</div>
-                <button id="add-player-button" class="btn-secondary" onclick="openAddPlayerSheet()">選手を登録</button>
+                <button id="add-player-button" class="btn-secondary edit-only" onclick="openAddPlayerSheet()">選手を登録</button>
             </div>
             <div id="roster-club-list"></div>
             </div>
@@ -996,7 +1030,7 @@
                 <div class="section-title">ニュース</div>
                 <div style="display:flex;gap:0.4rem;">
                     <button id="news-notification-button" class="btn-secondary" onclick="toggleNewsNotifications()">通知を受け取る</button>
-                    <button class="btn-secondary" onclick="openPostNewsSheet()">＋ 投稿</button>
+                    <button class="btn-secondary edit-only" onclick="openPostNewsSheet()">投稿</button>
                 </div>
             </div>
             <div id="news-notification-note" class="market-note" style="margin-bottom:0.7rem;">ニュースが公開されたときだけ通知します。</div>
@@ -1012,7 +1046,7 @@
             <div class="tab-bar">
                 <button class="tab-button active" data-rules-tab="current" onclick="switchRulesView('current',this)">現行規約</button>
                 <button class="tab-button" data-rules-tab="history" onclick="switchRulesView('history',this)">改正履歴</button>
-                <button class="tab-button" data-rules-tab="manage" onclick="switchRulesView('manage',this)">規約管理</button>
+                <button class="tab-button edit-only" data-rules-tab="manage" onclick="switchRulesView('manage',this)">規約管理</button>
             </div>
             <div class="stats-pane active" id="rules-pane-current">
                 <div id="rules-current-meta"></div>
@@ -1032,6 +1066,15 @@
             <div id="hirabayashi-cup-content"></div>
         </section>
 
+        <section id="page-history" class="page" hidden>
+            <div class="section-header"><div class="section-title">変更履歴・復元</div></div>
+            <div class="market-note">保存された操作と、この端末に保管されたクラウド読込時点を確認できます。復元は内容を確認してから実行されます。</div>
+            <div class="section-header" style="margin-top:1rem"><div class="section-title">最近の変更</div></div>
+            <div id="app-history-list"></div>
+            <div class="section-header" style="margin-top:1rem"><div class="section-title">バックアップ</div></div>
+            <div id="app-recovery-list"></div>
+        </section>
+
     </main>
 
     <!-- ボトムナビゲーションバー -->
@@ -1040,13 +1083,13 @@
             <i data-lucide="house" class="nav-svg-icon" aria-hidden="true"></i>
             <span>ホーム</span>
         </button>
-        <button type="button" class="nav-item" data-page="standings" onclick="navigateTo('standings', '順位表', this)">
-            <i data-lucide="trophy" class="nav-svg-icon" aria-hidden="true"></i>
-            <span>順位表</span>
-        </button>
         <button type="button" class="nav-item" data-page="matches" onclick="navigateTo('matches', '日程・結果', this)">
             <i data-lucide="calendar-days" class="nav-svg-icon" aria-hidden="true"></i>
             <span>日程</span>
+        </button>
+        <button type="button" class="nav-item" data-page="standings" onclick="navigateTo('standings', '順位表', this)">
+            <i data-lucide="trophy" class="nav-svg-icon" aria-hidden="true"></i>
+            <span>順位表</span>
         </button>
         <button type="button" class="nav-item" data-page="teams" onclick="navigateTo('teams', 'チーム', this)">
             <i data-lucide="shield" class="nav-svg-icon" aria-hidden="true"></i>
@@ -1458,10 +1501,44 @@
         function persistAppState() {
             state.lastSavedAt = state.lastSavedAt || new Date().toISOString();
             saveStateToStorage();
+            window.setAppSaveStatus?.('未保存の変更あり', 'dirty');
             if (state.dbSaveFn) {
                 return state.dbSaveFn();
             }
             return Promise.resolve();
+        }
+
+        const EDIT_MODE_KEY = 'fnl-edit-mode-session-v1';
+
+        function isEditMode() {
+            return sessionStorage.getItem(EDIT_MODE_KEY) === 'true';
+        }
+
+        function applyEditMode() {
+            const editing = isEditMode();
+            document.body.classList.toggle('edit-mode', editing);
+            const button = document.getElementById('edit-mode-toggle');
+            if (button) button.textContent = editing ? '閲覧に戻る' : '編集';
+            ['schedule-assignment-button', 'add-player-button', 'add-market-player-button', 'midseason-draft-button',
+                'midseason-preview-button', 'midseason-run-draft-button', 'undo-transfer-button', 'trade-listing-button',
+                'trade-close-button', 'protection-register-button', 'end-draft-pick-button']
+                .forEach(id => document.getElementById(id)?.classList.add('edit-only'));
+        }
+
+        window.toggleEditMode = function() {
+            const next = !isEditMode();
+            if (next && !confirm('編集モードに切り替えます。保存した変更は全端末に反映されます。')) return;
+            sessionStorage.setItem(EDIT_MODE_KEY, String(next));
+            applyEditMode();
+            refreshAllViews();
+            renderNews();
+            if (document.getElementById('page-history')?.classList.contains('active')) renderAppHistory();
+        };
+
+        function requireEditMode(action = 'この操作') {
+            if (isEditMode()) return true;
+            alert(`${action}は編集モードで行えます。画面上部の「編集」を押してください。`);
+            return false;
         }
 
         // クラブ名変更後も、保存済みの試合記録・規約・履歴を同じクラブとして表示する
@@ -1552,7 +1629,7 @@
                 if (matchedNav) {
                     matchedNav.classList.add('active');
                     matchedNav.setAttribute('aria-current', 'page');
-                } else if (['transfer', 'news', 'rules', 'cup'].includes(pageId)) {
+                } else if (['transfer', 'news', 'rules', 'cup', 'history'].includes(pageId)) {
                     const moreNav = document.querySelector('#bottom-nav-element .nav-item[data-nav-more]');
                     moreNav?.classList.add('active');
                     moreNav?.setAttribute('aria-current', 'page');
@@ -1571,6 +1648,8 @@
                 switchRulesView('current', document.querySelector('[data-rules-tab="current"]'));
             }
             if (pageId === 'cup') renderHirabayashiCup();
+            if (pageId === 'transfer') openRecommendedTransferView();
+            if (pageId === 'history') renderAppHistory();
             // ページ切替後に高さが変わっても、Safariのスクロール位置を確実に先頭へ戻す
             requestAnimationFrame(() => window.scrollTo(0, 0));
         };
@@ -1581,7 +1660,8 @@
                 { page: 'transfer', title: '移籍', icon: '<path d="M7 7h8.17l-2.59 2.59L14 11l5-5-5-5 1.41 1.41L12.83 6H7v1zm10 10H8.83l2.59-2.59L10 13l-5 5 5 5-1.41-1.41L11.17 18H17v-1z"/>' },
                 { page: 'cup', title: '平林杯', icon: '<path d="M8 2h8v5a4 4 0 0 1-8 0V2zm0 3H5v2a4 4 0 0 0 4 4M16 5h3v2a4 4 0 0 1-4 4M12 11v5m-3 4h6M8 20h8"/>' },
                 { page: 'news', title: 'ニュース', icon: '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/>' },
-                { page: 'rules', title: '規約', icon: '<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>' }
+                { page: 'rules', title: '規約', icon: '<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>' },
+                { page: 'history', title: '履歴・復元', icon: '<path d="M12 8v5l3 2M3 12a9 9 0 1 0 3-6.7L3 8m0-5v5h5" fill="none" stroke="currentColor" stroke-width="2"/>' }
             ];
             document.getElementById('sheet-body').innerHTML = `
                 <div style="text-align:center;margin-bottom:1rem;"><h3>その他のページ</h3></div>
@@ -1752,6 +1832,7 @@
         };
 
         window.openPostNewsSheet = function() {
+            if (!requireEditMode('ニュース投稿')) return;
             const todayStr = new Date().toISOString().split('T')[0].replace(/-/g, '.');
             const body = document.getElementById('sheet-body');
             body.innerHTML = `
@@ -1837,10 +1918,10 @@
             state.lastMatchSnapshot = { matchId: match.id, label, match: cloneMatch(match), createdAt: new Date().toISOString() };
         }
 
-        function addActivity(title, detail) {
+        function addActivity(title, detail, change = {}) {
             if (!Array.isArray(state.activityLog)) state.activityLog = [];
-            state.activityLog.unshift({ id: `a_${Date.now()}`, title, detail, createdAt: new Date().toISOString() });
-            state.activityLog = state.activityLog.slice(0, 30);
+            state.activityLog.unshift({ id: `a_${Date.now()}_${Math.random().toString(16).slice(2)}`, title, detail, actor: 'この端末', before: change.before ?? null, after: change.after ?? null, createdAt: new Date().toISOString() });
+            state.activityLog = state.activityLog.slice(0, 100);
         }
 
         function getRosterNamesByTeamName(teamName) {
@@ -1863,22 +1944,24 @@
             );
         }
 
-        function renderAppearancePicker(teamName, side, selectedNames = []) {
+        function renderAppearancePicker(teamName, side, selectedNames = [], changeHandler = '') {
             const players = getAppearancePickerNames(teamName);
             if (!players.length) return `<div class="empty-state">先に「移籍」ページで選手を登録してください</div>`;
-            return `<div class="appearance-picker">${players.map(name => `<label class="appearance-option"><input type="checkbox" data-appearance="${side}" value="${escapeHtml(name)}" ${selectedNames.includes(name) ? 'checked' : ''}><span>${escapeHtml(name)}</span></label>`).join('')}</div>`;
+            return `<div class="appearance-picker">${players.map(name => `<label class="appearance-option"><input type="checkbox" data-record-input data-appearance="${side}" value="${escapeHtml(name)}" ${selectedNames.includes(name) ? 'checked' : ''} ${changeHandler ? `onchange="${changeHandler}"` : ''}><span>${escapeHtml(name)}</span></label>`).join('')}</div>`;
         }
 
-        function matchEventPlayerOptions(teamName, placeholder = '選手を選択', selectedName = '') {
-            const players = getRosterNamesByTeamName(teamName);
+        function matchEventPlayerOptions(teamName, placeholder = '選手を選択', selectedName = '', allowedNames = null) {
+            const players = Array.isArray(allowedNames) ? allowedNames : getRosterNamesByTeamName(teamName);
+            if (selectedName && !players.includes(selectedName)) players.unshift(selectedName);
             return `<option value="">${placeholder}</option>${players.map(name => `<option value="${escapeHtml(name)}" ${name === selectedName ? 'selected' : ''}>${escapeHtml(name)}</option>`).join('')}`;
         }
 
         const OWN_GOAL_VALUE = '__own_goal__';
 
-        function goalScorerOptions(teamName) {
-            const players = getRosterNamesByTeamName(teamName);
-            return `<option value="">得点者を選択</option><option value="${OWN_GOAL_VALUE}">オウンゴール</option>${players.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('')}`;
+        function goalScorerOptions(teamName, allowedNames = null, selectedName = '') {
+            const players = Array.isArray(allowedNames) ? allowedNames : getRosterNamesByTeamName(teamName);
+            if (selectedName && selectedName !== OWN_GOAL_VALUE && !players.includes(selectedName)) players.unshift(selectedName);
+            return `<option value="">得点者を選択</option><option value="${OWN_GOAL_VALUE}" ${selectedName === OWN_GOAL_VALUE ? 'selected' : ''}>オウンゴール</option>${players.map(name => `<option value="${escapeHtml(name)}" ${name === selectedName ? 'selected' : ''}>${escapeHtml(name)}</option>`).join('')}`;
         }
 
         function isOwnGoalEvent(event) {
@@ -1894,70 +1977,107 @@
             assistSelect.disabled = ownGoal;
         };
 
-        function renderLeagueMatchCenter(match) {
+        const leagueMatchDrafts = new Map();
+
+        function createLeagueMatchDraft(match) {
             const details = ensureMatchDetails(match);
-            const motmTeam = details.motm?.team === match.a ? match.a : match.h;
-            const goalEvents = details.events.filter(event => event.type === 'goal');
+            return { hs: match.hs ?? '', as: match.as ?? '', motmTeam: details.motm?.team === match.a ? match.a : match.h, motm: details.motm?.name || '', appearances: { home: [...(details.appearances?.home || [])], away: [...(details.appearances?.away || [])] }, events: JSON.parse(JSON.stringify(details.events || [])), goalTeam: match.h };
+        }
+
+        function captureLeagueMatchDraft(match) {
+            const existing = leagueMatchDrafts.get(match.id) || createLeagueMatchDraft(match);
+            if (!document.getElementById('input-hs')) return existing;
+            const selected = side => [...document.querySelectorAll(`[data-appearance="league-${side}"]:checked`)].map(input => input.value);
+            const draft = { ...existing, hs: document.getElementById('input-hs')?.value ?? existing.hs, as: document.getElementById('input-as')?.value ?? existing.as, motmTeam: document.getElementById('input-motm-team')?.value || existing.motmTeam, motm: document.getElementById('input-motm')?.value || '', appearances: { home: selected('home'), away: selected('away') }, goalTeam: document.getElementById('league-goal-team')?.value || existing.goalTeam };
+            leagueMatchDrafts.set(match.id, draft);
+            return draft;
+        }
+
+        function allowedMatchPlayers(match, teamName, draft) {
+            return teamName === match.h ? draft.appearances.home : draft.appearances.away;
+        }
+
+        function renderLeagueMatchCenter(match) {
+            const draft = leagueMatchDrafts.get(match.id) || createLeagueMatchDraft(match);
+            leagueMatchDrafts.set(match.id, draft);
+            const goalEvents = draft.events.filter(event => event.type === 'goal');
+            const goalTeam = draft.goalTeam === match.a ? match.a : match.h;
+            const goalPlayers = allowedMatchPlayers(match, goalTeam, draft);
+            const motmPlayers = allowedMatchPlayers(match, draft.motmTeam, draft);
+            const viewing = !isEditMode();
             document.getElementById('sheet-body').innerHTML = `
-                <div class="match-center-header"><div class="match-center-kicker">MATCHWEEK ${match.mw}</div><h3 class="match-center-title">MATCH CENTER</h3><div class="match-center-subtitle">公式試合記録</div></div>
-                <div class="match-center-scoreboard"><div class="match-center-team"><img src="${getTeamLogo(match.h)}" alt=""><div class="match-center-team-name">${escapeHtml(match.h)}</div><div class="match-center-score-caption">得点</div><input type="number" id="input-hs" aria-label="${escapeHtml(match.h)}の得点" class="form-input match-center-score-input" inputmode="numeric" min="0" max="20" value="${match.hs ?? ''}" placeholder="0"></div><div class="match-center-versus">VS</div><div class="match-center-team"><img src="${getTeamLogo(match.a)}" alt=""><div class="match-center-team-name">${escapeHtml(match.a)}</div><div class="match-center-score-caption">得点</div><input type="number" id="input-as" aria-label="${escapeHtml(match.a)}の得点" class="form-input match-center-score-input" inputmode="numeric" min="0" max="20" value="${match.as ?? ''}" placeholder="0"></div></div>
-                <div class="match-center-section"><div class="match-center-section-heading"><span>試合情報</span></div><div class="match-center-core"><span class="match-center-core-label">MOM</span><div class="match-center-mom"><select id="input-motm-team" aria-label="MOMのチーム" class="form-select" onchange="updateMotmPlayerOptions()"><option value="${escapeHtml(match.h)}" ${motmTeam === match.h ? 'selected' : ''}>${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}" ${motmTeam === match.a ? 'selected' : ''}>${escapeHtml(match.a)}</option></select><select id="input-motm" aria-label="MOMの選手" class="form-select">${matchEventPlayerOptions(motmTeam, 'MOMを選択', details.motm?.name || '')}</select></div><span class="match-center-core-label">出場選手</span><div class="match-center-lineup-grid"><div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(match.h)}" alt="">${escapeHtml(match.h)}</div>${renderAppearancePicker(match.h, 'league-home', details.appearances?.home || [])}</div><div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(match.a)}" alt="">${escapeHtml(match.a)}</div>${renderAppearancePicker(match.a, 'league-away', details.appearances?.away || [])}</div></div></div></div>
-                <div class="match-center-section"><div class="match-center-section-heading"><span>得点記録</span></div><div class="event-entry-card"><div class="form-group"><label class="form-label">得点が入ったチーム</label><select id="league-goal-team" class="form-select" onchange="updateLeagueGoalOptions('${match.id}')"><option value="${escapeHtml(match.h)}">${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}">${escapeHtml(match.a)}</option></select></div><div class="form-group"><label class="form-label">得点者</label><select id="league-goal-player" class="form-select" onchange="updateGoalAssistAvailability('league-goal-player','league-goal-assist')">${goalScorerOptions(match.h)}</select></div><div class="form-group"><label class="form-label">アシスト</label><select id="league-goal-assist" class="form-select">${matchEventPlayerOptions(match.h, 'アシストなし')}</select></div></div><button class="btn-secondary" style="width:100%;" onclick="addLeagueGoal('${match.id}')">得点を追加</button><div class="match-center-events">${goalEvents.length ? goalEvents.map(event => `<div class="event-row"><div class="ranking-main"><div class="match-event-type">${isOwnGoalEvent(event) ? 'OWN GOAL' : 'GOAL'}</div><div class="ranking-name">${escapeHtml(event.player)}</div><div class="ranking-team">${escapeHtml(event.team)}${event.assist ? ` ・ AS ${escapeHtml(event.assist)}` : ''}</div></div><button class="btn-secondary" onclick="deleteMatchEvent('${match.id}','${event.id}')">削除</button></div>`).join('') : '<div class="empty-state">得点記録はまだありません</div>'}</div></div>
-                <div class="match-center-save-bar"><button class="btn-primary match-center-save" onclick="saveScoreToCloud('${match.id}')">試合結果を保存</button></div>
-                <div class="match-center-utilities"><button class="share-action-btn" onclick="generateMatchShareText('${match.id}')">試合結果を共有</button><button class="btn-secondary" onclick="undoLastMatchChange()">直前の変更を戻す</button></div>${match.hs !== null ? `<button class="btn-danger" onclick="clearScoreInCloud('${match.id}')">スコアを取り消す</button>` : ''}<button class="btn-secondary event-entry-back" onclick="document.getElementById('sheet-overlay').classList.remove('active')">閉じる</button>`;
+                <div class="match-center-header"><div class="match-center-kicker">MATCHWEEK ${match.mw}</div><h3 class="match-center-title">マッチセンター</h3><div class="match-center-subtitle">公式試合記録</div></div>
+                ${viewing ? '<div class="view-mode-note">現在は閲覧モードです。記録を変更する場合は画面上部の「編集」を押してください。</div>' : ''}
+                <section class="match-step" data-step="1"><div class="match-step-title">スコア</div><div class="match-center-scoreboard"><div class="match-center-team"><img src="${getTeamLogo(match.h)}" alt=""><div class="match-center-team-name">${escapeHtml(match.h)}</div><input data-record-input type="number" id="input-hs" aria-label="${escapeHtml(match.h)}の得点" class="form-input match-center-score-input" inputmode="numeric" min="0" max="20" value="${draft.hs}" placeholder="0"></div><div class="match-center-versus">VS</div><div class="match-center-team"><img src="${getTeamLogo(match.a)}" alt=""><div class="match-center-team-name">${escapeHtml(match.a)}</div><input data-record-input type="number" id="input-as" aria-label="${escapeHtml(match.a)}の得点" class="form-input match-center-score-input" inputmode="numeric" min="0" max="20" value="${draft.as}" placeholder="0"></div></div></section>
+                <section class="match-step" data-step="2"><div class="match-step-title">出場選手・MOM</div><div class="match-center-lineup-grid"><div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(match.h)}" alt="">${escapeHtml(match.h)}</div>${renderAppearancePicker(match.h, 'league-home', draft.appearances.home, `refreshLeagueParticipantOptions('${match.id}')`)}</div><div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(match.a)}" alt="">${escapeHtml(match.a)}</div>${renderAppearancePicker(match.a, 'league-away', draft.appearances.away, `refreshLeagueParticipantOptions('${match.id}')`)}</div></div><span class="match-center-core-label" style="margin-top:.8rem">MOM</span><div class="match-center-mom"><select data-record-input id="input-motm-team" class="form-select" onchange="refreshLeagueParticipantOptions('${match.id}')"><option value="${escapeHtml(match.h)}" ${draft.motmTeam === match.h ? 'selected' : ''}>${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}" ${draft.motmTeam === match.a ? 'selected' : ''}>${escapeHtml(match.a)}</option></select><select data-record-input id="input-motm" class="form-select">${matchEventPlayerOptions(draft.motmTeam, 'MOMを選択', draft.motm, motmPlayers)}</select></div></section>
+                <section class="match-step" data-step="3"><div class="match-step-title">得点記録</div><div class="event-entry-card edit-only"><div class="form-group"><label class="form-label">得点したチーム</label><select data-record-input id="league-goal-team" class="form-select" onchange="updateLeagueGoalOptions('${match.id}')"><option value="${escapeHtml(match.h)}" ${goalTeam === match.h ? 'selected' : ''}>${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}" ${goalTeam === match.a ? 'selected' : ''}>${escapeHtml(match.a)}</option></select></div><div class="form-group"><label class="form-label">得点者</label><select data-record-input id="league-goal-player" class="form-select" onchange="updateGoalAssistAvailability('league-goal-player','league-goal-assist')">${goalScorerOptions(goalTeam, goalPlayers)}</select></div><div class="form-group"><label class="form-label">アシスト</label><select data-record-input id="league-goal-assist" class="form-select">${matchEventPlayerOptions(goalTeam, 'アシストなし', '', goalPlayers)}</select></div></div><button class="btn-secondary edit-only" style="width:100%;" onclick="addLeagueGoal('${match.id}')">得点を追加</button><div class="match-center-events">${goalEvents.length ? goalEvents.map(event => `<div class="event-row"><div class="ranking-main"><div class="match-event-type">${isOwnGoalEvent(event) ? 'OWN GOAL' : 'GOAL'}</div><div class="ranking-name">${escapeHtml(event.player)}</div><div class="ranking-team">${escapeHtml(event.team)}${event.assist ? ` ・ AS ${escapeHtml(event.assist)}` : ''}</div></div><button class="btn-secondary edit-only" onclick="deleteMatchEvent('${match.id}','${event.id}')">削除</button></div>`).join('') : '<div class="empty-state">得点記録はありません</div>'}</div></section>
+                <div class="match-center-save-bar edit-only"><button class="btn-primary match-center-save" onclick="saveScoreToCloud('${match.id}')">内容を確認</button></div>
+                <div class="match-center-utilities"><button class="share-action-btn" onclick="generateMatchShareText('${match.id}')">試合結果を共有</button><button class="btn-secondary edit-only" onclick="undoLastMatchChange()">直前の変更を戻す</button></div>${match.hs !== null ? `<button class="btn-danger edit-only" onclick="clearScoreInCloud('${match.id}')">スコアを取り消す</button>` : ''}<button class="btn-secondary event-entry-back" onclick="dismissLeagueMatchCenter('${match.id}')">閉じる</button>`;
         }
 
         window.openScoreInputSheet = function(mId) {
             const m = state.schedule.find(item => item.id === mId);
             if (!m) return;
+            leagueMatchDrafts.set(m.id, createLeagueMatchDraft(m));
             renderLeagueMatchCenter(m);
             document.getElementById('sheet-overlay').classList.add('active');
         };
 
         window.saveScoreToCloud = function(mId) {
-            const hsVal = document.getElementById('input-hs').value.trim();
-            const asVal = document.getElementById('input-as').value.trim();
-            if (hsVal === '' || asVal === '') {
-                alert('両チームの得点を入力してから保存してください。');
-                return;
-            }
-            const motmName = document.getElementById('input-motm')?.value.trim() || '';
-            const selectedPlayers = side => [...document.querySelectorAll(`[data-appearance="${side}"]:checked`)].map(input => input.value);
-            const homeAppearances = selectedPlayers('league-home');
-            const awayAppearances = selectedPlayers('league-away');
+            if (!requireEditMode('試合結果の保存')) return;
             const m = state.schedule.find(item => item.id === mId);
+            if (!m) return;
+            const draft = captureLeagueMatchDraft(m);
+            const hsVal = String(draft.hs).trim(), asVal = String(draft.as).trim();
+            if (hsVal === '' || asVal === '') return alert('両チームの得点を入力してください。');
+            const homeScore = Number(hsVal), awayScore = Number(asVal);
+            if (!Number.isInteger(homeScore) || !Number.isInteger(awayScore) || homeScore < 0 || awayScore < 0 || homeScore > 20 || awayScore > 20) return alert('スコアは0〜20の整数で入力してください。');
+            const totals = getRecordedGoalTotals(m, draft.events);
+            if (totals.home > homeScore || totals.away > awayScore) return alert('得点記録の数がスコアを超えています。得点記録を確認してください。');
+            if (draft.motm && !allowedMatchPlayers(m, draft.motmTeam, draft).includes(draft.motm)) return alert('MOMは出場選手から選択してください。');
+            document.getElementById('sheet-body').innerHTML = `<div class="match-center-header"><div class="match-center-kicker">MATCHWEEK ${m.mw}</div><h3 class="match-center-title">保存内容の確認</h3></div><div class="match-review"><div class="match-review-score"><span>${escapeHtml(m.h)}</span><strong>${homeScore} - ${awayScore}</strong><span>${escapeHtml(m.a)}</span></div><div class="match-review-meta"><div>MOM：${escapeHtml(draft.motm || '未入力')}</div><div>出場選手：${draft.appearances.home.length}名 / ${draft.appearances.away.length}名</div><div>得点記録：${draft.events.filter(event => event.type === 'goal').length}件</div></div></div><div class="match-center-save-bar"><button class="btn-primary match-center-save" onclick="commitLeagueMatch('${m.id}')">この内容で保存</button></div><button class="btn-secondary" style="width:100%" onclick="renderLeagueMatchCenter(state.schedule.find(item=>item.id==='${m.id}'))">入力に戻る</button>`;
+        };
+
+        window.commitLeagueMatch = function(mId) {
+            if (!requireEditMode('試合結果の保存')) return;
+            const m = state.schedule.find(item => item.id === mId), draft = leagueMatchDrafts.get(mId);
+            if (!m || !draft) return;
             if (m) {
                 if (Number(m.mw) >= 10 && !isMatchCompleted(m) && !isMidseasonCompleted()) {
                     alert('中間移籍市場が完了していないため、MW10以降の結果は確定できません。移籍センターのチェックリストを確認してください。');
                     return;
                 }
-                const homeScore = parseInt(hsVal, 10);
-                const awayScore = parseInt(asVal, 10);
-                const totals = getRecordedGoalTotals(m);
-                if ((totals.home || totals.away) && (totals.home !== homeScore || totals.away !== awayScore)) {
-                    alert(`得点記録とスコアが一致していません。${m.h}は${totals.home}件、${m.a}は${totals.away}件の得点記録です。`);
-                    return;
-                }
+                const homeScore = Number(draft.hs), awayScore = Number(draft.as);
+                const before = `${m.hs ?? '-'}-${m.as ?? '-'}`;
                 takeMatchSnapshot(m, '試合結果の更新');
                 m.hs = homeScore;
                 m.as = awayScore;
                 const details = ensureMatchDetails(m);
-                details.motm = motmName ? { name: motmName, team: document.getElementById('input-motm-team')?.value || '' } : null;
-                details.appearances = {
-                    home: homeAppearances,
-                    away: awayAppearances
-                };
-                addActivity('試合結果を更新', `MW${m.mw} ${m.h} ${m.hs}-${m.as} ${m.a}`);
+                details.motm = draft.motm ? { name: draft.motm, team: draft.motmTeam } : null;
+                details.appearances = JSON.parse(JSON.stringify(draft.appearances));
+                details.events = JSON.parse(JSON.stringify(draft.events));
+                addActivity('試合結果を更新', `MW${m.mw} ${m.h} ${m.hs}-${m.as} ${m.a}`, { before, after: `${m.hs}-${m.as}` });
                 state.standingsDirty = true;
                 refreshAllViews();
-                persistAppState();
+                const rollbackMatch = cloneMatch(state.lastMatchSnapshot.match);
+                Promise.resolve(persistAppState()).catch(error => {
+                    const index = state.schedule.findIndex(item => item.id === mId);
+                    if (index >= 0) state.schedule[index] = rollbackMatch;
+                    state.standingsDirty = true;
+                    saveStateToStorage();
+                    refreshAllViews();
+                    alert(`${error?.message || '保存に失敗しました。'}\n変更前の状態に戻しました。`);
+                });
             }
+            leagueMatchDrafts.delete(mId);
             document.getElementById('sheet-overlay').classList.remove('active');
         };
 
-        window.updateLeagueGoalOptions = function(mId) { const match = state.schedule.find(item => item.id === mId), team = document.getElementById('league-goal-team')?.value; if (!match || !team) return; document.getElementById('league-goal-player').innerHTML = goalScorerOptions(team); document.getElementById('league-goal-assist').innerHTML = matchEventPlayerOptions(team, 'アシストなし'); document.getElementById('league-goal-assist').disabled = false; };
-        window.addLeagueGoal = function(mId) { const match = state.schedule.find(item => item.id === mId), selectedPlayer = document.getElementById('league-goal-player')?.value; if (!match || !selectedPlayer) return alert('得点者を選択してください。'); const ownGoal = selectedPlayer === OWN_GOAL_VALUE; ensureMatchDetails(match).events.push({ id: `e_${Date.now()}_${Math.random().toString(16).slice(2)}`, type: 'goal', team: document.getElementById('league-goal-team').value, player: ownGoal ? 'オウンゴール' : selectedPlayer, ownGoal, assist: ownGoal ? '' : (document.getElementById('league-goal-assist').value || ''), minute: 0 }); persistAppState(); renderLeagueMatchCenter(match); };
+        window.refreshLeagueParticipantOptions = function(mId) { const match = state.schedule.find(item => item.id === mId); if (!match) return; const draft = captureLeagueMatchDraft(match); if (draft.motm && !allowedMatchPlayers(match, draft.motmTeam, draft).includes(draft.motm)) draft.motm = ''; renderLeagueMatchCenter(match); };
+        window.updateLeagueGoalOptions = function(mId) { const match = state.schedule.find(item => item.id === mId); if (!match) return; const selectedTeam = document.getElementById('league-goal-team')?.value; const draft = captureLeagueMatchDraft(match); if (selectedTeam) draft.goalTeam = selectedTeam; leagueMatchDrafts.set(mId, draft); renderLeagueMatchCenter(match); };
+        window.addLeagueGoal = function(mId) { if (!requireEditMode('得点記録の追加')) return; const match = state.schedule.find(item => item.id === mId), selectedPlayer = document.getElementById('league-goal-player')?.value; if (!match || !selectedPlayer) return alert('得点者を選択してください。'); const draft = captureLeagueMatchDraft(match), team = document.getElementById('league-goal-team').value, allowed = allowedMatchPlayers(match, team, draft), ownGoal = selectedPlayer === OWN_GOAL_VALUE, assist = ownGoal ? '' : (document.getElementById('league-goal-assist').value || ''); if (!ownGoal && !allowed.includes(selectedPlayer)) return alert('得点者は出場選手から選択してください。'); if (assist && (!allowed.includes(assist) || assist === selectedPlayer)) return alert('アシストは同じチームの別の出場選手を選択してください。'); const targetScore = Number(team === match.h ? draft.hs : draft.as); const recorded = draft.events.filter(event => event.type === 'goal' && event.team === team).length; if (!Number.isFinite(targetScore) || String(team === match.h ? draft.hs : draft.as).trim() === '') return alert('先にスコアを入力してください。'); if (recorded >= targetScore) return alert('これ以上追加すると得点記録がスコアを超えます。'); draft.events.push({ id: `e_${Date.now()}_${Math.random().toString(16).slice(2)}`, type: 'goal', team, player: ownGoal ? 'オウンゴール' : selectedPlayer, ownGoal, assist, minute: 0 }); leagueMatchDrafts.set(mId, draft); renderLeagueMatchCenter(match); };
         window.clearScoreInCloud = function(mId) {
+            if (!requireEditMode('スコアの取り消し')) return;
             const m = state.schedule.find(item => item.id === mId);
             if (m) {
                 takeMatchSnapshot(m, 'スコアの取り消し');
@@ -1971,23 +2091,19 @@
             document.getElementById('sheet-overlay').classList.remove('active');
         };
 
-        window.updateMotmPlayerOptions = function() {
-            const teamName = document.getElementById('input-motm-team')?.value;
-            const motm = document.getElementById('input-motm');
-            if (teamName && motm) motm.innerHTML = matchEventPlayerOptions(teamName, 'MOMを選択');
-        };
+        window.updateMotmPlayerOptions = function() {};
 
         window.deleteMatchEvent = function(mId, eventId) {
             const m = state.schedule.find(item => item.id === mId);
             if (!m) return;
             takeMatchSnapshot(m, '試合記録の削除');
-            const details = ensureMatchDetails(m);
-            details.events = details.events.filter(event => event.id !== eventId);
-            addActivity('試合記録を削除', `MW${m.mw} ${m.h} vs ${m.a}`);
-            refreshAllViews();
-            persistAppState();
-            openScoreInputSheet(m.id);
+            const draft = captureLeagueMatchDraft(m);
+            draft.events = draft.events.filter(event => event.id !== eventId);
+            leagueMatchDrafts.set(mId, draft);
+            renderLeagueMatchCenter(m);
         };
+
+        window.dismissLeagueMatchCenter = function(mId) { leagueMatchDrafts.delete(mId); document.getElementById('sheet-overlay').classList.remove('active'); };
 
         window.undoLastMatchChange = function() {
             const snapshot = state.lastMatchSnapshot;
@@ -2136,6 +2252,51 @@
             button?.classList.add('active');
         };
 
+        function openRecommendedTransferView() {
+            const period = getAutomaticTransferPeriod();
+            const recommended = period.key === 'midseason' ? 'midseason' : period.key === 'endseason' ? 'endseason' : 'rosters';
+            const button = document.querySelector(`[data-transfer-tab="${recommended}"]`);
+            switchTransferView(recommended, button);
+        }
+
+        function formatAppDate(value) {
+            const date = value ? new Date(value) : null;
+            return date && !Number.isNaN(date.getTime()) ? date.toLocaleString('ja-JP', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '日時不明';
+        }
+
+        function getRecoverySnapshots() {
+            try { return JSON.parse(localStorage.getItem('fnl-cloud-recovery-v1') || '[]'); }
+            catch (_) { return []; }
+        }
+
+        function countCompletedMatches(payload) {
+            return (payload?.schedule || []).filter(match => match.hs !== null && match.as !== null).length;
+        }
+
+        window.renderAppHistory = function() {
+            const history = document.getElementById('app-history-list');
+            const recovery = document.getElementById('app-recovery-list');
+            if (history) history.innerHTML = state.activityLog.length ? state.activityLog.slice(0, 30).map(item => `<article class="history-card"><div class="history-card-head"><div class="history-card-title">${escapeHtml(item.title || '変更')}</div><time class="history-card-time">${formatAppDate(item.createdAt)}</time></div><div class="history-card-detail">${escapeHtml(item.detail || '')}${item.before !== null && item.before !== undefined ? `<br>変更前：${escapeHtml(String(item.before))}` : ''}${item.after !== null && item.after !== undefined ? `<br>変更後：${escapeHtml(String(item.after))}` : ''}<br>操作：${escapeHtml(item.actor || '共有端末')}</div></article>`).join('') : '<div class="empty-state">変更履歴はありません</div>';
+            const backups = getRecoverySnapshots();
+            if (recovery) recovery.innerHTML = backups.length ? backups.map((item, index) => `<article class="recovery-card"><div><b>${formatAppDate(item.savedAt)}</b><span>Season ${Number(item.payload?.seasonInfo?.number || 1)} ・ 試合結果 ${countCompletedMatches(item.payload)}件</span></div><button class="btn-secondary edit-only" onclick="restoreCloudRecoverySnapshot(${index})">復元</button></article>`).join('') : '<div class="empty-state">この端末のバックアップはまだありません</div>';
+        };
+
+        window.restoreCloudRecoverySnapshot = function(index) {
+            if (!requireEditMode('バックアップの復元')) return;
+            const snapshot = getRecoverySnapshots()[index];
+            if (!snapshot?.payload) return alert('バックアップを読み込めませんでした。');
+            const currentCompleted = countCompletedMatches(state), backupCompleted = countCompletedMatches(snapshot.payload);
+            if (backupCompleted < currentCompleted) return alert('現在より試合結果が少ないバックアップは、安全のため復元できません。');
+            if (!confirm(`${formatAppDate(snapshot.savedAt)} の状態を復元します。\n試合結果 ${backupCompleted}件 / Season ${Number(snapshot.payload.seasonInfo?.number || 1)}\nよろしいですか？`)) return;
+            const fields = ['schedule','news','rosters','transferMarket','activityLog','seasonArchive','seasonInfo','regulations','hirabayashiCup','previousSeasonSnapshot','lastMatchSnapshot'];
+            const before = Object.fromEntries(fields.map(field => [field, JSON.parse(JSON.stringify(state[field] ?? null))]));
+            fields.forEach(field => { if (Object.prototype.hasOwnProperty.call(snapshot.payload, field)) state[field] = JSON.parse(JSON.stringify(snapshot.payload[field])); });
+            addActivity('バックアップを復元', `${formatAppDate(snapshot.savedAt)} の状態`, { before: `試合結果 ${currentCompleted}件`, after: `試合結果 ${backupCompleted}件` });
+            state.standingsDirty = true;
+            refreshAllViews();
+            Promise.resolve(persistAppState()).then(() => { alert('バックアップを復元しました。'); renderAppHistory(); }).catch(error => { fields.forEach(field => { state[field] = before[field]; }); state.standingsDirty = true; saveStateToStorage(); refreshAllViews(); alert(error?.message || '復元に失敗したため、元の状態に戻しました。'); });
+        };
+
         function renderSeasonArchive() {
             const wrap = document.getElementById('season-archive-list');
             if (!wrap) return;
@@ -2162,6 +2323,7 @@
         }
 
         window.archiveCurrentSeason = function(skipConfirmation = false) {
+            if (!requireEditMode('シーズン記録の保存')) return;
             const item = createCurrentSeasonArchive();
             const id = item.id;
             const existing = state.seasonArchive.findIndex(item => item.id === id);
@@ -2186,6 +2348,7 @@
         };
 
         window.openNextSeasonSheet = function() {
+            if (!requireEditMode('次シーズンの開始')) return;
             const info = state.seasonInfo || { number: 1, year: 2026 };
             const market = getMarket();
             const integrity = inspectRosterIntegrity();
@@ -2772,6 +2935,17 @@
             const market = getMarket();
             market.revision = Number(market.revision || 0) + 1;
             const rollback = getMarket().lastSnapshot ? cloneTransferData(getMarket().lastSnapshot) : null;
+            if (!isEditMode()) {
+                if (rollback) {
+                    state.rosters = cloneTransferData(rollback.rosters);
+                    state.transferMarket = cloneTransferData(rollback.transferMarket);
+                    getMarket().lastSnapshot = null;
+                }
+                saveStateToStorage();
+                refreshAllViews();
+                alert('移籍操作は編集モードで行えます。画面上部の「編集」を押してください。');
+                return Promise.resolve(false);
+            }
             const saving = persistAppState().catch(error => {
                 if (rollback) {
                     state.rosters = cloneTransferData(rollback.rosters);
@@ -2811,6 +2985,11 @@
             const isMidseason = currentPeriod.key === 'midseason';
             const isEndseason = currentPeriod.key === 'endseason';
             if (phaseBanner) phaseBanner.innerHTML = `<div class="transfer-status-card"><div class="transfer-status-label">現在の期間</div><div class="transfer-status-title">${escapeHtml(currentPeriod.label)}</div><div class="transfer-status-copy">${escapeHtml(currentPeriod.description)}</div></div>`;
+            const quickGuide = document.getElementById('transfer-quick-guide');
+            if (quickGuide) {
+                const nextAction = isMidseason ? '放出選手を確定し、希望する選手を提出してください。' : isEndseason ? 'プロテクト選手を登録し、ドラフト指名へ進んでください。' : '各クラブの選手名簿を確認・登録してください。';
+                quickGuide.innerHTML = `<b>次にすること</b><span>${escapeHtml(nextAction)}</span>`;
+            }
             if (checklist) checklist.innerHTML = renderTransferChecklist();
             setTransferControlState('add-player-button', isPreseason, '選手登録はシーズン準備期間のみ利用できます');
             setTransferControlState('add-market-player-button', isMidseason, '移籍希望の登録はシーズン中間移籍市場のみ利用できます');
@@ -2827,7 +3006,7 @@
             const candidates = getAvailablePlayers();
             summary.innerHTML = `
                 <div class="transfer-summary-card"><div class="transfer-summary-label">登録選手</div><div class="transfer-summary-value">${registered.length}</div></div>
-                <div class="transfer-summary-card"><div class="transfer-summary-label">市場選手</div><div class="transfer-summary-value">${candidates.length}</div></div>
+                <div class="transfer-summary-card"><div class="transfer-summary-label">移籍候補</div><div class="transfer-summary-value">${candidates.length}</div></div>
                 <div class="transfer-summary-card"><div class="transfer-summary-label">確定移籍</div><div class="transfer-summary-value">${market.draftResults.length}</div></div>`;
             rosterList.innerHTML = `<div class="roster-team-grid">${RAW_TEAMS.map(team => {
                 const counts = getRosterCounts(team.id);
@@ -2867,7 +3046,7 @@
         window.openRosterSheet = function(teamId, repairMode = false) {
             const team = RAW_TEAMS.find(item => item.id === teamId);
             if (!team) return;
-            const canEditRoster = getAutomaticTransferPeriod().key === 'preseason' || repairMode;
+            const canEditRoster = isEditMode() && (getAutomaticTransferPeriod().key === 'preseason' || repairMode);
             const counts = getRosterCounts(teamId);
             const players = getRoster(teamId).filter(player => player.status !== 'released' && player.status !== 'transferred');
             const positions = ['FW', 'MF', 'DF', 'GK'];
@@ -2883,11 +3062,12 @@
                 <div class="roster-sheet-hero"><img src="${team.logo}" class="team-logo-lg" alt=""><div class="roster-sheet-title">${escapeHtml(team.name)}</div><div class="roster-sheet-subtitle">SQUAD LIST · ${counts.total} PLAYERS</div><div class="roster-composition-grid">${positions.map(position => `<div class="roster-composition-item"><div class="roster-composition-position">${position}</div><div class="roster-composition-count">${positionCounts[position]}</div></div>`).join('')}</div><div class="roster-sheet-summary"><span>登録 ${counts.total}/25</span><span>特別 ${counts.special}/18</span><span>ノーマル ${counts.normal}</span></div></div>
                 ${repairMode ? '<div class="market-note">整合性修正モードです。問題を減らす変更だけを、理由付きで保存できます。</div>' : canEditRoster ? '' : '<div class="market-note">名簿の追加・削除はシーズン準備期間のみ利用できます。</div>'}
                 <div class="roster-list-heading"><strong>選手一覧</strong><span>ポジション別</span></div>${playerRows}
-                <button class="btn-primary" style="margin-top:1rem;" onclick="openAddPlayerSheet('${teamId}',${repairMode})" ${canEditRoster ? '' : 'disabled'}>このチームに選手を登録</button>`;
+                <button class="btn-primary edit-only" style="margin-top:1rem;" onclick="openAddPlayerSheet('${teamId}',${repairMode})" ${canEditRoster ? '' : 'disabled'}>このチームに選手を登録</button>`;
             document.getElementById('sheet-overlay').classList.add('active');
         };
 
         window.openAddPlayerSheet = function(defaultTeamId = '', repairMode = false) {
+            if (!requireEditMode('選手登録')) return;
             if (!repairMode && !requireTransferPeriod('preseason', '選手登録')) return;
             const teamOptions = RAW_TEAMS.map(team => `<option value="${team.id}" ${team.id === defaultTeamId ? 'selected' : ''}>${escapeHtml(team.name)}</option>`).join('');
             document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:1rem;"><h3>${repairMode ? '名簿整合性を修正' : '選手を登録'}</h3><p style="font-size:0.72rem;color:var(--text-muted);">${repairMode ? '現在の問題を減らす変更だけ保存できます' : 'チームの選手名簿を全員で更新できます'}</p></div><input id="roster-repair-mode" type="hidden" value="${repairMode ? '1' : '0'}"><div class="form-group"><label class="form-label">所属チーム</label><select id="player-team" class="form-select">${teamOptions}</select></div><div class="form-group"><label class="form-label">選手名</label><input id="player-name" class="form-input" maxlength="40" placeholder="例：L. Messi"></div><div class="form-group"><label class="form-label">ポジション</label><select id="player-position" class="form-select"><option>FW</option><option>MF</option><option>DF</option><option>GK</option><option value="">未登録</option></select></div><div class="form-group"><label class="form-label">カード種別</label><select id="player-card-type" class="form-select"><option value="normal">ノーマルカード</option><option value="special">特別カード</option></select></div>${repairMode ? '<div class="form-group"><label class="form-label">修正理由</label><input id="roster-repair-reason" class="form-input" maxlength="80" placeholder="例：既存名簿のノーマルカード不足を修正"></div>' : ''}<button class="btn-primary" onclick="savePlayerToRoster()">登録して全員に同期</button>`;
@@ -2895,6 +3075,7 @@
         };
 
         window.savePlayerToRoster = function() {
+            if (!requireEditMode('選手登録')) return;
             const repairMode = document.getElementById('roster-repair-mode')?.value === '1';
             if (!repairMode && !requireTransferPeriod('preseason', '選手登録')) return;
             const teamId = document.getElementById('player-team').value;
@@ -3885,6 +4066,7 @@
         }
 
         window.openCupDrawCeremony = function() {
+            if (!requireEditMode('平林杯グループ抽選')) return;
             const cup = ensureHirabayashiCupState();
             if (cup.groupDraw?.locked) return alert('グループの組み合わせは確定済みです。');
             if (!state.schedule.length || !state.schedule.every(isMatchCompleted)) return alert('リーグ全日程の結果が確定してから抽選できます。');
@@ -3896,6 +4078,7 @@
         };
 
         window.runCupGroupDraw = function() {
+            if (!requireEditMode('平林杯グループ抽選')) return;
             const cup = ensureHirabayashiCupState();
             if (cup.groupDraw?.locked) return alert('グループの組み合わせは確定済みです。');
             if (!state.schedule.length || !state.schedule.every(isMatchCompleted)) return alert('リーグ全日程の結果が確定してから抽選できます。');
@@ -3920,6 +4103,7 @@
         };
 
         window.openCupGroupSetup = function() {
+            if (!requireEditMode('平林杯グループ編成')) return;
             const cup = ensureHirabayashiCupState();
             if (cup.groupDraw?.locked) return alert('グループの組み合わせは確定済みのため変更できません。');
             if (cup.groupDraw?.method === 'ranked-pots') return alert('グループ編成はリーグ終了後の抽選会からのみ確定できます。');
@@ -3930,6 +4114,7 @@
             document.getElementById('sheet-overlay').classList.add('active');
         };
         window.saveCupGroupSetup = function() {
+            if (!requireEditMode('平林杯グループ編成')) return;
             const cup = ensureHirabayashiCupState();
             if (cup.groupDraw?.locked) return alert('グループの組み合わせは確定済みのため変更できません。');
             if (cup.groupDraw?.method === 'ranked-pots') return alert('グループ編成はリーグ終了後の抽選会からのみ確定できます。');
@@ -3944,12 +4129,14 @@
             persistAppState(); document.getElementById('sheet-overlay').classList.remove('active'); renderHirabayashiCup();
         };
         window.createCupRepechage = function() {
+            if (!requireEditMode('敗者復活戦の作成')) return;
             const cup = ensureHirabayashiCupState(), teams = getCupQualifiers().thirds;
             if (teams.length !== 3) return alert('各組の順位が確定してから作成してください。');
             cup.repechageMatches = [[0,1],[1,2],[2,0]].map(([h,a], index) => ({ id: `hc_r_${index + 1}`, stage: 'repechage', label: '敗者復活戦', h: teams[h], a: teams[a], hs: null, as: null, pkWinner: '', details: { events: [], motm: null } }));
             cup.activeTab = 'repechage'; persistAppState(); renderHirabayashiCup();
         };
         window.createCupKnockout = function() {
+            if (!requireEditMode('決勝トーナメントの作成')) return;
             const cup = ensureHirabayashiCupState();
             if (!createCupKnockoutMatches()) return alert('決勝トーナメントの進出クラブが確定していません。');
             cup.activeTab = 'bracket'; persistAppState(); renderHirabayashiCup();
@@ -3963,15 +4150,16 @@
             const goalEvents = details.events.filter(event => event.type === 'goal');
             document.getElementById('sheet-body').innerHTML = `
                 <div class="match-center-header"><div class="match-center-kicker">HIRABAYASHI CUP · ${isLeagueRound ? 'GROUP / REPECHAGE' : 'KNOCKOUT'}</div><h3 class="match-center-title">${escapeHtml(match.label)}</h3><div class="match-center-subtitle">試合時間 ${matchTime} ・ ${roundRule}</div></div>
+                ${!isEditMode() ? '<div class="view-mode-note">現在は閲覧モードです。記録を変更する場合は画面上部の「編集」を押してください。</div>' : ''}
                 <div class="match-center-scoreboard">
-                    <div class="match-center-team"><img src="${getTeamLogo(match.h)}" alt=""><div class="match-center-team-name">${escapeHtml(match.h)}</div><div class="match-center-score-caption">得点</div><input type="number" id="cup-hs" class="form-input match-center-score-input" min="0" inputmode="numeric" value="${match.hs ?? ''}" placeholder="0"></div>
+                    <div class="match-center-team"><img src="${getTeamLogo(match.h)}" alt=""><div class="match-center-team-name">${escapeHtml(match.h)}</div><div class="match-center-score-caption">得点</div><input data-record-input type="number" id="cup-hs" class="form-input match-center-score-input" min="0" max="20" inputmode="numeric" value="${match.hs ?? ''}" placeholder="0"></div>
                     <div class="match-center-versus">VS</div>
-                    <div class="match-center-team"><img src="${getTeamLogo(match.a)}" alt=""><div class="match-center-team-name">${escapeHtml(match.a)}</div><div class="match-center-score-caption">得点</div><input type="number" id="cup-as" class="form-input match-center-score-input" min="0" inputmode="numeric" value="${match.as ?? ''}" placeholder="0"></div>
+                    <div class="match-center-team"><img src="${getTeamLogo(match.a)}" alt=""><div class="match-center-team-name">${escapeHtml(match.a)}</div><div class="match-center-score-caption">得点</div><input data-record-input type="number" id="cup-as" class="form-input match-center-score-input" min="0" max="20" inputmode="numeric" value="${match.as ?? ''}" placeholder="0"></div>
                 </div>
-                <div class="form-group"><label class="form-label">同点時のPK勝者</label><select id="cup-pk" class="form-select"><option value="">PKなし / 未選択</option><option value="${escapeHtml(match.h)}" ${match.pkWinner === match.h ? 'selected' : ''}>${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}" ${match.pkWinner === match.a ? 'selected' : ''}>${escapeHtml(match.a)}</option></select></div>
+                <div class="form-group"><label class="form-label">同点時のPK勝者</label><select data-record-input id="cup-pk" class="form-select"><option value="">PKなし / 未選択</option><option value="${escapeHtml(match.h)}" ${match.pkWinner === match.h ? 'selected' : ''}>${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}" ${match.pkWinner === match.a ? 'selected' : ''}>${escapeHtml(match.a)}</option></select></div>
                 <div class="match-center-section"><div class="match-center-section-heading"><span>試合情報</span></div><div class="match-center-core"><span class="match-center-core-label">MOM</span><div class="match-center-mom"><select id="cup-motm-team" class="form-select" onchange="updateCupMotmOptions('${match.id}')"><option value="${escapeHtml(match.h)}" ${motmTeam === match.h ? 'selected' : ''}>${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}" ${motmTeam === match.a ? 'selected' : ''}>${escapeHtml(match.a)}</option></select><select id="cup-motm" class="form-select">${matchEventPlayerOptions(motmTeam, 'MOMを選択', details.motm?.name || '')}</select></div><span class="match-center-core-label">出場選手</span><div class="match-center-lineup-grid"><div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(match.h)}" alt="">${escapeHtml(match.h)}</div>${renderAppearancePicker(match.h, 'cup-home', details.appearances.home)}</div><div class="match-center-lineup"><div class="match-center-lineup-name"><img src="${getTeamLogo(match.a)}" alt="">${escapeHtml(match.a)}</div>${renderAppearancePicker(match.a, 'cup-away', details.appearances.away)}</div></div></div></div>
-                <div class="match-center-section"><div class="match-center-section-heading"><span>得点記録</span></div><div class="event-entry-card"><div class="form-group"><label class="form-label">得点が入ったチーム</label><select id="cup-goal-team" class="form-select" onchange="updateCupGoalOptions('${match.id}')"><option value="${escapeHtml(match.h)}">${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}">${escapeHtml(match.a)}</option></select></div><div class="form-group"><label class="form-label">得点者</label><select id="cup-goal-player" class="form-select" onchange="updateGoalAssistAvailability('cup-goal-player','cup-goal-assist')">${goalScorerOptions(match.h)}</select></div><div class="form-group"><label class="form-label">アシスト</label><select id="cup-goal-assist" class="form-select">${matchEventPlayerOptions(match.h, 'アシストなし')}</select></div></div><button class="btn-secondary" style="width:100%;" onclick="addCupGoal('${match.id}')">得点を追加</button><div class="match-center-events">${goalEvents.length ? goalEvents.map(event => `<div class="event-row"><div class="ranking-main"><div class="match-event-type">${isOwnGoalEvent(event) ? 'OWN GOAL' : 'GOAL'}</div><div class="ranking-name">${escapeHtml(event.player)}</div><div class="ranking-team">${escapeHtml(event.team)}${event.assist ? ` ・ AS ${escapeHtml(event.assist)}` : ''}</div></div><button class="btn-secondary" onclick="deleteCupEvent('${match.id}','${event.id}')">削除</button></div>`).join('') : '<div class="empty-state">得点記録はまだありません</div>'}</div></div>
-                <div class="match-center-save-bar"><button class="btn-primary match-center-save" onclick="saveCupMatch('${match.id}')">試合結果を保存</button></div>
+                <div class="match-center-section"><div class="match-center-section-heading"><span>得点記録</span></div><div class="event-entry-card edit-only"><div class="form-group"><label class="form-label">得点したチーム</label><select id="cup-goal-team" class="form-select" onchange="updateCupGoalOptions('${match.id}')"><option value="${escapeHtml(match.h)}">${escapeHtml(match.h)}</option><option value="${escapeHtml(match.a)}">${escapeHtml(match.a)}</option></select></div><div class="form-group"><label class="form-label">得点者</label><select id="cup-goal-player" class="form-select" onchange="updateGoalAssistAvailability('cup-goal-player','cup-goal-assist')">${goalScorerOptions(match.h)}</select></div><div class="form-group"><label class="form-label">アシスト</label><select id="cup-goal-assist" class="form-select">${matchEventPlayerOptions(match.h, 'アシストなし')}</select></div></div><button class="btn-secondary edit-only" style="width:100%;" onclick="addCupGoal('${match.id}')">得点を追加</button><div class="match-center-events">${goalEvents.length ? goalEvents.map(event => `<div class="event-row"><div class="ranking-main"><div class="match-event-type">${isOwnGoalEvent(event) ? 'OWN GOAL' : 'GOAL'}</div><div class="ranking-name">${escapeHtml(event.player)}</div><div class="ranking-team">${escapeHtml(event.team)}${event.assist ? ` ・ AS ${escapeHtml(event.assist)}` : ''}</div></div><button class="btn-secondary edit-only" onclick="deleteCupEvent('${match.id}','${event.id}')">削除</button></div>`).join('') : '<div class="empty-state">得点記録はまだありません</div>'}</div></div>
+                <div class="match-center-save-bar edit-only"><button class="btn-primary match-center-save" onclick="saveCupMatch('${match.id}')">試合結果を保存</button></div>
                 <button class="btn-secondary event-entry-back" onclick="closeCupSheet()">閉じる</button>`;
         }
 
@@ -3980,11 +4168,12 @@
             renderCupMatchCenter(match);
             document.getElementById('sheet-overlay').classList.add('active');
         };
-        window.updateCupGoalOptions = function(matchId) { const match = getCupMatch(matchId), team = document.getElementById('cup-goal-team')?.value; if (!match || !team) return; document.getElementById('cup-goal-player').innerHTML = goalScorerOptions(team); document.getElementById('cup-goal-assist').innerHTML = matchEventPlayerOptions(team, 'アシストなし'); document.getElementById('cup-goal-assist').disabled = false; };
-        window.updateCupMotmOptions = function(matchId) { const match = getCupMatch(matchId), team = document.getElementById('cup-motm-team')?.value; if (!match || !team) return; document.getElementById('cup-motm').innerHTML = matchEventPlayerOptions(team, 'MOMを選択'); };
-        window.addCupGoal = function(matchId) { const match = getCupMatch(matchId), selectedPlayer = document.getElementById('cup-goal-player')?.value; if (!match || !selectedPlayer) return alert('得点者を選択してください。'); const ownGoal = selectedPlayer === OWN_GOAL_VALUE; ensureCupDetails(match).events.push({ id: `hc_e_${Date.now()}`, type: 'goal', team: document.getElementById('cup-goal-team').value, player: ownGoal ? 'オウンゴール' : selectedPlayer, ownGoal, assist: ownGoal ? '' : (document.getElementById('cup-goal-assist').value || '') }); persistAppState(); renderCupMatchCenter(match); };
-        window.saveCupMatch = function(matchId) { const match = getCupMatch(matchId), hs = document.getElementById('cup-hs')?.value, as = document.getElementById('cup-as')?.value, pkWinner = document.getElementById('cup-pk')?.value || ''; if (!match || hs === '' || as === '') return alert('両チームの得点を入力してください。'); if (Number(hs) === Number(as) && !pkWinner) return alert('同点の場合はPK勝者を選択してください。'); if (Number(hs) !== Number(as) && pkWinner) return alert('PK勝者は同点の場合だけ選択できます。'); match.hs = Number(hs); match.as = Number(as); match.pkWinner = pkWinner; const details = ensureCupDetails(match), motm = document.getElementById('cup-motm')?.value.trim(); details.motm = motm ? { name: motm, team: document.getElementById('cup-motm-team').value } : null; details.appearances = { home: [...document.querySelectorAll('[data-appearance="cup-home"]:checked')].map(input => input.value), away: [...document.querySelectorAll('[data-appearance="cup-away"]:checked')].map(input => input.value) }; syncCupKnockout(); persistAppState(); document.getElementById('sheet-overlay').classList.remove('active'); renderHirabayashiCup(); };
-        window.deleteCupEvent = function(matchId, eventId) { const match = getCupMatch(matchId); if (!match) return; ensureCupDetails(match).events = ensureCupDetails(match).events.filter(event => event.id !== eventId); persistAppState(); openCupMatchSheet(matchId); };
+        function getCupSelectedAppearances(match, team) { const side = team === match.h ? 'home' : 'away'; return [...document.querySelectorAll(`[data-appearance="cup-${side}"]:checked`)].map(input => input.value); }
+        window.updateCupGoalOptions = function(matchId) { const match = getCupMatch(matchId), team = document.getElementById('cup-goal-team')?.value; if (!match || !team) return; const players = getCupSelectedAppearances(match, team); document.getElementById('cup-goal-player').innerHTML = goalScorerOptions(team, players); document.getElementById('cup-goal-assist').innerHTML = matchEventPlayerOptions(team, 'アシストなし', '', players); document.getElementById('cup-goal-assist').disabled = false; };
+        window.updateCupMotmOptions = function(matchId) { const match = getCupMatch(matchId), team = document.getElementById('cup-motm-team')?.value; if (!match || !team) return; document.getElementById('cup-motm').innerHTML = matchEventPlayerOptions(team, 'MOMを選択', '', getCupSelectedAppearances(match, team)); };
+        window.addCupGoal = function(matchId) { if (!requireEditMode('得点記録の追加')) return; const match = getCupMatch(matchId), selectedPlayer = document.getElementById('cup-goal-player')?.value; if (!match || !selectedPlayer) return alert('得点者を選択してください。'); const team = document.getElementById('cup-goal-team').value, allowed = getCupSelectedAppearances(match, team), ownGoal = selectedPlayer === OWN_GOAL_VALUE, assist = ownGoal ? '' : (document.getElementById('cup-goal-assist').value || ''), score = Number(team === match.h ? document.getElementById('cup-hs')?.value : document.getElementById('cup-as')?.value), recorded = ensureCupDetails(match).events.filter(event => event.type === 'goal' && event.team === team).length; if (!ownGoal && !allowed.includes(selectedPlayer)) return alert('得点者は出場選手から選択してください。'); if (assist && (!allowed.includes(assist) || assist === selectedPlayer)) return alert('アシストは同じチームの別の出場選手を選択してください。'); if (!Number.isFinite(score)) return alert('先にスコアを入力してください。'); if (recorded >= score) return alert('これ以上追加すると得点記録がスコアを超えます。'); ensureCupDetails(match).events.push({ id: `hc_e_${Date.now()}`, type: 'goal', team, player: ownGoal ? 'オウンゴール' : selectedPlayer, ownGoal, assist }); persistAppState(); renderCupMatchCenter(match); };
+        window.saveCupMatch = function(matchId) { if (!requireEditMode('平林杯の試合結果保存')) return; const match = getCupMatch(matchId), hs = document.getElementById('cup-hs')?.value, as = document.getElementById('cup-as')?.value, pkWinner = document.getElementById('cup-pk')?.value || ''; if (!match || hs === '' || as === '') return alert('両チームの得点を入力してください。'); if (!Number.isInteger(Number(hs)) || !Number.isInteger(Number(as)) || Number(hs) < 0 || Number(as) < 0 || Number(hs) > 20 || Number(as) > 20) return alert('スコアは0〜20の整数で入力してください。'); if (Number(hs) === Number(as) && !pkWinner) return alert('同点の場合はPK勝者を選択してください。'); if (Number(hs) !== Number(as) && pkWinner) return alert('PK勝者は同点の場合だけ選択できます。'); const totals = getRecordedGoalTotals(match); if (totals.home > Number(hs) || totals.away > Number(as)) return alert('得点記録の数がスコアを超えています。'); if (!confirm(`${match.h} ${Number(hs)} - ${Number(as)} ${match.a}\nこの内容で保存しますか？`)) return; const before = `${match.hs ?? '-'}-${match.as ?? '-'}`; match.hs = Number(hs); match.as = Number(as); match.pkWinner = pkWinner; const details = ensureCupDetails(match), motm = document.getElementById('cup-motm')?.value.trim(); details.motm = motm ? { name: motm, team: document.getElementById('cup-motm-team').value } : null; details.appearances = { home: [...document.querySelectorAll('[data-appearance="cup-home"]:checked')].map(input => input.value), away: [...document.querySelectorAll('[data-appearance="cup-away"]:checked')].map(input => input.value) }; addActivity('平林杯の試合結果を更新', `${match.label} ${match.h} ${match.hs}-${match.as} ${match.a}`, { before, after: `${match.hs}-${match.as}` }); syncCupKnockout(); persistAppState(); document.getElementById('sheet-overlay').classList.remove('active'); renderHirabayashiCup(); };
+        window.deleteCupEvent = function(matchId, eventId) { if (!requireEditMode('得点記録の削除')) return; const match = getCupMatch(matchId); if (!match) return; ensureCupDetails(match).events = ensureCupDetails(match).events.filter(event => event.id !== eventId); persistAppState(); openCupMatchSheet(matchId); };
         window.closeCupSheet = function() { document.getElementById('sheet-overlay').classList.remove('active'); renderHirabayashiCup(); };
 
         function renderRules() {
@@ -4376,6 +4565,7 @@
             };
             focusMatchweekChip(latestResultMw, 'auto');
 
+            applyEditMode();
             refreshAllViews();
             renderNews();
         }
@@ -4388,7 +4578,7 @@
         }
     </script>
 <script src="./firebase-config.js"></script>
-<script type="module" src="./firebase-sync.js?v=6"></script>
+<script type="module" src="./firebase-sync.js?v=7"></script>
 <script>
     if ('serviceWorker' in navigator) {
         let refreshingForUpdate = false;
@@ -4398,7 +4588,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=82', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=83', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
