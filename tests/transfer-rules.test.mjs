@@ -68,3 +68,12 @@ assert.equal(invalidTrade.valid, false);
 assert.match(invalidTrade.errors.join(' '), /ノーマルカードが7名未満/);
 
 console.log('transfer rule tests passed');
+
+assert.match(html, /make\('hc_qf1', '準々決勝 1', seeds\.a1, seeds\.r2\)/);
+assert.match(html, /make\('hc_qf2', '準々決勝 2', seeds\.b2, seeds\.c2\)/);
+assert.match(html, /make\('hc_qf3', '準々決勝 3', seeds\.a2, seeds\.c1\)/);
+assert.match(html, /make\('hc_qf4', '準々決勝 4', seeds\.r1, seeds\.b1\)/);
+assert.match(html, /setTeams\('hc_sf1', cupWinner\(qf\[0\]\), cupWinner\(qf\[1\]\)/);
+assert.match(html, /setTeams\('hc_sf2', cupWinner\(qf\[2\]\), cupWinner\(qf\[3\]\)/);
+assert.match(html, /setTeams\('hc_final', cupWinner\(sf1\), cupWinner\(sf2\)/);
+console.log('Hirabayashi Cup bracket tests passed');
