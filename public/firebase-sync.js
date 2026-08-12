@@ -30,6 +30,7 @@ let lastSyncedPayload = null;
 let pendingRemotePayload = null;
 let pendingSaveCount = 0;
 let saveQueue = Promise.resolve();
+let initialCloudStateLoaded = false;
 
 const syncFields = [
   "schedule",
@@ -48,6 +49,21 @@ const syncFields = [
 const cloneData = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 const sameData = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 const currentStatePayload = () => Object.fromEntries(syncFields.map(field => [field, cloneData(state[field])]));
+const cloudRecoveryKey = "fnl-cloud-recovery-v1";
+
+function storeCloudRecoverySnapshot(remote) {
+  if (!remote || !Array.isArray(remote.schedule)) return;
+  try {
+    const existing = JSON.parse(localStorage.getItem(cloudRecoveryKey) || "[]");
+    const marker = remote.updatedAt || remote.serverUpdatedAt?.toDate?.()?.toISOString?.() || "";
+    if (existing[0]?.marker === marker && marker) return;
+    const payload = Object.fromEntries(syncFields.map(field => [field, cloneData(remote[field])]));
+    const next = [{ marker, savedAt: new Date().toISOString(), payload }, ...existing].slice(0, 2);
+    localStorage.setItem(cloudRecoveryKey, JSON.stringify(next));
+  } catch (error) {
+    console.warn("Cloud recovery snapshot could not be stored", error);
+  }
+}
 
 function mergeArrayById(remoteItems, localItems, baseItems, idKey) {
   if (!Array.isArray(remoteItems) || !Array.isArray(localItems) || !Array.isArray(baseItems)) return localItems;
@@ -283,10 +299,13 @@ function startListening() {
   unsubscribe = onSnapshot(leagueRef, (snapshot) => {
     if (!snapshot.exists()) {
       lastSyncedPayload = currentStatePayload();
+      initialCloudStateLoaded = true;
       setStatus("クラウド同期準備完了", true);
       return;
     }
     const remote = snapshot.data();
+    initialCloudStateLoaded = true;
+    storeCloudRecoverySnapshot(remote);
     pendingRemotePayload = remote;
     if (pendingSaveCount) return;
     applyRemoteState(remote);
@@ -298,6 +317,9 @@ function startListening() {
 
 state.dbSaveFn = () => {
   if (applyingRemote) return Promise.resolve();
+  if (!initialCloudStateLoaded || !lastSyncedPayload) {
+    return Promise.reject(new Error("クラウドの最新データを読み込み中です。数秒待ってからもう一度保存してください。"));
+  }
   const localPayload = currentStatePayload();
   const basePayload = lastSyncedPayload ? cloneData(lastSyncedPayload) : null;
   pendingSaveCount += 1;
@@ -312,6 +334,7 @@ state.dbSaveFn = () => {
     await runTransaction(db, async transaction => {
       const snapshot = await transaction.get(leagueRef);
       const remote = snapshot.exists() ? snapshot.data() : {};
+      storeCloudRecoverySnapshot(remote);
       if (basePayload && changedFields.includes("transferMarket") && !sameData(remote.transferMarket, basePayload.transferMarket)) {
         throw new Error("他の端末で移籍市場が更新されました。最新状態を読み込んでからもう一度操作してください。");
       }

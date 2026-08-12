@@ -86,4 +86,8 @@ assert.match(html, /standings\.slice\(0, 3\), standings\.slice\(3, 6\), standing
 assert.match(html, /if \(cup\.groupDraw\?\.locked\) return alert\('グループの組み合わせは確定済み/);
 assert.match(firebaseSync, /remote\.hirabayashiCup\?\.groupDraw\?\.locked/);
 assert.match(firebaseSync, /平林杯のグループ組み合わせは確定済みのため変更できません/);
+assert.match(firebaseSync, /let initialCloudStateLoaded = false/);
+assert.match(firebaseSync, /if \(!initialCloudStateLoaded \|\| !lastSyncedPayload\)/);
+assert.match(firebaseSync, /storeCloudRecoverySnapshot\(remote\)/);
+assert.doesNotMatch(html, /cupGroupMigrationSavePending/);
 console.log('Hirabayashi Cup group draw tests passed');

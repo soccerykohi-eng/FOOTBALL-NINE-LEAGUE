@@ -1328,8 +1328,6 @@
             };
         }
 
-        let cupGroupMigrationSavePending = false;
-
         function ensureHirabayashiCupState() {
             if (!state.hirabayashiCup || typeof state.hirabayashiCup !== 'object') state.hirabayashiCup = createHirabayashiCupState();
             const cup = state.hirabayashiCup;
@@ -1348,7 +1346,6 @@
                 cup.repechageMatches = [];
                 cup.knockoutMatches = [];
                 cup.groupDraw = { locked: true, method: 'fixed-2026', season: 1, currentFixedApplied: true, confirmedAt: new Date().toISOString(), standingsSnapshot: [] };
-                cupGroupMigrationSavePending = true;
             }
             return cup;
         }
@@ -3813,10 +3810,6 @@
             const wrap = document.getElementById('hirabayashi-cup-content');
             if (!wrap) return;
             const cup = ensureHirabayashiCupState();
-            if (cupGroupMigrationSavePending && state.dbSaveFn) {
-                cupGroupMigrationSavePending = false;
-                setTimeout(() => persistAppState().catch(error => console.error('Cup group migration failed', error)), 0);
-            }
             syncCupKnockout();
             const qualifiers = getCupQualifiers();
             const activeGroup = cup.activeGroup;
@@ -4388,7 +4381,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=75', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=76', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
