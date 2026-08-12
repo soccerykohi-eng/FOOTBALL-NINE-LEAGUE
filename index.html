@@ -932,6 +932,7 @@
                 <div class="section-title">移籍センター</div>
             </div>
             <div id="market-phase-banner" style="margin-top:0.45rem;"></div>
+            <div id="transfer-checklist"></div>
             <div class="transfer-summary-grid" id="player-summary"></div>
             <div class="transfer-tab-bar">
                 <button class="transfer-tab-button active" data-transfer-tab="rosters" onclick="switchTransferView('rosters',this)">名簿</button>
@@ -958,7 +959,7 @@
             </details>
             <details class="market-step">
                 <summary><span>3. 希望を提出して確定<span class="market-step-copy">希望を提出した後にドラフトを確定します</span></span></summary>
-                <div class="market-step-body"><div style="display:flex;justify-content:flex-end;margin-bottom:0.55rem;"><button id="midseason-draft-button" class="btn-secondary" onclick="openDraftBoardSheet()">希望を提出</button></div><div id="draft-club-list"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.7rem;"><button id="midseason-run-draft-button" class="btn-primary" onclick="runAutomaticDraft()">ドラフトを確定</button><button id="undo-transfer-button" class="btn-secondary" onclick="undoLastTransferChange()">直前を戻す</button></div></div>
+                <div class="market-step-body"><div class="market-note" style="margin-bottom:.65rem;">現在の仕様は、9位のクラブが指名枠をまとめて獲得してから8位へ進みます。巡ごとに回す方式は規約上未確定のため、運営確認が必要です。</div><div style="display:flex;justify-content:flex-end;margin-bottom:0.55rem;"><button id="midseason-draft-button" class="btn-secondary" onclick="openDraftBoardSheet()">希望を提出</button></div><div id="draft-club-list"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.7rem;"><button id="midseason-preview-button" class="btn-secondary" onclick="openMidseasonDraftPreview()">確定前チェック</button><button id="midseason-run-draft-button" class="btn-primary" onclick="runAutomaticDraft()">ドラフトを確定</button></div><button id="undo-transfer-button" class="btn-secondary" style="width:100%;margin-top:.5rem" onclick="undoLastTransferChange()">直前を戻す</button></div>
             </details>
             <details class="market-step">
                 <summary><span>確定結果</span></summary>
@@ -966,7 +967,7 @@
             </details>
             </div>
             <div class="transfer-pane" id="transfer-pane-trades">
-            <div class="section-header transfer-pane-header"><div class="section-title">公開中の選手</div><button id="trade-listing-button" class="btn-secondary" onclick="openTradeListingSheet()">選手を公開</button></div>
+            <div class="section-header transfer-pane-header"><div class="section-title">公開中の選手</div><div style="display:flex;gap:.4rem"><button id="trade-listing-button" class="btn-secondary" onclick="openTradeListingSheet()">選手を公開</button><button id="trade-close-button" class="btn-secondary" onclick="closeMidseasonTrades()">受付終了</button></div></div>
             <div id="trade-listing-list"></div>
             <div class="transfer-step-title">届いた提案</div>
             <div id="trade-offer-list"></div>
@@ -985,6 +986,7 @@
             <div class="transfer-pane" id="transfer-pane-history">
             <div class="section-header transfer-pane-header"><div class="section-title">移籍履歴</div></div>
             <div id="transfer-history-list"></div>
+            <details class="market-step" style="margin-top:.7rem"><summary><span>操作監査ログ<span class="market-step-copy">確定・取消・市場終了などの記録</span></span></summary><div class="market-step-body" id="transfer-audit-list"></div></details>
             </div>
         </section>
 
@@ -1895,6 +1897,10 @@
             const awayAppearances = selectedPlayers('league-away');
             const m = state.schedule.find(item => item.id === mId);
             if (m) {
+                if (Number(m.mw) >= 10 && !isMatchCompleted(m) && !isMidseasonCompleted()) {
+                    alert('中間移籍市場が完了していないため、MW10以降の結果は確定できません。移籍センターのチェックリストを確認してください。');
+                    return;
+                }
                 const homeScore = parseInt(hsVal, 10);
                 const awayScore = parseInt(asVal, 10);
                 const totals = getRecordedGoalTotals(m);
@@ -2151,6 +2157,16 @@
 
         window.openNextSeasonSheet = function() {
             const info = state.seasonInfo || { number: 1, year: 2026 };
+            const market = getMarket();
+            const integrity = inspectRosterIntegrity();
+            if (market.endDraft.phase !== 'completed' || !areAllProtectionsConfirmed() || !market.endDraft.roundOneResults.length || !integrity.valid) {
+                const reasons = [];
+                if (!areAllProtectionsConfirmed()) reasons.push('全クラブのプロテクト未完了');
+                if (!market.endDraft.roundOneResults.length) reasons.push('1巡目未完了');
+                if (market.endDraft.phase !== 'completed') reasons.push('ウェーバードラフト未完了');
+                if (!integrity.valid) reasons.push('名簿整合性チェック未合格');
+                return alert(`終了時移籍市場が完了していないため、次シーズンを開始できません。\n${reasons.join('\n')}`);
+            }
             document.getElementById('sheet-body').innerHTML = `
                 <div style="text-align:center;margin-bottom:1rem;"><h3>次のシーズンを開始</h3></div>
                 <div class="market-note" style="margin-bottom:0.8rem;">現在の記録を自動保存して試合結果・選手成績を初期化します。9チームをA〜Iへランダムに割り当て、全18マッチウィークの日程を自動生成します。チーム、エンブレム、選手名簿、ニュースは引き継ぎます。</div>
@@ -2161,6 +2177,11 @@
         };
 
         window.startNextSeason = function() {
+            const currentMarket = getMarket();
+            const currentIntegrity = inspectRosterIntegrity();
+            if (currentMarket.endDraft.phase !== 'completed' || !areAllProtectionsConfirmed() || !currentMarket.endDraft.roundOneResults.length || !currentIntegrity.valid) {
+                return alert('終了時移籍市場と名簿整合性チェックが完了していないため、次シーズンを開始できません。');
+            }
             const number = Number(document.getElementById('next-season-number')?.value);
             const year = Number(document.getElementById('next-season-year')?.value);
             if (!Number.isInteger(number) || number < 1 || !Number.isInteger(year) || year < 2026) return;
@@ -2185,6 +2206,8 @@
             market.protections = {};
             market.protectionBonus = {};
             market.endDraft = { phase: 'protection', roundOnePicks: {}, roundOneResults: [], waiverResults: [], waiverRound: 2, waiverTurnIndex: 0 };
+            market.midseason = { phase: 'release', releaseConfirmed: {}, submissionConfirmed: {}, draftOrderSnapshot: [], tradesClosed: false, draftConfirmed: false };
+            addTransferAudit('SEASON_STARTED', { reason: `Season ${number} - ${year}` });
             state.lastMatchSnapshot = null;
             state.standingsDirty = true;
             addActivity('新しいシーズンを開始', `Season ${number} - ${year} ・ 日程抽選完了`);
@@ -2396,8 +2419,149 @@
             if (!Number.isFinite(Number(market.endDraft.waiverRound))) market.endDraft.waiverRound = 2;
             if (!Number.isFinite(Number(market.endDraft.waiverTurnIndex))) market.endDraft.waiverTurnIndex = 0;
             if (!market.periodMilestones || typeof market.periodMilestones !== 'object') market.periodMilestones = {};
+            if (!market.schemaVersion) market.schemaVersion = 2;
+            if (!market.midseason || typeof market.midseason !== 'object') market.midseason = {};
+            if (!market.midseason.phase) market.midseason.phase = 'release';
+            if (!market.midseason.legacyImported && (Object.keys(market.releasePlans).length || market.draftResults.length)) {
+                RAW_TEAMS.forEach(team => {
+                    if (Object.prototype.hasOwnProperty.call(market.releasePlans, team.id) && !market.midseason.releaseConfirmed?.[team.id]) {
+                        (market.midseason.releaseConfirmed ||= {})[team.id] = { confirmedAt: '', count: Number(market.releasePlans[team.id] || 0), legacy: true };
+                    }
+                    if ((market.draftPreferences[team.id] || []).length && !market.midseason.submissionConfirmed?.[team.id]) {
+                        (market.midseason.submissionConfirmed ||= {})[team.id] = { submittedAt: '', legacy: true };
+                    }
+                });
+                if (market.draftResults.length) { market.midseason.draftConfirmed = true; market.midseason.phase = 'completed'; }
+                market.midseason.legacyImported = true;
+            }
+            if (!market.midseason.releaseConfirmed || typeof market.midseason.releaseConfirmed !== 'object') market.midseason.releaseConfirmed = {};
+            if (!market.midseason.submissionConfirmed || typeof market.midseason.submissionConfirmed !== 'object') market.midseason.submissionConfirmed = {};
+            if (!Array.isArray(market.midseason.draftOrderSnapshot)) market.midseason.draftOrderSnapshot = [];
+            if (typeof market.midseason.tradesClosed !== 'boolean') market.midseason.tradesClosed = false;
+            if (typeof market.midseason.draftConfirmed !== 'boolean') market.midseason.draftConfirmed = false;
+            if (!market.endDraft.protectionConfirmed || typeof market.endDraft.protectionConfirmed !== 'object') market.endDraft.protectionConfirmed = {};
+            if (!Array.isArray(market.endDraft.draftOrderSnapshot)) market.endDraft.draftOrderSnapshot = [];
+            if (!Array.isArray(market.auditLog)) market.auditLog = [];
             return market;
         }
+
+        function normalizePlayerIdentity(name = '') {
+            return String(name).normalize('NFKC').trim().toLocaleLowerCase('ja-JP').replace(/[\s　._・-]+/g, '');
+        }
+
+        function activePlayersFromRoster(roster = []) {
+            return roster.filter(player => player && player.status !== 'released' && player.status !== 'transferred');
+        }
+
+        function findPlayerOwnership(name, rosters = state.rosters, exceptTeamId = '') {
+            const identity = normalizePlayerIdentity(name);
+            if (!identity) return null;
+            for (const team of RAW_TEAMS) {
+                if (team.id === exceptTeamId) continue;
+                const player = activePlayersFromRoster(Array.isArray(rosters?.[team.id]) ? rosters[team.id] : [])
+                    .find(item => normalizePlayerIdentity(item.name) === identity);
+                if (player) return { team, player };
+            }
+            return null;
+        }
+
+        function findOtherPlayerOwnership(name, allowedOwnership = null, rosters = state.rosters) {
+            const identity = normalizePlayerIdentity(name);
+            if (!identity) return null;
+            for (const team of RAW_TEAMS) {
+                const players = activePlayersFromRoster(Array.isArray(rosters?.[team.id]) ? rosters[team.id] : []);
+                const player = players.find(item => normalizePlayerIdentity(item.name) === identity && !(allowedOwnership && team.id === allowedOwnership.teamId && item.id === allowedOwnership.playerId));
+                if (player) return { team, player };
+            }
+            return null;
+        }
+
+        function validateRoster(teamId, proposedRoster, options = {}) {
+            const active = activePlayersFromRoster(Array.isArray(proposedRoster) ? proposedRoster : []);
+            const counts = {
+                total: active.length,
+                special: active.filter(player => player.cardType === 'special').length,
+                normal: active.filter(player => player.cardType === 'normal').length
+            };
+            const errors = [];
+            if (counts.total > 25) errors.push('登録上限25名を超えています');
+            if (counts.special > 18) errors.push('特別カードは18名までです');
+            if (!options.allowIncompleteBuild && counts.normal < 7) errors.push('ノーマルカードが7名未満になります');
+            const ownSeen = new Set();
+            active.forEach(player => {
+                const key = normalizePlayerIdentity(player.name);
+                if (key && ownSeen.has(key)) errors.push(`${player.name} が同じクラブ内で重複しています`);
+                ownSeen.add(key);
+            });
+            return { valid: errors.length === 0, errors, counts, teamId };
+        }
+
+        function inspectRosterIntegrity(rosters = state.rosters) {
+            const issues = [];
+            const owners = new Map();
+            RAW_TEAMS.forEach(team => {
+                const roster = Array.isArray(rosters?.[team.id]) ? rosters[team.id] : [];
+                const result = validateRoster(team.id, roster);
+                result.errors.forEach(message => issues.push({ type: 'roster', teamId: team.id, message: `${team.name}：${message}` }));
+                activePlayersFromRoster(roster).forEach(player => {
+                    const key = normalizePlayerIdentity(player.name);
+                    if (!key) return;
+                    if (!owners.has(key)) owners.set(key, []);
+                    owners.get(key).push({ team, player });
+                });
+            });
+            owners.forEach(entries => {
+                if (entries.length > 1) issues.push({ type: 'duplicate', message: `${entries[0].player.name} が ${entries.map(entry => entry.team.name).join('、')} に重複登録されています` });
+            });
+            return { valid: issues.length === 0, issues };
+        }
+
+        function rosterIntegritySeverity(rosters = state.rosters) {
+            let score = 0;
+            const owners = new Map();
+            RAW_TEAMS.forEach(team => {
+                const active = activePlayersFromRoster(Array.isArray(rosters?.[team.id]) ? rosters[team.id] : []);
+                const special = active.filter(player => player.cardType === 'special').length;
+                const normal = active.filter(player => player.cardType === 'normal').length;
+                score += Math.max(0, active.length - 25) + Math.max(0, special - 18) + Math.max(0, 7 - normal);
+                active.forEach(player => {
+                    const key = normalizePlayerIdentity(player.name);
+                    if (key) owners.set(key, (owners.get(key) || 0) + 1);
+                });
+            });
+            owners.forEach(count => { if (count > 1) score += (count - 1) * 10; });
+            return score;
+        }
+
+        function addTransferAudit(actionType, detail = {}) {
+            const market = getMarket();
+            market.auditLog.unshift({
+                id: `audit_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+                timestamp: new Date().toISOString(),
+                season: Number(state.seasonInfo?.number || 1),
+                marketType: getAutomaticTransferPeriod().key,
+                actionType,
+                operator: 'shared-user',
+                player: '',
+                fromTeam: '',
+                toTeam: '',
+                beforeState: null,
+                afterState: null,
+                reason: '',
+                ...cloneTransferData(detail)
+            });
+            market.auditLog = market.auditLog.slice(0, 300);
+        }
+
+        window.validateFnlPayload = function(payload, changedFields = [], currentPayload = null) {
+            const errors = [];
+            const integrity = inspectRosterIntegrity(payload?.rosters || state.rosters);
+            if (changedFields.includes('rosters') && !integrity.valid) {
+                const currentMessages = new Set(inspectRosterIntegrity(currentPayload?.rosters || {}).issues.map(issue => issue.message));
+                errors.push(...integrity.issues.map(issue => issue.message).filter(message => !currentMessages.has(message)));
+            }
+            return { valid: errors.length === 0, errors };
+        };
 
         function isMatchCompleted(match) {
             return match.hs !== null && match.as !== null && !isNaN(match.hs) && !isNaN(match.as);
@@ -2451,6 +2615,72 @@
             return false;
         }
 
+        function getFirstHalfProgress() {
+            const matches = state.schedule.filter(match => Number(match.mw) <= 9);
+            const completed = matches.filter(isMatchCompleted).length;
+            return { total: matches.length, completed, remaining: Math.max(0, matches.length - completed) };
+        }
+
+        function getRequiredMidseasonSubmissionTeams() {
+            const market = getMarket();
+            return RAW_TEAMS.filter(team => Number(market.releasePlans[team.id] || 0) > 0);
+        }
+
+        function getPendingTradeCount() {
+            const market = getMarket();
+            return market.tradeOffers.filter(offer => offer.status === 'pending').length;
+        }
+
+        function isMidseasonCompleted() {
+            const market = getMarket();
+            return market.midseason.phase === 'completed'
+                && RAW_TEAMS.every(team => market.midseason.releaseConfirmed[team.id])
+                && getRequiredMidseasonSubmissionTeams().every(team => market.midseason.submissionConfirmed[team.id])
+                && market.midseason.draftConfirmed
+                && market.midseason.tradesClosed
+                && getPendingTradeCount() === 0
+                && inspectRosterIntegrity().valid;
+        }
+
+        function areAllProtectionsConfirmed() {
+            return RAW_TEAMS.every(team => getMarket().endDraft.protectionConfirmed[team.id]);
+        }
+
+        function renderTransferChecklist() {
+            const market = getMarket();
+            const progress = getFirstHalfProgress();
+            const integrity = inspectRosterIntegrity();
+            const period = getAutomaticTransferPeriod();
+            const endMarket = period.key === 'endseason' || market.endDraft.phase === 'completed';
+            const items = endMarket ? [
+                [state.schedule.length > 0 && state.schedule.every(isMatchCompleted), 'リーグ全試合終了'],
+                [RAW_TEAMS.every(team => Object.prototype.hasOwnProperty.call(market.protectionBonus, team.id)), '平林杯ボーナス設定'],
+                [areAllProtectionsConfirmed(), `全クラブのプロテクト (${RAW_TEAMS.filter(team => market.endDraft.protectionConfirmed[team.id]).length}/9)`],
+                [RAW_TEAMS.every(team => Object.prototype.hasOwnProperty.call(market.endDraft.roundOnePicks, team.id)), '1巡目提出'],
+                [market.endDraft.roundOneResults.length > 0, '1巡目抽選・確定'],
+                [market.endDraft.phase === 'completed', 'ウェーバー終了'],
+                [integrity.valid, '名簿整合性チェック'],
+                [market.endDraft.phase === 'completed' && integrity.valid, '次シーズン開始可能']
+            ] : [
+                [progress.remaining === 0, `MW1〜9全試合終了（残り${progress.remaining}試合）`],
+                [period.key === 'midseason' || ['second_half', 'endseason'].includes(period.key), '中間市場開始'],
+                [RAW_TEAMS.every(team => market.midseason.releaseConfirmed[team.id]), `9クラブ放出確定 (${RAW_TEAMS.filter(team => market.midseason.releaseConfirmed[team.id]).length}/9)`],
+                [market.midseason.tradesClosed && getPendingTradeCount() === 0, `トレード終了（確認待ち${getPendingTradeCount()}件）`],
+                [getRequiredMidseasonSubmissionTeams().every(team => market.midseason.submissionConfirmed[team.id]), '必要クラブの希望提出'],
+                [market.midseason.draftConfirmed, 'ドラフト確定'],
+                [integrity.valid, '名簿整合性チェック'],
+                [isMidseasonCompleted(), 'MW10開始可能']
+            ];
+            return `<details class="market-step transfer-checklist"><summary><span>移籍市場チェックリスト<span class="market-step-copy">${items.filter(item => item[0]).length}/${items.length} 完了</span></span></summary><div class="market-step-body">${items.map(([done, label]) => `<div class="transfer-club-card"><div class="transfer-count" style="color:${done ? 'var(--accent-gold-light)' : 'var(--text-muted)'}">${done ? '✓' : '○'}</div><div style="font-size:.76rem;font-weight:700">${escapeHtml(label)}</div></div>`).join('')}${integrity.valid ? '' : `<button class="btn-secondary" style="width:100%;margin-top:.5rem" onclick="openRosterIntegritySheet()">名簿の問題を確認</button>`}</div></details>`;
+        }
+
+        window.openRosterIntegritySheet = function() {
+            const integrity = inspectRosterIntegrity();
+            const affectedIds = [...new Set(integrity.issues.flatMap(issue => issue.teamId ? [issue.teamId] : RAW_TEAMS.filter(team => issue.message.includes(team.name)).map(team => team.id)))];
+            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:1rem"><h3>名簿整合性チェック</h3></div>${integrity.valid ? '<div class="market-note">重複登録・人数超過・カード規定違反はありません。</div>' : `${integrity.issues.map(issue => `<div class="card" style="padding:.7rem;margin-bottom:.45rem;color:var(--accent-red)">${escapeHtml(issue.message)}</div>`).join('')}<div class="market-note">既存データは自動削除しません。下のボタンから、問題を減らす修正だけを理由付きで実行できます。</div>${affectedIds.map(teamId => `<button class="btn-secondary" style="width:100%;margin-top:.45rem" onclick="openRosterSheet('${teamId}',true)">${escapeHtml(RAW_TEAMS.find(team => team.id === teamId)?.name || teamId)}を修正</button>`).join('')}`}<button class="btn-secondary event-entry-back" onclick="document.getElementById('sheet-overlay').classList.remove('active')">閉じる</button>`;
+            document.getElementById('sheet-overlay').classList.add('active');
+        };
+
         function setTransferControlState(id, enabled, lockedMessage) {
             const element = document.getElementById(id);
             if (!element) return;
@@ -2489,8 +2719,22 @@
         }
 
         function commitTransferChange() {
-            persistAppState();
+            const market = getMarket();
+            market.revision = Number(market.revision || 0) + 1;
+            const rollback = getMarket().lastSnapshot ? cloneTransferData(getMarket().lastSnapshot) : null;
+            const saving = persistAppState().catch(error => {
+                if (rollback) {
+                    state.rosters = cloneTransferData(rollback.rosters);
+                    state.transferMarket = cloneTransferData(rollback.transferMarket);
+                    getMarket().lastSnapshot = null;
+                    saveStateToStorage();
+                    refreshAllViews();
+                }
+                alert(error?.message || 'クラウドへの保存に失敗したため、変更を取り消しました。');
+                throw error;
+            });
             renderTransferCenter();
+            return saving;
         }
 
         function renderTransferCenter() {
@@ -2502,6 +2746,7 @@
             const draftList = document.getElementById('draft-club-list');
             const resultList = document.getElementById('draft-results-list');
             const historyList = document.getElementById('transfer-history-list');
+            const auditList = document.getElementById('transfer-audit-list');
             const tradeListingList = document.getElementById('trade-listing-list');
             const tradeOfferList = document.getElementById('trade-offer-list');
             const protectionList = document.getElementById('protection-list');
@@ -2509,17 +2754,21 @@
             const endDraftList = document.getElementById('end-draft-list');
             const endDraftActions = document.getElementById('end-draft-actions');
             const phaseBanner = document.getElementById('market-phase-banner');
+            const checklist = document.getElementById('transfer-checklist');
             if (!summary || !rosterList || !marketList || !availableList || !draftList || !resultList || !historyList) return;
             const currentPeriod = getAutomaticTransferPeriod();
             const isPreseason = currentPeriod.key === 'preseason';
             const isMidseason = currentPeriod.key === 'midseason';
             const isEndseason = currentPeriod.key === 'endseason';
             if (phaseBanner) phaseBanner.innerHTML = `<div class="transfer-status-card"><div class="transfer-status-label">現在の期間</div><div class="transfer-status-title">${escapeHtml(currentPeriod.label)}</div><div class="transfer-status-copy">${escapeHtml(currentPeriod.description)}</div></div>`;
+            if (checklist) checklist.innerHTML = renderTransferChecklist();
             setTransferControlState('add-player-button', isPreseason, '選手登録はシーズン準備期間のみ利用できます');
             setTransferControlState('add-market-player-button', isMidseason, '移籍希望の登録はシーズン中間移籍市場のみ利用できます');
             setTransferControlState('midseason-draft-button', isMidseason, '希望提出はシーズン中間移籍市場のみ利用できます');
+            setTransferControlState('midseason-preview-button', isMidseason, '確定前チェックはシーズン中間移籍市場のみ利用できます');
             setTransferControlState('midseason-run-draft-button', isMidseason, '中間ドラフトはシーズン中間移籍市場のみ実行できます');
             setTransferControlState('trade-listing-button', isMidseason, 'トレードはシーズン中間移籍市場のみ利用できます');
+            setTransferControlState('trade-close-button', isMidseason && !market.midseason.tradesClosed, 'トレード受付は終了しています');
             setTransferControlState('protection-register-button', isEndseason, 'プロテクト登録はシーズン終了移籍市場のみ利用できます');
             setTransferControlState('end-draft-pick-button', isEndseason, '終了時ドラフトはシーズン終了移籍市場のみ利用できます');
             setTransferControlState('undo-transfer-button', isPreseason || isMidseason || isEndseason, '移籍操作の取り消しは移籍市場が開いている期間のみ利用できます');
@@ -2540,7 +2789,8 @@
             marketList.innerHTML = standings.slice().reverse().map((standing, index) => {
                 const team = RAW_TEAMS.find(item => item.name === standing.name);
                 const releaseCount = Number(market.releasePlans[team.id] || 0);
-                return `<div class="transfer-club-card" onclick="openReleasePlanSheet('${team.id}')"><div style="width:20px;font-family:'Teko';font-size:1.25rem;color:var(--accent-gold);">${index + 1}</div><img src="${team.logo}" alt="${escapeHtml(team.name)}"><div><div style="font-weight:700;font-size:0.82rem;">${escapeHtml(team.name)}</div><div style="font-size:0.68rem;color:var(--text-muted);">放出 ${releaseCount}名 ・ 指名枠 ${releaseCount}名</div></div><div class="transfer-count">›</div></div>`;
+                const confirmed = !!market.midseason.releaseConfirmed[team.id];
+                return `<div class="transfer-club-card" onclick="openReleasePlanSheet('${team.id}')"><div style="width:20px;font-family:'Teko';font-size:1.25rem;color:var(--accent-gold);">${index + 1}</div><img src="${team.logo}" alt="${escapeHtml(team.name)}"><div><div style="font-weight:700;font-size:0.82rem;">${escapeHtml(team.name)}</div><div style="font-size:0.68rem;color:var(--text-muted);">放出 ${releaseCount}名 ・ 指名枠 ${releaseCount}名 ・ ${confirmed ? '確定済み' : '未確定'}</div></div><div class="transfer-count">›</div></div>`;
             }).join('');
             availableList.innerHTML = candidates.length ? candidates.map(player => {
                 const sourceTeam = player.sourceTeamId ? RAW_TEAMS.find(team => team.id === player.sourceTeamId) : null;
@@ -2550,18 +2800,24 @@
                 const team = RAW_TEAMS.find(item => item.name === standing.name);
                 const preferences = market.draftPreferences[team.id] || [];
                 const releaseCount = Number(market.releasePlans[team.id] || 0);
-                return `<div class="transfer-club-card" onclick="openDraftBoardSheet('${team.id}')"><div style="width:20px;font-family:'Teko';font-size:1.25rem;color:var(--accent-gold);">${index + 1}</div><img src="${team.logo}" alt="${escapeHtml(team.name)}"><div><div style="font-weight:700;font-size:0.82rem;">${escapeHtml(team.name)}</div><div style="font-size:0.68rem;color:var(--text-muted);">希望提出 ${preferences.length}/${releaseCount || 0}名</div></div><div class="transfer-count">›</div></div>`;
+                const submitted = !!market.midseason.submissionConfirmed[team.id];
+                return `<div class="transfer-club-card" onclick="openDraftBoardSheet('${team.id}')"><div style="width:20px;font-family:'Teko';font-size:1.25rem;color:var(--accent-gold);">${index + 1}</div><img src="${team.logo}" alt="${escapeHtml(team.name)}"><div><div style="font-weight:700;font-size:0.82rem;">${escapeHtml(team.name)}</div><div style="font-size:0.68rem;color:var(--text-muted);">希望 ${preferences.length}/${releaseCount || 0}名 ・ ${submitted ? '提出済み' : '未提出'}</div></div><div class="transfer-count">›</div></div>`;
             }).join('');
             resultList.innerHTML = market.draftResults.length ? market.draftResults.slice(0, 20).map((result, index) => `<div class="card" style="margin-bottom:0.45rem;padding:0.65rem;"><span style="color:var(--accent-gold);font-family:'Teko';font-size:1.1rem;">${index + 1}</span> <b>${escapeHtml(result.playerName)}</b><div style="font-size:0.68rem;color:var(--text-muted);">→ ${escapeHtml(result.teamName)} ・ ${escapeHtml(result.method)}</div></div>`).join('') : `<div class="card" style="text-align:center;color:var(--text-muted);font-size:0.78rem;">まだドラフトは確定していません</div>`;
             renderTradeMarket(tradeListingList, tradeOfferList);
             renderEndSeasonMarket(protectionList, endMarketStatus, endDraftList, endDraftActions);
             historyList.innerHTML = market.history.length ? market.history.slice(0, 5).map(item => `<div class="card" style="margin-bottom:0.45rem;padding:0.65rem;"><b>${escapeHtml(item.title)}</b><div style="font-size:0.68rem;color:var(--text-muted);">${escapeHtml(item.detail || '')}</div></div>`).join('') : `<div class="card" style="text-align:center;color:var(--text-muted);font-size:0.78rem;">移籍履歴はまだありません</div>`;
+            if (auditList) auditList.innerHTML = market.auditLog.length ? market.auditLog.slice(0, 20).map(item => {
+                const date = item.timestamp ? new Date(item.timestamp).toLocaleString('ja-JP') : '';
+                const detail = [item.player, item.fromTeam && `移籍元 ${RAW_TEAMS.find(team => team.id === item.fromTeam)?.name || item.fromTeam}`, item.toTeam && `移籍先 ${RAW_TEAMS.find(team => team.id === item.toTeam)?.name || item.toTeam}`, item.reason].filter(Boolean).join(' ・ ');
+                return `<div class="card" style="margin-bottom:.45rem;padding:.65rem"><b>${escapeHtml(item.actionType || 'TRANSFER_ACTION')}</b><div style="font-size:.68rem;color:var(--text-muted)">${escapeHtml(detail || '詳細なし')}<br>${escapeHtml(date)} ・ Season ${Number(item.season || 1)}</div></div>`;
+            }).join('') : '<div class="card" style="text-align:center;color:var(--text-muted);font-size:.78rem">監査ログはまだありません</div>';
         }
 
-        window.openRosterSheet = function(teamId) {
+        window.openRosterSheet = function(teamId, repairMode = false) {
             const team = RAW_TEAMS.find(item => item.id === teamId);
             if (!team) return;
-            const canEditRoster = getAutomaticTransferPeriod().key === 'preseason';
+            const canEditRoster = getAutomaticTransferPeriod().key === 'preseason' || repairMode;
             const counts = getRosterCounts(teamId);
             const players = getRoster(teamId).filter(player => player.status !== 'released' && player.status !== 'transferred');
             const positions = ['FW', 'MF', 'DF', 'GK'];
@@ -2571,47 +2827,73 @@
             const playerRows = players.length ? groupedPlayers.map(group => `
                 <section class="roster-position-section">
                     <div class="roster-position-header">${group.position}<span>${group.players.length}名</span></div>
-                    <div class="roster-player-list">${group.players.map((player, index) => `<div class="roster-player-card"><div class="roster-player-index">${String(index + 1).padStart(2, '0')}</div><div class="roster-player-info"><div class="roster-player-name">${escapeHtml(player.name)}</div><div class="roster-player-tags"><span class="position">${escapeHtml(player.position || '未登録')}</span><span>${player.cardType === 'special' ? '特別カード' : 'ノーマルカード'}</span></div></div><button class="btn-secondary" onclick="removePlayer('${teamId}','${player.id}')" ${canEditRoster ? '' : 'disabled'}>削除</button></div>`).join('')}</div>
+                    <div class="roster-player-list">${group.players.map((player, index) => `<div class="roster-player-card"><div class="roster-player-index">${String(index + 1).padStart(2, '0')}</div><div class="roster-player-info"><div class="roster-player-name">${escapeHtml(player.name)}</div><div class="roster-player-tags"><span class="position">${escapeHtml(player.position || '未登録')}</span><span>${player.cardType === 'special' ? '特別カード' : 'ノーマルカード'}</span></div></div><button class="btn-secondary" onclick="removePlayer('${teamId}','${player.id}',${repairMode})" ${canEditRoster ? '' : 'disabled'}>削除</button></div>`).join('')}</div>
                 </section>`).join('') : `<div class="roster-empty">登録選手はまだいません</div>`;
             document.getElementById('sheet-body').innerHTML = `
                 <div class="roster-sheet-hero"><img src="${team.logo}" class="team-logo-lg" alt=""><div class="roster-sheet-title">${escapeHtml(team.name)}</div><div class="roster-sheet-subtitle">SQUAD LIST · ${counts.total} PLAYERS</div><div class="roster-composition-grid">${positions.map(position => `<div class="roster-composition-item"><div class="roster-composition-position">${position}</div><div class="roster-composition-count">${positionCounts[position]}</div></div>`).join('')}</div><div class="roster-sheet-summary"><span>登録 ${counts.total}/25</span><span>特別 ${counts.special}/18</span><span>ノーマル ${counts.normal}</span></div></div>
-                ${canEditRoster ? '' : '<div class="market-note">名簿の追加・削除はシーズン準備期間のみ利用できます。</div>'}
+                ${repairMode ? '<div class="market-note">整合性修正モードです。問題を減らす変更だけを、理由付きで保存できます。</div>' : canEditRoster ? '' : '<div class="market-note">名簿の追加・削除はシーズン準備期間のみ利用できます。</div>'}
                 <div class="roster-list-heading"><strong>選手一覧</strong><span>ポジション別</span></div>${playerRows}
-                <button class="btn-primary" style="margin-top:1rem;" onclick="openAddPlayerSheet('${teamId}')" ${canEditRoster ? '' : 'disabled'}>このチームに選手を登録</button>`;
+                <button class="btn-primary" style="margin-top:1rem;" onclick="openAddPlayerSheet('${teamId}',${repairMode})" ${canEditRoster ? '' : 'disabled'}>このチームに選手を登録</button>`;
             document.getElementById('sheet-overlay').classList.add('active');
         };
 
-        window.openAddPlayerSheet = function(defaultTeamId = '') {
-            if (!requireTransferPeriod('preseason', '選手登録')) return;
+        window.openAddPlayerSheet = function(defaultTeamId = '', repairMode = false) {
+            if (!repairMode && !requireTransferPeriod('preseason', '選手登録')) return;
             const teamOptions = RAW_TEAMS.map(team => `<option value="${team.id}" ${team.id === defaultTeamId ? 'selected' : ''}>${escapeHtml(team.name)}</option>`).join('');
-            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:1rem;"><h3>選手を登録</h3><p style="font-size:0.72rem;color:var(--text-muted);">チームの選手名簿を全員で更新できます</p></div><div class="form-group"><label class="form-label">所属チーム</label><select id="player-team" class="form-select">${teamOptions}</select></div><div class="form-group"><label class="form-label">選手名</label><input id="player-name" class="form-input" maxlength="40" placeholder="例：L. Messi"></div><div class="form-group"><label class="form-label">ポジション</label><select id="player-position" class="form-select"><option>FW</option><option>MF</option><option>DF</option><option>GK</option><option value="">未登録</option></select></div><div class="form-group"><label class="form-label">カード種別</label><select id="player-card-type" class="form-select"><option value="normal">ノーマルカード</option><option value="special">特別カード</option></select></div><button class="btn-primary" onclick="savePlayerToRoster()">登録して全員に同期</button>`;
+            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:1rem;"><h3>${repairMode ? '名簿整合性を修正' : '選手を登録'}</h3><p style="font-size:0.72rem;color:var(--text-muted);">${repairMode ? '現在の問題を減らす変更だけ保存できます' : 'チームの選手名簿を全員で更新できます'}</p></div><input id="roster-repair-mode" type="hidden" value="${repairMode ? '1' : '0'}"><div class="form-group"><label class="form-label">所属チーム</label><select id="player-team" class="form-select">${teamOptions}</select></div><div class="form-group"><label class="form-label">選手名</label><input id="player-name" class="form-input" maxlength="40" placeholder="例：L. Messi"></div><div class="form-group"><label class="form-label">ポジション</label><select id="player-position" class="form-select"><option>FW</option><option>MF</option><option>DF</option><option>GK</option><option value="">未登録</option></select></div><div class="form-group"><label class="form-label">カード種別</label><select id="player-card-type" class="form-select"><option value="normal">ノーマルカード</option><option value="special">特別カード</option></select></div>${repairMode ? '<div class="form-group"><label class="form-label">修正理由</label><input id="roster-repair-reason" class="form-input" maxlength="80" placeholder="例：既存名簿のノーマルカード不足を修正"></div>' : ''}<button class="btn-primary" onclick="savePlayerToRoster()">登録して全員に同期</button>`;
             document.getElementById('sheet-overlay').classList.add('active');
         };
 
         window.savePlayerToRoster = function() {
-            if (!requireTransferPeriod('preseason', '選手登録')) return;
+            const repairMode = document.getElementById('roster-repair-mode')?.value === '1';
+            if (!repairMode && !requireTransferPeriod('preseason', '選手登録')) return;
             const teamId = document.getElementById('player-team').value;
             const name = document.getElementById('player-name').value.trim();
             const position = document.getElementById('player-position').value;
             const cardType = document.getElementById('player-card-type').value;
+            const repairReason = document.getElementById('roster-repair-reason')?.value.trim() || '';
             if (!name) return alert('選手名を入力してください。');
-            const counts = getRosterCounts(teamId);
-            if (counts.total >= 25) return alert('登録人数は25名までです。');
-            if (cardType === 'special' && counts.special >= 18) return alert('特別カード選手は18名までです。');
+            if (repairMode && !repairReason) return alert('整合性を修正する理由を入力してください。');
+            const owner = findPlayerOwnership(name);
+            if (owner) return alert(`この選手は現在${owner.team.name}に登録されています。`);
+            const proposed = [...getRoster(teamId), { id: 'preview', name, position, cardType, status: 'active' }];
+            const currentValidation = validateRoster(teamId, getRoster(teamId));
+            const isImprovingIncompleteRoster = !currentValidation.valid && cardType === 'normal';
+            const validation = validateRoster(teamId, proposed, { allowIncompleteBuild: activeRosterPlayers(teamId).length < 7 || isImprovingIncompleteRoster });
+            if (!validation.valid) return alert(validation.errors.join('\n'));
+            if (repairMode) {
+                const proposedRosters = cloneTransferData(state.rosters);
+                proposedRosters[teamId] = proposed;
+                if (rosterIntegritySeverity(proposedRosters) >= rosterIntegritySeverity()) return alert('この変更では名簿の問題が改善しないため保存できません。');
+            }
+            const beforeState = getRosterCounts(teamId);
             takeTransferSnapshot('選手登録');
             getRoster(teamId).push({ id: `p_${Date.now()}`, name, position, cardType, status: 'active', appearances: 0 });
             addTransferHistory('選手登録', `${name} を ${RAW_TEAMS.find(team => team.id === teamId).name} に登録`);
+            addTransferAudit(repairMode ? 'ADMIN_ROSTER_REPAIR' : 'PLAYER_REGISTERED', { player: name, fromTeam: '', toTeam: teamId, beforeState, afterState: getRosterCounts(teamId), reason: repairMode ? repairReason : '初期名簿登録' });
             commitTransferChange();
             document.getElementById('sheet-overlay').classList.remove('active');
         };
 
-        window.removePlayer = function(teamId, playerId) {
-            if (!requireTransferPeriod('preseason', '選手削除')) return;
+        window.removePlayer = function(teamId, playerId, repairMode = false) {
+            if (!repairMode && !requireTransferPeriod('preseason', '選手削除')) return;
             if (!confirm('この選手を名簿から削除しますか？')) return;
             const player = getRoster(teamId).find(item => item.id === playerId);
+            const proposed = getRoster(teamId).filter(item => item.id !== playerId);
+            const validation = validateRoster(teamId, proposed);
+            if (!repairMode && !validation.valid) return alert(validation.errors.join('\n'));
+            const repairReason = repairMode ? prompt('この整合性修正の理由を入力してください。')?.trim() : '';
+            if (repairMode) {
+                if (!repairReason) return alert('修正理由が必要です。');
+                const proposedRosters = cloneTransferData(state.rosters);
+                proposedRosters[teamId] = proposed;
+                if (rosterIntegritySeverity(proposedRosters) >= rosterIntegritySeverity()) return alert('この変更では名簿の問題が改善しないため保存できません。');
+            }
+            const beforeState = getRosterCounts(teamId);
             takeTransferSnapshot('選手削除');
-            state.rosters[teamId] = getRoster(teamId).filter(player => player.id !== playerId);
+            state.rosters[teamId] = proposed;
             addTransferHistory('選手削除', `${player?.name || '選手'} を名簿から削除`);
+            addTransferAudit(repairMode ? 'ADMIN_ROSTER_REPAIR' : 'PLAYER_REMOVED', { player: player?.name || '', fromTeam: teamId, toTeam: '', beforeState, afterState: getRosterCounts(teamId), reason: repairMode ? repairReason : '名簿から削除' });
             commitTransferChange();
             openRosterSheet(teamId);
         };
@@ -2621,10 +2903,16 @@
             const team = RAW_TEAMS.find(item => item.id === teamId);
             if (!team) return;
             const market = getMarket();
+            if (market.midseason.releaseConfirmed[teamId]) {
+                const count = Number(market.releasePlans[teamId] || 0);
+                document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:1rem"><h3>放出選手は確定済みです</h3></div><div class="market-note">${escapeHtml(team.name)}は${count}名放出、${count}名獲得可能として確定しています。</div><button class="btn-danger" style="width:100%;margin-top:.8rem" onclick="unlockReleasePlan('${teamId}')">放出確定を解除</button>`;
+                document.getElementById('sheet-overlay').classList.add('active');
+                return;
+            }
             const selectedIds = market.releasePlayerIds[teamId] || [];
             const players = getRoster(teamId).filter(player => player.status !== 'transferred' && (player.status !== 'released' || selectedIds.includes(player.id)));
             const playerRows = players.length ? players.map(player => `<label style="display:flex;gap:0.55rem;align-items:center;padding:0.55rem 0;border-bottom:1px solid var(--border-color);"><input type="checkbox" data-release-player value="${player.id}" ${selectedIds.includes(player.id) ? 'checked' : ''}><span><b>${escapeHtml(player.name)}</b><br><small style="color:var(--text-muted);">${escapeHtml(player.position || 'ポジション未登録')} ・ ${player.cardType === 'special' ? '特別' : 'ノーマル'}</small></span></label>`).join('') : `<div style="text-align:center;color:var(--text-muted);padding:0.8rem;">登録選手がいません</div>`;
-            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:1rem;"><img src="${team.logo}" class="team-logo-lg" style="width:52px;height:52px;"><h3>${escapeHtml(team.name)}</h3></div><div class="market-note" style="margin-bottom:0.8rem;">放出する選手を0〜3名選択してください。選択した選手が移籍市場に出て、同数の指名枠ができます。</div>${playerRows}<button class="btn-primary" style="margin-top:0.9rem;" onclick="saveReleasePlan('${teamId}')">放出リストを保存</button>`;
+            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:1rem;"><img src="${team.logo}" class="team-logo-lg" style="width:52px;height:52px;"><h3>${escapeHtml(team.name)}</h3></div><div class="market-note" style="margin-bottom:0.8rem;">放出する選手を0〜3名選択してください。確定後は解除するまで変更できません。</div>${playerRows}<button class="btn-primary" style="margin-top:0.9rem;" onclick="saveReleasePlan('${teamId}')">放出選手を確定</button>`;
             document.getElementById('sheet-overlay').classList.add('active');
         };
 
@@ -2633,6 +2921,11 @@
             const ids = [...document.querySelectorAll('[data-release-player]:checked')].map(element => element.value);
             if (ids.length > 3) return alert('放出できるのは3名までです。');
             const market = getMarket();
+            if (market.midseason.releaseConfirmed[teamId]) return alert('放出選手は確定済みです。変更する場合は先に確定を解除してください。');
+            const proposed = cloneTransferData(getRoster(teamId));
+            proposed.forEach(player => { if (ids.includes(player.id)) player.status = 'released'; });
+            const validation = validateRoster(teamId, proposed);
+            if (!validation.valid) return alert(validation.errors.join('\n'));
             takeTransferSnapshot('放出リスト更新');
             const previous = new Set(market.releasePlayerIds[teamId] || []);
             getRoster(teamId).forEach(player => {
@@ -2641,10 +2934,26 @@
             });
             market.releasePlayerIds[teamId] = ids;
             market.releasePlans[teamId] = ids.length;
+            market.midseason.releaseConfirmed[teamId] = { confirmedAt: new Date().toISOString(), count: ids.length };
+            if (RAW_TEAMS.every(team => market.midseason.releaseConfirmed[team.id])) market.midseason.phase = 'submission';
             market.draftPreferences[teamId] = (market.draftPreferences[teamId] || []).slice(0, ids.length);
             addTransferHistory('放出リスト更新', `${RAW_TEAMS.find(team => team.id === teamId).name}：${ids.length}名放出`);
+            addTransferAudit('RELEASE_PLAN_SAVED', { fromTeam: teamId, player: ids.map(id => getRoster(teamId).find(player => player.id === id)?.name).filter(Boolean).join('、'), reason: '中間市場放出予定' });
             commitTransferChange();
             document.getElementById('sheet-overlay').classList.remove('active');
+        };
+
+        window.unlockReleasePlan = function(teamId) {
+            if (!requireTransferPeriod('midseason', '放出確定の解除')) return;
+            const market = getMarket();
+            if (market.midseason.submissionConfirmed[teamId] || market.midseason.draftConfirmed) return alert('希望提出後またはドラフト確定後は放出確定を解除できません。');
+            if (!confirm('放出確定を解除しますか？この操作は履歴に残ります。')) return;
+            takeTransferSnapshot('放出確定解除');
+            delete market.midseason.releaseConfirmed[teamId];
+            addTransferHistory('放出確定を解除', RAW_TEAMS.find(team => team.id === teamId)?.name || '');
+            addTransferAudit('RELEASE_UNLOCKED', { fromTeam: teamId, reason: '放出確定を手動解除' });
+            commitTransferChange();
+            openReleasePlanSheet(teamId);
         };
 
         window.openMarketPlayerSheet = function() {
@@ -2657,9 +2966,13 @@
             if (!requireTransferPeriod('midseason', '移籍希望選手の登録')) return;
             const name = document.getElementById('market-player-name').value.trim();
             if (!name) return alert('選手名を入力してください。');
+            const owner = findPlayerOwnership(name);
+            if (owner) return alert(`この選手は現在${owner.team.name}に登録されています。`);
+            if (getAvailablePlayers().some(player => normalizePlayerIdentity(player.name) === normalizePlayerIdentity(name))) return alert('この選手はすでに移籍市場へ登録されています。');
             takeTransferSnapshot('移籍希望選手登録');
             getMarket().freeAgents.push({ id: `m_${Date.now()}`, name, position: document.getElementById('market-player-position').value, cardType: document.getElementById('market-player-card-type').value, status: 'available' });
             addTransferHistory('移籍市場に登録', `${name} が加入希望として登録`);
+            addTransferAudit('MARKET_PLAYER_REGISTERED', { player: name, fromTeam: '', toTeam: '', reason: '中間市場への登録' });
             commitTransferChange();
             document.getElementById('sheet-overlay').classList.remove('active');
         };
@@ -2667,8 +2980,15 @@
         window.openDraftBoardSheet = function(defaultTeamId = '') {
             if (!requireTransferPeriod('midseason', '中間ドラフトの希望提出')) return;
             const market = getMarket();
+            if (!RAW_TEAMS.every(team => market.midseason.releaseConfirmed[team.id])) return alert('全9クラブの放出確定後に希望を提出できます。');
             const teamId = defaultTeamId || RAW_TEAMS[0].id;
             const team = RAW_TEAMS.find(item => item.id === teamId);
+            if (!market.midseason.releaseConfirmed[teamId]) return alert('先に放出選手を確定してください。');
+            if (market.midseason.submissionConfirmed[teamId]) {
+                document.getElementById('sheet-body').innerHTML = `<div style="text-align:center"><h3>希望は提出済みです</h3><div class="market-note">再編集する場合は提出を取り消してください。</div><button class="btn-secondary" style="width:100%;margin-top:.8rem" onclick="withdrawDraftPreferences('${teamId}')">提出を取り消す</button></div>`;
+                document.getElementById('sheet-overlay').classList.add('active');
+                return;
+            }
             const slots = Number(market.releasePlans[teamId] || 0);
             const preferences = market.draftPreferences[teamId] || [];
             const candidates = getAvailablePlayers().filter(player => player.sourceTeamId !== teamId);
@@ -2683,27 +3003,54 @@
 
         window.saveDraftPreferences = function(teamId) {
             if (!requireTransferPeriod('midseason', '中間ドラフトの希望提出')) return;
+            if (!RAW_TEAMS.every(team => getMarket().midseason.releaseConfirmed[team.id])) return alert('全9クラブの放出確定後に希望を提出できます。');
             const entries = [...document.querySelectorAll('[data-draft-choice]')].map(element => ({ id: element.dataset.playerId, rank: Number(element.value) })).filter(entry => entry.rank);
             const slots = Number(getMarket().releasePlans[teamId] || 0);
             if (entries.length > slots) return alert(`希望は${slots}名までです。`);
             if (new Set(entries.map(entry => entry.rank)).size !== entries.length) return alert('同じ希望順位は1つだけ選んでください。');
+            const candidateById = new Map(getAvailablePlayers().map(player => [player.id, player]));
+            const ownChoice = entries.map(entry => candidateById.get(entry.id)).find(player => player?.sourceTeamId === teamId);
+            if (ownChoice) return alert('自クラブが放出した選手は指名できません。');
+            const selectedCandidates = entries.map(entry => candidateById.get(entry.id)).filter(Boolean);
+            const proposed = [...activeRosterPlayers(teamId), ...selectedCandidates.map((candidate, index) => ({ ...candidate, id: `preview_${index}`, status: 'active' }))];
+            const validation = validateRoster(teamId, proposed);
+            if (!validation.valid) return alert(`希望した選手を獲得すると名簿規定に違反します。\n${validation.errors.join('\n')}`);
             takeTransferSnapshot('ドラフト希望提出');
             getMarket().draftPreferences[teamId] = entries.sort((a, b) => a.rank - b.rank).map(entry => entry.id);
+            getMarket().midseason.submissionConfirmed[teamId] = { submittedAt: new Date().toISOString() };
+            getMarket().midseason.phase = 'confirmation';
             addTransferHistory('ドラフト希望提出', `${RAW_TEAMS.find(team => team.id === teamId).name} が${entries.length}名を提出`);
+            addTransferAudit('DRAFT_SUBMISSION_CONFIRMED', { fromTeam: teamId, player: selectedCandidates.map(player => player.name).join('、'), reason: '中間ドラフト希望提出' });
             commitTransferChange();
             document.getElementById('sheet-overlay').classList.remove('active');
         };
 
-        window.runAutomaticDraft = function() {
-            if (!requireTransferPeriod('midseason', '中間ドラフトの確定')) return;
+        window.withdrawDraftPreferences = function(teamId) {
+            if (!requireTransferPeriod('midseason', '希望提出の取消')) return;
+            const market = getMarket();
+            if (market.midseason.draftConfirmed) return alert('ドラフト確定後は提出を取り消せません。');
+            takeTransferSnapshot('ドラフト希望提出取消');
+            delete market.midseason.submissionConfirmed[teamId];
+            addTransferHistory('ドラフト希望提出を取消', RAW_TEAMS.find(team => team.id === teamId)?.name || '');
+            addTransferAudit('DRAFT_SUBMISSION_WITHDRAWN', { fromTeam: teamId, reason: '希望提出を取消' });
+            commitTransferChange();
+            openDraftBoardSheet(teamId);
+        };
+
+        function buildMidseasonDraftPreview() {
             const market = getMarket();
             const candidates = getAvailablePlayers();
             const activeTeams = RAW_TEAMS.filter(team => Number(market.releasePlans[team.id] || 0) > 0);
-            if (!activeTeams.length) return alert('放出リストを登録したチームがありません。');
-            if (!candidates.length) return alert('移籍市場に選手がいません。');
-            if (!confirm('現在の希望をもとにドラフトを自動確定します。続けますか？')) return;
-            takeTransferSnapshot('ドラフト自動確定');
-            const order = calculateStandings().slice().reverse().map(standing => RAW_TEAMS.find(team => team.name === standing.name));
+            const errors = [];
+            if (!RAW_TEAMS.every(team => market.midseason.releaseConfirmed[team.id])) errors.push('全9クラブの放出確定が必要です');
+            if (!activeTeams.every(team => market.midseason.submissionConfirmed[team.id])) errors.push('指名枠がある全クラブの希望提出が必要です');
+            if (getPendingTradeCount()) errors.push('確認待ちのトレード提案があります');
+            if (!market.midseason.tradesClosed) errors.push('トレード受付が終了していません');
+            const orderIds = market.midseason.draftOrderSnapshot.length
+                ? market.midseason.draftOrderSnapshot
+                : calculateStandings().slice().reverse().map(standing => RAW_TEAMS.find(team => team.name === standing.name)?.id).filter(Boolean);
+            const order = orderIds.map(id => RAW_TEAMS.find(team => team.id === id)).filter(Boolean);
+            const proposedRosters = cloneTransferData(state.rosters);
             const assigned = new Set();
             const results = [];
             order.forEach(team => {
@@ -2711,27 +3058,68 @@
                 const preferences = market.draftPreferences[team.id] || [];
                 for (const choiceId of preferences) {
                     if (results.filter(result => result.teamId === team.id).length >= slots) break;
-                    const counts = getRosterCounts(team.id);
                     const choice = candidates.find(player => player.id === choiceId);
-                    if (!choice || assigned.has(choice.id) || choice.sourceTeamId === team.id || counts.total >= 25 || (choice.cardType === 'special' && counts.special >= 18)) continue;
+                    if (!choice || assigned.has(choice.id) || choice.sourceTeamId === team.id) continue;
+                    const activeTarget = activePlayersFromRoster(proposedRosters[team.id] || []);
+                    const proposedTarget = [...activeTarget, { ...choice, id: `draft_preview_${results.length}`, status: 'active' }];
+                    if (!validateRoster(team.id, proposedTarget).valid || findOtherPlayerOwnership(choice.name, choice.source === 'released' ? { teamId: choice.sourceTeamId, playerId: choice.sourcePlayerId } : null, proposedRosters)) continue;
                     assigned.add(choice.id);
                     if (choice.source === 'released') {
-                        const source = getRoster(choice.sourceTeamId).find(player => player.id === choice.sourcePlayerId);
+                        const source = (proposedRosters[choice.sourceTeamId] || []).find(player => player.id === choice.sourcePlayerId);
                         if (source) source.status = 'transferred';
-                    } else {
-                        const freeAgent = market.freeAgents.find(player => player.id === choice.id);
-                        if (freeAgent) freeAgent.status = 'signed';
                     }
-                    getRoster(team.id).push({ id: `p_${Date.now()}_${results.length}`, name: choice.name, position: choice.position || '', cardType: choice.cardType || 'normal', status: 'active', appearances: 0 });
-                    results.push({ id: `d_${Date.now()}_${results.length}`, playerName: choice.name, teamId: team.id, teamName: team.name, method: '下位順位から指名枠を一括確定' });
+                    proposedRosters[team.id] ||= [];
+                    proposedRosters[team.id].push({ id: `p_${Date.now()}_${results.length}`, name: choice.name, position: choice.position || '', cardType: choice.cardType || 'normal', status: 'active', appearances: 0 });
+                    results.push({ id: `d_${Date.now()}_${results.length}`, playerName: choice.name, teamId: team.id, teamName: team.name, source: choice.source, sourceId: choice.id, sourceTeamId: choice.sourceTeamId || '', method: '下位順位から指名枠を一括確定' });
                 }
             });
-            if (!results.length) {
-                alert('条件に合う希望がありません。希望順位・登録上限を確認してください。');
+            const integrity = inspectRosterIntegrity(proposedRosters);
+            errors.push(...integrity.issues.map(issue => issue.message));
+            return { valid: errors.length === 0, errors, results, rosters: proposedRosters, orderIds, activeTeams };
+        }
+
+        window.openMidseasonDraftPreview = function() {
+            if (!requireTransferPeriod('midseason', 'ドラフト確定前チェック')) return;
+            const preview = buildMidseasonDraftPreview();
+            const byTeam = RAW_TEAMS.map(team => {
+                const players = preview.results.filter(result => result.teamId === team.id);
+                const counts = validateRoster(team.id, preview.rosters[team.id] || [], { allowIncompleteBuild: true }).counts;
+                return `<div class="transfer-club-card"><img src="${team.logo}" alt=""><div style="flex:1"><b>${escapeHtml(team.name)}</b><div style="font-size:.68rem;color:var(--text-muted)">${players.length ? escapeHtml(players.map(player => player.playerName).join('、')) : '獲得予定なし'}<br>獲得後 ${counts.total}名・特別${counts.special}名・ノーマル${counts.normal}名</div></div></div>`;
+            }).join('');
+            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:.8rem"><h3>ドラフト確定前チェック</h3></div>${preview.errors.length ? `<div class="market-note" style="color:var(--accent-red);margin-bottom:.7rem">${preview.errors.map(escapeHtml).join('<br>')}</div>` : '<div class="market-note" style="margin-bottom:.7rem">名簿規定・重複所属に問題はありません。確定できます。</div>'}${byTeam}`;
+            document.getElementById('sheet-overlay').classList.add('active');
+        };
+
+        window.runAutomaticDraft = function() {
+            if (!requireTransferPeriod('midseason', '中間ドラフトの確定')) return;
+            const market = getMarket();
+            const preview = buildMidseasonDraftPreview();
+            if (!preview.valid) return alert(`ドラフトを確定できません。\n${preview.errors.join('\n')}`);
+            if (!preview.activeTeams.length) {
+                if (!confirm('全クラブが放出0名です。獲得なしで中間市場を完了しますか？')) return;
+                takeTransferSnapshot('中間市場完了');
+                market.midseason.draftConfirmed = true;
+                market.midseason.phase = 'completed';
+                addTransferHistory('中間市場完了', '全クラブ放出0名・獲得なし');
+                addTransferAudit('MIDSEASON_COMPLETED', { reason: '全クラブ放出0名' });
+                commitTransferChange();
                 return;
             }
+            if (!preview.results.length) return alert('条件に合う希望がありません。希望順位・登録上限を確認してください。');
+            if (!confirm('確定前チェックの内容で中間ドラフトを確定しますか？')) return;
+            takeTransferSnapshot('ドラフト自動確定');
+            market.midseason.draftOrderSnapshot = preview.orderIds;
+            state.rosters = preview.rosters;
+            preview.results.filter(result => result.source === 'free').forEach(result => {
+                const freeAgent = market.freeAgents.find(player => player.id === result.sourceId);
+                if (freeAgent) freeAgent.status = 'signed';
+            });
+            const results = preview.results;
             market.draftResults = [...results, ...market.draftResults];
+            market.midseason.draftConfirmed = true;
+            market.midseason.phase = 'completed';
             results.forEach(result => addTransferHistory('移籍確定', `${result.playerName} → ${result.teamName}`));
+            results.forEach(result => addTransferAudit('MIDSEASON_DRAFT_ACQUIRED', { player: result.playerName, toTeam: result.teamId, reason: '中間ドラフト' }));
             commitTransferChange();
             alert(`${results.length}件の移籍を確定しました。`);
         };
@@ -2740,15 +3128,35 @@
             return getRoster(teamId).filter(player => player.status !== 'released' && player.status !== 'transferred');
         }
 
+        function previewRosterMoves(moves = [], baseRosters = state.rosters) {
+            const proposed = cloneTransferData(baseRosters || {});
+            RAW_TEAMS.forEach(team => { if (!Array.isArray(proposed[team.id])) proposed[team.id] = []; });
+            const movedPlayers = [];
+            for (const move of moves) {
+                if (!move?.sourceTeamId || !move?.targetTeamId || move.sourceTeamId === move.targetTeamId) {
+                    return { valid: false, errors: ['移籍元または移籍先が正しくありません'] };
+                }
+                const source = proposed[move.sourceTeamId];
+                const index = source.findIndex(player => player.id === move.playerId && player.status !== 'released' && player.status !== 'transferred');
+                if (index < 0) return { valid: false, errors: ['対象選手の所属が変更されています'] };
+                const [player] = source.splice(index, 1);
+                player.status = 'active';
+                if (move.endDraftMarker) player.endDraftAcquired = move.endDraftMarker;
+                proposed[move.targetTeamId].push(player);
+                movedPlayers.push(player);
+            }
+            const affected = new Set(moves.flatMap(move => [move.sourceTeamId, move.targetTeamId]));
+            const errors = [];
+            affected.forEach(teamId => errors.push(...validateRoster(teamId, proposed[teamId]).errors.map(message => `${RAW_TEAMS.find(team => team.id === teamId)?.name || teamId}：${message}`)));
+            errors.push(...inspectRosterIntegrity(proposed).issues.filter(issue => issue.type === 'duplicate').map(issue => issue.message));
+            return { valid: errors.length === 0, errors, rosters: proposed, movedPlayers };
+        }
+
         function moveRosterPlayer(sourceTeamId, playerId, targetTeamId, endDraftMarker = '') {
-            const sourceRoster = getRoster(sourceTeamId);
-            const index = sourceRoster.findIndex(player => player.id === playerId && player.status !== 'transferred');
-            if (index < 0) return null;
-            const [player] = sourceRoster.splice(index, 1);
-            player.status = 'active';
-            if (endDraftMarker) player.endDraftAcquired = endDraftMarker;
-            getRoster(targetTeamId).push(player);
-            return player;
+            const preview = previewRosterMoves([{ sourceTeamId, playerId, targetTeamId, endDraftMarker }]);
+            if (!preview.valid) return { ok: false, errors: preview.errors };
+            state.rosters = preview.rosters;
+            return { ok: true, player: preview.movedPlayers[0] };
         }
 
         function renderTradeMarket(listingWrap, offerWrap) {
@@ -2786,12 +3194,14 @@
 
         window.saveTradeListing = function(teamId) {
             if (!requireTransferPeriod('midseason', 'トレード可能選手の公表')) return;
+            if (getMarket().midseason.tradesClosed) return alert('トレード受付は終了しています。');
             const playerId = document.getElementById('trade-listing-player')?.value;
             const player = activeRosterPlayers(teamId).find(item => item.id === playerId);
             if (!player) return alert('選手を選択してください。');
             takeTransferSnapshot('トレード可能選手の公表');
             getMarket().tradeListings.unshift({ id: `tl_${Date.now()}`, teamId, playerId, status: 'open', createdAt: new Date().toISOString() });
             addTransferHistory('トレード可能選手を公表', `${RAW_TEAMS.find(team => team.id === teamId).name}：${player.name}`);
+            addTransferAudit('TRADE_LISTING_CREATED', { player: player.name, fromTeam: teamId, reason: 'トレード可能選手として公表' });
             commitTransferChange();
             document.getElementById('sheet-overlay').classList.remove('active');
         };
@@ -2804,6 +3214,7 @@
             listing.status = 'cancelled';
             getMarket().tradeOffers.filter(offer => offer.listingId === listingId && offer.status === 'pending').forEach(offer => offer.status = 'cancelled');
             addTransferHistory('トレード公表を取消', RAW_TEAMS.find(team => team.id === listing.teamId)?.name || '');
+            addTransferAudit('TRADE_LISTING_CANCELLED', { fromTeam: listing.teamId, reason: 'トレード公表を取消' });
             commitTransferChange();
         };
 
@@ -2821,11 +3232,13 @@
 
         window.saveTradeOffer = function(listingId, fromTeamId) {
             if (!requireTransferPeriod('midseason', 'トレード提案')) return;
+            if (getMarket().midseason.tradesClosed) return alert('トレード受付は終了しています。');
             const ids = [...document.querySelectorAll('[data-trade-offer-player]:checked')].map(input => input.value);
             if (!ids.length) return alert('交換に出す選手を選択してください。');
             takeTransferSnapshot('トレード提案');
             getMarket().tradeOffers.unshift({ id: `to_${Date.now()}`, listingId, fromTeamId, offeredPlayerIds: ids, status: 'pending', createdAt: new Date().toISOString() });
             addTransferHistory('トレードを提案', `${RAW_TEAMS.find(team => team.id === fromTeamId)?.name || ''}：${ids.length}名を提示`);
+            addTransferAudit('TRADE_OFFER_SUBMITTED', { player: ids.map(id => getRoster(fromTeamId).find(player => player.id === id)?.name).filter(Boolean).join('、'), fromTeam: fromTeamId, toTeam: getMarket().tradeListings.find(item => item.id === listingId)?.teamId || '', reason: 'トレード提案' });
             commitTransferChange();
             document.getElementById('sheet-overlay').classList.remove('active');
         };
@@ -2833,20 +3246,40 @@
         window.acceptTradeOffer = function(offerId) {
             if (!requireTransferPeriod('midseason', 'トレード成立')) return;
             const market = getMarket();
+            if (market.midseason.tradesClosed) return alert('トレード受付は終了しています。');
             const offer = market.tradeOffers.find(item => item.id === offerId && item.status === 'pending');
             const listing = market.tradeListings.find(item => item.id === offer?.listingId && item.status === 'open');
             if (!offer || !listing || !confirm('両チーム合意としてトレードを成立させますか？')) return;
             const target = activeRosterPlayers(listing.teamId).find(player => player.id === listing.playerId);
             const offered = offer.offeredPlayerIds.map(id => activeRosterPlayers(offer.fromTeamId).find(player => player.id === id)).filter(Boolean);
             if (!target || offered.length !== offer.offeredPlayerIds.length) return alert('対象選手の所属が変わっています。提案を確認してください。');
+            const moves = [
+                { sourceTeamId: listing.teamId, playerId: listing.playerId, targetTeamId: offer.fromTeamId },
+                ...offered.map(player => ({ sourceTeamId: offer.fromTeamId, playerId: player.id, targetTeamId: listing.teamId }))
+            ];
+            const preview = previewRosterMoves(moves);
+            if (!preview.valid) return alert(`トレード後の名簿が規定を満たしません。\n${preview.errors.join('\n')}`);
             takeTransferSnapshot('トレード成立');
             const targetName = target.name;
-            moveRosterPlayer(listing.teamId, listing.playerId, offer.fromTeamId);
-            offered.forEach(player => moveRosterPlayer(offer.fromTeamId, player.id, listing.teamId));
+            state.rosters = preview.rosters;
             offer.status = 'accepted';
             listing.status = 'completed';
             market.tradeOffers.filter(item => item.listingId === listing.id && item.id !== offer.id && item.status === 'pending').forEach(item => item.status = 'rejected');
             addTransferHistory('トレード成立', `${targetName} ⇄ ${offered.map(player => player.name).join('、')}`);
+            addTransferAudit('TRADE_COMPLETED', { player: [targetName, ...offered.map(player => player.name)].join('、'), fromTeam: listing.teamId, toTeam: offer.fromTeamId, reason: '両クラブ承認' });
+            commitTransferChange();
+        };
+
+        window.closeMidseasonTrades = function() {
+            if (!requireTransferPeriod('midseason', 'トレード受付終了')) return;
+            const market = getMarket();
+            if (getPendingTradeCount()) return alert('確認待ちのトレード提案をすべて承認または見送りにしてください。');
+            if (!confirm('中間市場のトレード受付を終了しますか？')) return;
+            takeTransferSnapshot('トレード受付終了');
+            market.midseason.tradesClosed = true;
+            market.tradeListings.filter(item => item.status === 'open').forEach(item => item.status = 'closed');
+            addTransferHistory('トレード受付終了', '確認待ち提案0件');
+            addTransferAudit('TRADES_CLOSED', { reason: '中間市場ドラフト確定準備' });
             commitTransferChange();
         };
 
@@ -2857,6 +3290,7 @@
             takeTransferSnapshot('トレード提案の見送り');
             offer.status = 'rejected';
             addTransferHistory('トレード提案を見送り', RAW_TEAMS.find(team => team.id === offer.fromTeamId)?.name || '');
+            addTransferAudit('TRADE_OFFER_REJECTED', { fromTeam: offer.fromTeamId, reason: 'トレード提案を見送り' });
             commitTransferChange();
         };
 
@@ -2875,6 +3309,15 @@
             });
         }
 
+        function getProtectionBonusInfo(teamId) {
+            const finalMatch = ensureHirabayashiCupState().knockoutMatches.find(match => match.id === 'hc_final');
+            const winner = cupWinner(finalMatch);
+            const runnerUp = cupLoser(finalMatch);
+            const teamName = RAW_TEAMS.find(team => team.id === teamId)?.name || '';
+            if (winner && runnerUp) return { automatic: true, value: teamName === winner ? 2 : teamName === runnerUp ? 1 : 0, winner, runnerUp };
+            return { automatic: false, value: Number(getMarket().protectionBonus[teamId] || 0) };
+        }
+
         function getEndDraftCandidates() {
             const market = getMarket();
             const marker = `season-${state.seasonInfo?.number || 1}`;
@@ -2885,9 +3328,11 @@
         }
 
         function getEndDraftOrder(round = 2) {
-            const standings = calculateStandings();
-            const ordered = Number(round) % 2 === 0 ? standings.slice().reverse() : standings.slice();
-            return ordered.map(standing => RAW_TEAMS.find(team => team.name === standing.name)).filter(Boolean);
+            const snapshot = getMarket().endDraft.draftOrderSnapshot;
+            const base = snapshot.length
+                ? snapshot.map(id => RAW_TEAMS.find(team => team.id === id)).filter(Boolean)
+                : calculateStandings().slice().reverse().map(standing => RAW_TEAMS.find(team => team.name === standing.name)).filter(Boolean);
+            return Number(round) % 2 === 0 ? base : base.slice().reverse();
         }
 
         function currentWaiverTeam() {
@@ -2923,7 +3368,9 @@
             protectionWrap.innerHTML = RAW_TEAMS.map(team => {
                 const ids = getValidProtectionIds(team.id);
                 const names = ids.map(id => getRoster(team.id).find(player => player.id === id)?.name).filter(Boolean);
-                return `<div class="transfer-club-card" onclick="openProtectionSheet('${team.id}')"><img src="${team.logo}"><div style="flex:1;"><b>${escapeHtml(team.name)}</b><div style="font-size:0.68rem;color:var(--text-muted);">${names.length ? escapeHtml(names.join('、')) : '未登録'} (${names.length}/${6 + Number(market.protectionBonus[team.id] || 0)})</div></div><div class="transfer-count">›</div></div>`;
+                const bonus = getProtectionBonusInfo(team.id).value;
+                const confirmed = !!draft.protectionConfirmed[team.id];
+                return `<div class="transfer-club-card" onclick="openProtectionSheet('${team.id}')"><img src="${team.logo}"><div style="flex:1;"><b>${escapeHtml(team.name)}</b><div style="font-size:0.68rem;color:var(--text-muted);">${names.length ? escapeHtml(names.join('、')) : '未登録'} (${names.length}/${6 + bonus}) ・ ${confirmed ? '確定済み' : '未確定'}</div></div><div class="transfer-count">›</div></div>`;
             }).join('');
             const submitted = RAW_TEAMS.filter(team => Object.prototype.hasOwnProperty.call(draft.roundOnePicks, team.id)).length;
             const roundOneStatus = RAW_TEAMS.map(team => `<div class="transfer-club-card" onclick="openRoundOnePickSheet('${team.id}')"><img src="${team.logo}"><div style="flex:1;"><b>${escapeHtml(team.name)}</b><div style="font-size:0.68rem;color:var(--text-muted);">${Object.prototype.hasOwnProperty.call(draft.roundOnePicks, team.id) ? '提出済み（非公開）' : '未提出'}</div></div><div class="transfer-count">›</div></div>`).join('');
@@ -2944,8 +3391,14 @@
             if (!requireTransferPeriod('endseason', 'プロテクト登録')) return;
             const market = getMarket();
             const teamId = defaultTeamId || RAW_TEAMS[0].id;
+            if (market.endDraft.protectionConfirmed[teamId]) {
+                document.getElementById('sheet-body').innerHTML = `<div style="text-align:center"><h3>プロテクトは確定済みです</h3><div class="market-note">確定後は終了時ドラフトの安全性を保つため変更できません。</div></div>`;
+                document.getElementById('sheet-overlay').classList.add('active');
+                return;
+            }
             const selected = getValidProtectionIds(teamId);
-            const bonus = Number(market.protectionBonus[teamId] || 0);
+            const bonusInfo = getProtectionBonusInfo(teamId);
+            const bonus = bonusInfo.value;
             const stats = calculatePlayerStats();
             const options = RAW_TEAMS.map(item => `<option value="${item.id}" ${item.id === teamId ? 'selected' : ''}>${escapeHtml(item.name)}</option>`).join('');
             const rows = activeRosterPlayers(teamId).map(player => {
@@ -2953,7 +3406,7 @@
                 const eligible = appearances >= 10;
                 return `<label class="appearance-option" style="opacity:${eligible ? 1 : 0.45};"><input type="checkbox" data-protection-player value="${player.id}" ${eligible && selected.includes(player.id) ? 'checked' : ''} ${eligible ? '' : 'disabled'}><span>${escapeHtml(player.name)} / 出場 ${appearances}試合${eligible ? '' : '（対象外：10試合未満）'}</span></label>`;
             }).join('');
-            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:1rem;"><h3>プロテクト選手を公表</h3></div><div class="market-note" style="margin-bottom:0.8rem;">今シーズンのリーグ戦に10試合以上出場した選手だけ選択できます。</div><div class="form-group"><label class="form-label">チーム</label><select class="form-select" onchange="openProtectionSheet(this.value)">${options}</select></div><div class="form-group"><label class="form-label">平林杯の追加枠</label><select id="protection-bonus" class="form-select"><option value="0" ${bonus === 0 ? 'selected' : ''}>追加なし</option><option value="1" ${bonus === 1 ? 'selected' : ''}>+1</option><option value="2" ${bonus === 2 ? 'selected' : ''}>+2</option></select></div><div class="appearance-picker">${rows || '<div class="empty-state">登録選手がいません</div>'}</div><button class="btn-primary" style="margin-top:0.8rem;" onclick="saveProtections('${teamId}')">公表して全員に同期</button>`;
+            document.getElementById('sheet-body').innerHTML = `<div style="text-align:center;margin-bottom:1rem;"><h3>プロテクト選手を確定</h3></div><div class="market-note" style="margin-bottom:0.8rem;">リーグ戦10試合以上出場した選手から${6 + bonus}名を選択します。</div><div class="form-group"><label class="form-label">チーム</label><select class="form-select" onchange="openProtectionSheet(this.value)">${options}</select></div><div class="form-group"><label class="form-label">平林杯の追加枠</label>${bonusInfo.automatic ? `<div class="form-input">自動判定：+${bonus}</div><input id="protection-bonus" type="hidden" value="${bonus}">` : `<select id="protection-bonus" class="form-select"><option value="0" ${bonus === 0 ? 'selected' : ''}>追加なし</option><option value="1" ${bonus === 1 ? 'selected' : ''}>+1</option><option value="2" ${bonus === 2 ? 'selected' : ''}>+2</option></select><small style="color:var(--text-muted)">平林杯の決勝結果を自動判定できないため手動設定です。</small>`}</div><div class="appearance-picker">${rows || '<div class="empty-state">登録選手がいません</div>'}</div><button class="btn-primary" style="margin-top:0.8rem;" onclick="saveProtections('${teamId}')">プロテクトを確定</button>`;
             document.getElementById('sheet-overlay').classList.add('active');
         };
 
@@ -2961,7 +3414,7 @@
             if (!requireTransferPeriod('endseason', 'プロテクト登録')) return;
             const ids = [...document.querySelectorAll('[data-protection-player]:checked')].map(input => input.value);
             const bonus = Number(document.getElementById('protection-bonus')?.value || 0);
-            if (ids.length > 6 + bonus) return alert(`プロテクトできるのは${6 + bonus}名までです。`);
+            if (ids.length !== 6 + bonus) return alert(`プロテクト選手を${6 + bonus}名選択してください。`);
             const stats = calculatePlayerStats();
             const ineligible = ids.map(id => activeRosterPlayers(teamId).find(player => player.id === id)).filter(Boolean).filter(player => {
                 const appearances = getPlayerSeasonAppearances(teamId, player, stats);
@@ -2972,13 +3425,17 @@
             const market = getMarket();
             market.protections[teamId] = ids;
             market.protectionBonus[teamId] = bonus;
+            market.endDraft.protectionConfirmed[teamId] = { confirmedAt: new Date().toISOString() };
+            if (areAllProtectionsConfirmed() && !market.endDraft.draftOrderSnapshot.length) market.endDraft.draftOrderSnapshot = calculateStandings().slice().reverse().map(standing => RAW_TEAMS.find(team => team.name === standing.name)?.id).filter(Boolean);
             addTransferHistory('プロテクトを公表', `${RAW_TEAMS.find(team => team.id === teamId)?.name || ''}：${ids.length}名`);
+            addTransferAudit('PROTECTION_CONFIRMED', { fromTeam: teamId, player: ids.map(id => getRoster(teamId).find(player => player.id === id)?.name).filter(Boolean).join('、'), reason: `基本6名・追加${bonus}名` });
             commitTransferChange();
             document.getElementById('sheet-overlay').classList.remove('active');
         };
 
         window.openRoundOnePickSheet = function(defaultTeamId = '') {
             if (!requireTransferPeriod('endseason', '終了時ドラフト1巡目')) return;
+            if (!areAllProtectionsConfirmed()) return alert('全9クラブのプロテクト確定後に1巡目を開始できます。');
             const market = getMarket();
             const draft = market.endDraft;
             const teamId = defaultTeamId || RAW_TEAMS[0].id;
@@ -2996,11 +3453,13 @@
 
         window.saveRoundOnePick = function(teamId) {
             if (!requireTransferPeriod('endseason', '終了時ドラフト1巡目')) return;
+            if (!areAllProtectionsConfirmed()) return alert('全9クラブのプロテクト確定後に1巡目を開始できます。');
             takeTransferSnapshot('1巡目指名提出');
             const market = getMarket();
             market.endDraft.phase = 'round1';
             market.endDraft.roundOnePicks[teamId] = { candidateId: document.getElementById('round-one-candidate')?.value || '', submittedAt: new Date().toISOString() };
             addTransferHistory('1巡目指名を提出', `${RAW_TEAMS.find(team => team.id === teamId)?.name || ''}（非公開）`);
+            addTransferAudit('END_DRAFT_ROUND_ONE_SUBMITTED', { fromTeam: teamId, reason: '1巡目を非公開提出' });
             commitTransferChange();
             document.getElementById('sheet-overlay').classList.remove('active');
         };
@@ -3010,6 +3469,7 @@
             takeTransferSnapshot('1巡目指名の取消');
             delete getMarket().endDraft.roundOnePicks[teamId];
             addTransferHistory('1巡目指名を取消', RAW_TEAMS.find(team => team.id === teamId)?.name || '');
+            addTransferAudit('END_DRAFT_ROUND_ONE_WITHDRAWN', { fromTeam: teamId, reason: '1巡目提出を取消' });
             commitTransferChange();
             document.getElementById('sheet-overlay').classList.remove('active');
         };
@@ -3019,26 +3479,37 @@
             const market = getMarket();
             const draft = market.endDraft;
             if (RAW_TEAMS.some(team => !Object.prototype.hasOwnProperty.call(draft.roundOnePicks, team.id))) return alert('全チームの提出が必要です。');
+            if (!areAllProtectionsConfirmed()) return alert('全9クラブのプロテクト確定が必要です。');
             if (!confirm('1巡目を一斉開示し、重複指名を抽選しますか？')) return;
             takeTransferSnapshot('終了時ドラフト1巡目確定');
             const candidates = getEndDraftCandidates();
             const groups = {};
+            const plannedResults = [];
+            const plannedMoves = [];
             RAW_TEAMS.forEach(team => {
                 const candidateId = draft.roundOnePicks[team.id]?.candidateId || '';
                 if (candidateId) (groups[candidateId] ||= []).push(team);
-                else draft.roundOneResults.push({ teamId: team.id, teamName: team.name, playerName: '', won: false });
+                else plannedResults.push({ teamId: team.id, teamName: team.name, playerName: '', won: false });
             });
             Object.entries(groups).forEach(([candidateId, teams]) => {
                 const candidate = candidates.find(player => player.candidateId === candidateId);
                 if (!candidate) return;
                 const winner = teams[Math.floor(Math.random() * teams.length)];
-                teams.forEach(team => draft.roundOneResults.push({ teamId: team.id, teamName: team.name, playerName: candidate.name, won: team.id === winner.id, lottery: teams.length > 1 }));
-                moveRosterPlayer(candidate.sourceTeamId, candidate.id, winner.id, `season-${state.seasonInfo?.number || 1}`);
-                addTransferHistory('終了時ドラフト1巡目', `${candidate.name} → ${winner.name}${teams.length > 1 ? '（抽選）' : ''}`);
+                teams.forEach(team => plannedResults.push({ teamId: team.id, teamName: team.name, playerName: candidate.name, won: team.id === winner.id, lottery: teams.length > 1 }));
+                plannedMoves.push({ sourceTeamId: candidate.sourceTeamId, playerId: candidate.id, targetTeamId: winner.id, endDraftMarker: `season-${state.seasonInfo?.number || 1}`, candidate, winner, lottery: teams.length > 1 });
+            });
+            const preview = previewRosterMoves(plannedMoves);
+            if (!preview.valid) return alert(`1巡目を確定できません。\n${preview.errors.join('\n')}`);
+            state.rosters = preview.rosters;
+            draft.roundOneResults.push(...plannedResults);
+            plannedMoves.forEach(move => {
+                addTransferHistory('終了時ドラフト1巡目', `${move.candidate.name} → ${move.winner.name}${move.lottery ? '（抽選）' : ''}`);
+                addTransferAudit('END_DRAFT_ROUND_ONE_ACQUIRED', { player: move.candidate.name, fromTeam: move.sourceTeamId, toTeam: move.winner.id, reason: move.lottery ? '重複指名抽選' : '単独指名' });
             });
             draft.phase = 'waiver';
             draft.waiverRound = 2;
             draft.waiverTurnIndex = 0;
+            addTransferAudit('END_DRAFT_ROUND_ONE_REVEALED', { reason: '全クラブ一斉開示・抽選完了' });
             commitTransferChange();
         };
 
@@ -3061,9 +3532,11 @@
             const candidate = getEndDraftCandidates().find(player => player.candidateId === candidateId);
             if (!team || !candidate || candidate.sourceTeamId === team.id) return alert('指名できる選手を選択してください。');
             takeTransferSnapshot(`${draft.waiverRound}巡目指名`);
-            moveRosterPlayer(candidate.sourceTeamId, candidate.id, team.id, `season-${state.seasonInfo?.number || 1}`);
+            const moved = moveRosterPlayer(candidate.sourceTeamId, candidate.id, team.id, `season-${state.seasonInfo?.number || 1}`);
+            if (!moved.ok) return alert(`${candidate.name}を獲得できません。\n${moved.errors.join('\n')}`);
             draft.waiverResults.push({ round: draft.waiverRound, teamId: team.id, teamName: team.name, playerName: candidate.name, candidateId });
             addTransferHistory(`${draft.waiverRound}巡目指名`, `${candidate.name} → ${team.name}`);
+            addTransferAudit('END_DRAFT_WAIVER_ACQUIRED', { player: candidate.name, fromTeam: candidate.sourceTeamId, toTeam: team.id, reason: `${draft.waiverRound}巡目` });
             advanceWaiverTurn();
             commitTransferChange();
             document.getElementById('sheet-overlay').classList.remove('active');
@@ -3078,6 +3551,7 @@
             takeTransferSnapshot(`${draft.waiverRound}巡目パス`);
             draft.waiverResults.push({ round: draft.waiverRound, teamId: team.id, teamName: team.name, playerName: '' });
             addTransferHistory(`${draft.waiverRound}巡目パス`, team.name);
+            addTransferAudit('END_DRAFT_WAIVER_PASSED', { fromTeam: team.id, reason: `${draft.waiverRound}巡目パス` });
             advanceWaiverTurn();
             commitTransferChange();
         };
@@ -3085,9 +3559,14 @@
         window.completeEndDraft = function() {
             if (!requireTransferPeriod('endseason', '終了時ドラフトの完了')) return;
             if (!confirm('シーズン終了ドラフトを完了しますか？')) return;
+            if (!areAllProtectionsConfirmed()) return alert('全クラブのプロテクトが確定していません。');
+            if (!getMarket().endDraft.roundOneResults.length) return alert('1巡目が完了していません。');
+            const integrity = inspectRosterIntegrity();
+            if (!integrity.valid) return alert(`名簿整合性チェックに問題があります。\n${integrity.issues.map(issue => issue.message).join('\n')}`);
             takeTransferSnapshot('終了時ドラフト完了');
             getMarket().endDraft.phase = 'completed';
             addTransferHistory('終了時ドラフト完了', `Season ${state.seasonInfo?.number || 1}`);
+            addTransferAudit('END_DRAFT_COMPLETED', { reason: '終了時移籍市場を完了' });
             commitTransferChange();
         };
 
@@ -3777,7 +4256,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=72', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=73', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
