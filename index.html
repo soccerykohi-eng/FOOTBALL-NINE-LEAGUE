@@ -577,6 +577,24 @@
         .transfer-detail-header.active { display:flex; }
         .transfer-back-button { width:36px; height:36px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-card); color:var(--text-main); font-size:1.1rem; }
         .transfer-detail-title { font-size:.86rem; font-weight:900; }
+        /* エンブレムの元画像サイズや縦横比に関係なく、カードを押し広げない */
+        #page-transfer .transfer-club-focus > img {
+            display:block; flex:0 0 44px; width:44px!important; height:44px!important;
+            max-width:44px!important; max-height:44px!important; object-fit:contain;
+        }
+        #page-transfer .transfer-club-card > img {
+            display:block; flex:0 0 36px; width:36px!important; height:36px!important;
+            max-width:36px!important; max-height:36px!important; object-fit:contain;
+        }
+        #page-transfer .roster-team-head > img,
+        #sheet-body .roster-team-head > img {
+            display:block; flex:0 0 34px; width:34px!important; height:34px!important;
+            max-width:34px!important; max-height:34px!important; object-fit:contain;
+        }
+        #sheet-body .roster-sheet-hero > img.team-logo-lg {
+            display:block; width:68px!important; height:68px!important;
+            max-width:68px!important; max-height:68px!important; object-fit:contain;
+        }
         .transfer-status-card { padding:0.8rem 0.85rem; border:1px solid var(--border-color); border-left:3px solid var(--accent-gold); border-radius:14px; background:var(--bg-card); }
         .transfer-status-label { color:var(--text-muted); font-size:0.56rem; font-weight:900; letter-spacing:0.12em; }
         .transfer-status-title { margin-top:0.2rem; color:var(--text-main); font-size:0.9rem; font-weight:900; }
