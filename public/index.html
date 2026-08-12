@@ -4381,7 +4381,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=77', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=78', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
