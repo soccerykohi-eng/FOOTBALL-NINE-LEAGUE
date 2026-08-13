@@ -1105,11 +1105,22 @@
             header, .bottom-nav { border-left:1px solid rgba(255,255,255,.05); border-right:1px solid rgba(255,255,255,.05); }
         }
 
-        /* Standalone Hirabayashi Cup app */
-        .bottom-nav { display:none; }
+        /* Standalone Hirabayashi Cup app: only the tournament is displayed. */
+        :root { --bg-body:#07130f; --bg-card:#10251b; --bg-elevated:#173423; --border-color:rgba(228,194,116,.18); --accent-gold:#d6aa50; --accent-gold-light:#ffe0a0; --text-main:#fffaf0; --text-muted:#aebfaf; }
+        body { background:radial-gradient(circle at 50% -15%,#285837 0,transparent 37%),linear-gradient(180deg,#0b2117 0%,#06100b 100%); }
+        header { background:linear-gradient(100deg,#07170f,#163d26 55%,#07170f); border-bottom:1px solid rgba(255,224,160,.2); }
+        .bottom-nav, main.container > section:not(#page-cup) { display:none!important; }
         main.container { padding-bottom:1.25rem; }
         #page-cup.active { display:block; }
         #page-cup { min-height:calc(100vh - var(--header-height) - 1.25rem); }
+        #page-cup .cup-hero { border:1px solid rgba(255,224,160,.32); background:radial-gradient(circle at 78% 15%,rgba(255,224,160,.18),transparent 24%),linear-gradient(135deg,#174d2e,#0a2115 68%); box-shadow:0 18px 38px rgba(0,0,0,.25); }
+        #page-cup .cup-hero::after { content:''; position:absolute; inset:0; pointer-events:none; opacity:.3; background:repeating-linear-gradient(135deg,transparent 0 14px,rgba(255,255,255,.08) 14px 15px); }
+        #page-cup .cup-hero > * { position:relative; z-index:1; }
+        #page-cup .cup-hero-image { filter:drop-shadow(0 12px 15px rgba(0,0,0,.4)); }
+        #page-cup .cup-hub-tabs { padding:.32rem; border:1px solid rgba(255,224,160,.2); border-radius:14px; background:#0b1d13; }
+        #page-cup .cup-hub-tab.active { background:linear-gradient(135deg,#e6bd67,#b9802d); color:#132015; }
+        #page-cup .cup-match-card, #page-cup .cup-record-card, #page-cup .cup-bracket-match { background:linear-gradient(135deg,rgba(255,255,255,.045),rgba(255,255,255,.01)),#10251b; }
+        #page-cup .btn-primary { background:linear-gradient(135deg,#e8c36f,#b87c28); color:#132015; box-shadow:0 8px 18px rgba(184,124,40,.22); }
     </style>
 </head>
 <body>
@@ -1127,7 +1138,7 @@
         <div class="header-right-status">
             <div class="sync-badge" id="sync-status-badge" data-state="loading">
                 <span class="sync-dot" id="sync-dot-indicator"></span>
-                <span><span id="sync-text-status">読み込み中</span><span class="save-status-time" id="sync-saved-at"></span></span>
+                <span><span id="sync-text-status">大会データを読み込み中</span><span class="save-status-time" id="sync-saved-at"></span></span>
             </div>
             <div class="current-page-title" id="page-title-display">平林杯</div>
         </div>
@@ -1137,7 +1148,7 @@
     <main class="container">
 
         <!-- PAGE 1: HOME -->
-        <section id="page-home" class="page active">
+        <section id="page-home" class="page" hidden aria-hidden="true">
             <div class="hero-banner">
                 <img class="hero-logo-large" src="./fnl-logo.png" alt="FNL ロゴ">
                 <div class="home-hero-copy"><div class="hero-subtitle" id="current-season-label">SEASON 1 - 2026</div><div class="hero-title">FOOTBALL NINE LEAGUE</div><p class="home-hero-description">9クラブ公式ポータル</p></div>
@@ -4237,7 +4248,7 @@
             const leagueFinished = state.schedule.length > 0 && state.schedule.every(isMatchCompleted);
             const groupDrawLocked = !!cup.groupDraw?.locked;
             wrap.innerHTML = `
-                <div class="cup-hero"><img class="cup-hero-image" src="./hirabayashi-cup.png" alt="平林杯ロゴ"><div class="cup-eyebrow">FNL OFFICIAL CUP</div><h2 class="cup-title"><span>HIRABAYASHI</span> <span>CUP</span></h2><p class="cup-subtitle">平林杯 ・ 9 CLUB TOURNAMENT</p><div class="cup-hero-stats"><div class="cup-hero-stat"><b>9</b><span>CLUBS</span></div><div class="cup-hero-stat"><b>3</b><span>GROUPS</span></div><div class="cup-hero-stat"><b>8</b><span>FINALISTS</span></div></div></div>
+                <div class="cup-hero"><img class="cup-hero-image" src="./hirabayashi-cup.png" alt="平林杯ロゴ"><div class="cup-eyebrow">HIRABAYASHI CUP 2026</div><h2 class="cup-title"><span>HIRABAYASHI</span> <span>CUP</span></h2><p class="cup-subtitle">9 CLUBS ・ ONE CHAMPION</p><div class="cup-hero-stats"><div class="cup-hero-stat"><b>9</b><span>CLUBS</span></div><div class="cup-hero-stat"><b>3</b><span>GROUPS</span></div><div class="cup-hero-stat"><b>8</b><span>FINALISTS</span></div></div></div>
                 <div class="cup-hub-tabs">
                     ${[['groups','グループ'],['repechage','敗者復活'],['bracket','決勝T'],['records','記録'],['guide','大会要項']].map(([key,label]) => `<button class="cup-hub-tab ${cup.activeTab === key ? 'active' : ''}" onclick="switchCupTab('${key}')">${label}</button>`).join('')}
                 </div>
@@ -4795,7 +4806,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=84', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=2', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });
