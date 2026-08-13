@@ -756,6 +756,9 @@
         #page-transfer .transfer-club-card { gap:.6rem; background:var(--bg-card); border-left:1px solid var(--border-color); border-radius:11px; padding:.7rem; margin-bottom:.4rem; }
         .transfer-club-card:active, .more-menu-button:active { border-color:var(--accent-gold); }
         .roster-team-card { border-radius:12px; background:var(--bg-card); box-shadow:none; }
+        .player-directory-intro { margin:-.2rem 0 .75rem; color:var(--text-muted); font-size:.7rem; line-height:1.5; }
+        /* 一覧上のエンブレムは、元画像のサイズにかかわらず必ず収まる */
+        #page-transfer .roster-team-head > img { display:block; flex:0 0 34px; width:34px!important; height:34px!important; max-width:34px!important; max-height:34px!important; object-fit:contain; }
         .bottom-nav { background:rgba(11,15,20,.98); }
         .nav-item { min-width:56px; font-size:.61rem; gap:4px; }
         .nav-svg-icon { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
@@ -1112,7 +1115,6 @@
                 <span class="sync-dot" id="sync-dot-indicator"></span>
                 <span><span id="sync-text-status">読み込み中</span><span class="save-status-time" id="sync-saved-at"></span></span>
             </div>
-            <button type="button" class="edit-mode-button" id="edit-mode-toggle" onclick="toggleEditMode()">編集</button>
             <div class="current-page-title" id="page-title-display">HOME</div>
         </div>
     </header>
@@ -1185,71 +1187,13 @@
             <div id="teams-grid"></div>
         </section>
 
-        <!-- PAGE 5: TRANSFER / PLAYERS -->
+        <!-- PAGE 5: PLAYERS -->
         <section id="page-transfer" class="page" hidden>
             <div class="section-header">
-                <div class="section-title">移籍センター</div>
+                <div class="section-title">登録選手</div>
             </div>
-            <div class="transfer-pane active" id="transfer-pane-dashboard">
-                <div class="transfer-dashboard">
-                    <div id="market-phase-banner"></div>
-                    <div id="transfer-club-focus"></div>
-                    <div id="transfer-next-action"></div>
-                    <div class="transfer-menu-grid" id="transfer-menu-grid"></div>
-                    <div><div class="transfer-step-title">最新の移籍結果</div><div class="transfer-recent" id="transfer-dashboard-history"></div></div>
-                </div>
-            </div>
-            <div class="transfer-detail-header" id="transfer-detail-header"><button class="transfer-back-button" onclick="switchTransferView('dashboard')" aria-label="移籍センターへ戻る">‹</button><div class="transfer-detail-title" id="transfer-detail-title">移籍センター</div></div>
-            <div class="transfer-pane" id="transfer-pane-rosters">
-            <div class="section-header transfer-pane-header">
-                <div class="section-title">選手名簿</div>
-                <button id="add-player-button" class="btn-secondary edit-only" onclick="openAddPlayerSheet()">選手を登録</button>
-            </div>
-            <div id="transfer-quick-guide" class="transfer-quick-guide"></div>
-            <div class="transfer-summary-grid" id="player-summary"></div>
+            <p class="player-directory-intro">チームを選択すると、登録選手を確認できます。</p>
             <div id="roster-club-list"></div>
-            </div>
-            <div class="transfer-pane" id="transfer-pane-midseason">
-            <details class="market-step"><summary><span>全体の進行状況</span></summary><div class="market-step-body" id="transfer-checklist"></div></details>
-            <details class="market-step" open>
-                <summary><span>1. 放出する選手を選ぶ<span class="market-step-copy">放出人数と同じ数だけ指名枠ができます</span></span></summary>
-                <div class="market-step-body" id="market-club-list"></div>
-            </details>
-            <details class="market-step">
-                <summary><span>2. 市場の選手を見る<span class="market-step-copy">新しく移籍希望の選手を追加できます</span></span></summary>
-                <div class="market-step-body"><div style="display:flex;justify-content:flex-end;margin-bottom:0.55rem;"><button id="add-market-player-button" class="btn-secondary" onclick="openMarketPlayerSheet()">移籍希望を登録</button></div><div id="available-player-list"></div></div>
-            </details>
-            <details class="market-step">
-                <summary><span>3. 希望を提出して確定<span class="market-step-copy">希望を提出した後にドラフトを確定します</span></span></summary>
-                <div class="market-step-body"><div class="market-note" style="margin-bottom:.65rem;">現在の仕様は、9位のクラブが指名枠をまとめて獲得してから8位へ進みます。巡ごとに回す方式は規約上未確定のため、運営確認が必要です。</div><div style="display:flex;justify-content:flex-end;margin-bottom:0.55rem;"><button id="midseason-draft-button" class="btn-secondary" onclick="openDraftBoardSheet()">希望を提出</button></div><div id="draft-club-list"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.7rem;"><button id="midseason-preview-button" class="btn-secondary" onclick="openMidseasonDraftPreview()">確定前チェック</button><button id="midseason-run-draft-button" class="btn-primary" onclick="runAutomaticDraft()">ドラフトを確定</button></div><button id="undo-transfer-button" class="btn-secondary" style="width:100%;margin-top:.5rem" onclick="undoLastTransferChange()">直前を戻す</button></div>
-            </details>
-            <details class="market-step">
-                <summary><span>確定結果</span></summary>
-                <div class="market-step-body" id="draft-results-list"></div>
-            </details>
-            </div>
-            <div class="transfer-pane" id="transfer-pane-trades">
-            <div class="section-header transfer-pane-header"><div class="section-title">公開中の選手</div><div style="display:flex;gap:.4rem"><button id="trade-listing-button" class="btn-secondary" onclick="openTradeListingSheet()">選手を公開</button><button id="trade-close-button" class="btn-secondary" onclick="closeMidseasonTrades()">受付終了</button></div></div>
-            <div id="trade-listing-list"></div>
-            <div class="transfer-step-title">届いた提案</div>
-            <div id="trade-offer-list"></div>
-            </div>
-            <div class="transfer-pane" id="transfer-pane-endseason">
-            <div id="end-market-status"></div>
-            <details class="market-step" open>
-                <summary><span>1. プロテクト選手<span class="market-step-copy">10試合以上出場した選手から選択します</span></span></summary>
-                <div class="market-step-body"><div style="display:flex;justify-content:flex-end;margin-bottom:0.55rem;"><button id="protection-register-button" class="btn-secondary" onclick="openProtectionSheet()">プロテクト登録</button></div><div id="protection-list"></div></div>
-            </details>
-            <details class="market-step">
-                <summary><span>2. シーズン終了ドラフト<span class="market-step-copy">1巡目は非公開提出、2巡目以降は順番に指名します</span></span></summary>
-                <div class="market-step-body"><div style="display:flex;justify-content:flex-end;margin-bottom:0.55rem;"><button id="end-draft-pick-button" class="btn-secondary" onclick="openRoundOnePickSheet()">1巡目を提出</button></div><div id="end-draft-list"></div><div id="end-draft-actions" style="margin-top:0.7rem;"></div></div>
-            </details>
-            </div>
-            <div class="transfer-pane" id="transfer-pane-history">
-            <div class="section-header transfer-pane-header"><div class="section-title">移籍履歴</div></div>
-            <div id="transfer-history-list"></div>
-            <details class="market-step" style="margin-top:.7rem"><summary><span>操作監査ログ<span class="market-step-copy">確定・取消・市場終了などの記録</span></span></summary><div class="market-step-body" id="transfer-audit-list"></div></details>
-            </div>
         </section>
 
         <!-- PAGE 6: NEWS -->
@@ -1292,15 +1236,6 @@
         <!-- PAGE 8: HIRABAYASHI CUP -->
         <section id="page-cup" class="page" hidden>
             <div id="hirabayashi-cup-content"></div>
-        </section>
-
-        <section id="page-history" class="page" hidden>
-            <div class="section-header"><div class="section-title">変更履歴・復元</div></div>
-            <div class="market-note">保存された操作と、この端末に保管されたクラウド読込時点を確認できます。復元は内容を確認してから実行されます。</div>
-            <div class="section-header" style="margin-top:1rem"><div class="section-title">最近の変更</div></div>
-            <div id="app-history-list"></div>
-            <div class="section-header" style="margin-top:1rem"><div class="section-title">バックアップ</div></div>
-            <div id="app-recovery-list"></div>
         </section>
 
     </main>
@@ -1736,37 +1671,20 @@
             return Promise.resolve();
         }
 
-        const EDIT_MODE_KEY = 'fnl-edit-mode-session-v1';
-
         function isEditMode() {
-            return sessionStorage.getItem(EDIT_MODE_KEY) === 'true';
+            return true;
         }
 
         function applyEditMode() {
-            const editing = isEditMode();
-            document.body.classList.toggle('edit-mode', editing);
-            const button = document.getElementById('edit-mode-toggle');
-            if (button) button.textContent = editing ? '閲覧に戻る' : '編集';
+            document.body.classList.add('edit-mode');
             ['schedule-assignment-button', 'add-player-button', 'add-market-player-button', 'midseason-draft-button',
                 'midseason-preview-button', 'midseason-run-draft-button', 'undo-transfer-button', 'trade-listing-button',
                 'trade-close-button', 'protection-register-button', 'end-draft-pick-button']
                 .forEach(id => document.getElementById(id)?.classList.add('edit-only'));
         }
 
-        window.toggleEditMode = function() {
-            const next = !isEditMode();
-            if (next && !confirm('編集モードに切り替えます。保存した変更は全端末に反映されます。')) return;
-            sessionStorage.setItem(EDIT_MODE_KEY, String(next));
-            applyEditMode();
-            refreshAllViews();
-            renderNews();
-            if (document.getElementById('page-history')?.classList.contains('active')) renderAppHistory();
-        };
-
         function requireEditMode(action = 'この操作') {
-            if (isEditMode()) return true;
-            alert(`${action}は編集モードで行えます。画面上部の「編集」を押してください。`);
-            return false;
+            return true;
         }
 
         // クラブ名変更後も、保存済みの試合記録・規約・履歴を同じクラブとして表示する
@@ -1857,7 +1775,7 @@
                 if (matchedNav) {
                     matchedNav.classList.add('active');
                     matchedNav.setAttribute('aria-current', 'page');
-                } else if (['transfer', 'news', 'rules', 'cup', 'history'].includes(pageId)) {
+                } else if (['transfer', 'news', 'rules', 'cup'].includes(pageId)) {
                     const moreNav = document.querySelector('#bottom-nav-element .nav-item[data-nav-more]');
                     moreNav?.classList.add('active');
                     moreNav?.setAttribute('aria-current', 'page');
@@ -1877,7 +1795,6 @@
             }
             if (pageId === 'cup') renderHirabayashiCup();
             if (pageId === 'transfer') openRecommendedTransferView();
-            if (pageId === 'history') renderAppHistory();
             // ページ切替後に高さが変わっても、Safariのスクロール位置を確実に先頭へ戻す
             requestAnimationFrame(() => window.scrollTo(0, 0));
         };
@@ -1885,11 +1802,10 @@
         window.openMoreNavigationSheet = function() {
             const activePageId = document.querySelector('.page.active')?.id?.replace('page-', '') || '';
             const menuItems = [
-                { page: 'transfer', title: '移籍', icon: '<path d="M7 7h8.17l-2.59 2.59L14 11l5-5-5-5 1.41 1.41L12.83 6H7v1zm10 10H8.83l2.59-2.59L10 13l-5 5 5 5-1.41-1.41L11.17 18H17v-1z"/>' },
+                { page: 'transfer', title: '選手名簿', icon: '<path d="M7 7h8.17l-2.59 2.59L14 11l5-5-5-5 1.41 1.41L12.83 6H7v1zm10 10H8.83l2.59-2.59L10 13l-5 5 5 5-1.41-1.41L11.17 18H17v-1z"/>' },
                 { page: 'cup', title: '平林杯', icon: '<path d="M8 2h8v5a4 4 0 0 1-8 0V2zm0 3H5v2a4 4 0 0 0 4 4M16 5h3v2a4 4 0 0 1-4 4M12 11v5m-3 4h6M8 20h8"/>' },
                 { page: 'news', title: 'ニュース', icon: '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/>' },
-                { page: 'rules', title: '規約', icon: '<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>' },
-                { page: 'history', title: '履歴・復元', icon: '<path d="M12 8v5l3 2M3 12a9 9 0 1 0 3-6.7L3 8m0-5v5h5" fill="none" stroke="currentColor" stroke-width="2"/>' }
+                { page: 'rules', title: '規約', icon: '<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>' }
             ];
             document.getElementById('sheet-body').innerHTML = `
                 <div style="text-align:center;margin-bottom:1rem;"><h3>その他のページ</h3></div>
@@ -2491,9 +2407,17 @@
             requestAnimationFrame(() => window.scrollTo(0,0));
         };
 
+        function renderPlayerDirectory() {
+            const rosterList = document.getElementById('roster-club-list');
+            if (!rosterList) return;
+            rosterList.innerHTML = `<div class="roster-team-grid">${RAW_TEAMS.map(team => {
+                const counts = getRosterCounts(team.id);
+                return `<button class="roster-team-card" onclick="openRosterSheet('${team.id}')" aria-label="${escapeHtml(team.name)}の登録選手を見る"><div class="roster-team-head"><img src="${team.logo}" alt=""><div class="roster-team-name">${escapeHtml(team.name)}</div><div class="roster-total">${counts.total}<small>名</small></div></div><div class="roster-tags"><span>登録選手</span><span>特別 ${counts.special}</span><span>ノーマル ${counts.normal}</span></div><div class="roster-team-action"><span>登録選手を見る</span><span>›</span></div></button>`;
+            }).join('')}</div>`;
+        }
+
         function openRecommendedTransferView() {
-            renderTransferCenter();
-            switchTransferView('dashboard');
+            renderPlayerDirectory();
         }
 
         window.openTransferClubSelector = function() {
@@ -2506,8 +2430,7 @@
             if (!RAW_TEAMS.some(team => team.id === teamId)) return;
             sessionStorage.setItem('fnl-transfer-team', teamId);
             document.getElementById('sheet-overlay').classList.remove('active');
-            renderTransferCenter();
-            switchTransferView('dashboard');
+            renderPlayerDirectory();
         };
 
         function formatAppDate(value) {
@@ -3323,7 +3246,6 @@
         window.openRosterSheet = function(teamId, repairMode = false) {
             const team = RAW_TEAMS.find(item => item.id === teamId);
             if (!team) return;
-            const canEditRoster = isEditMode() && (getAutomaticTransferPeriod().key === 'preseason' || repairMode);
             const counts = getRosterCounts(teamId);
             const players = getRoster(teamId).filter(player => player.status !== 'released' && player.status !== 'transferred');
             const positions = ['FW', 'MF', 'DF', 'GK'];
@@ -3333,13 +3255,11 @@
             const playerRows = players.length ? groupedPlayers.map(group => `
                 <section class="roster-position-section">
                     <div class="roster-position-header">${group.position}<span>${group.players.length}名</span></div>
-                    <div class="roster-player-list">${group.players.map((player, index) => `<div class="roster-player-card"><div class="roster-player-index">${String(index + 1).padStart(2, '0')}</div><div class="roster-player-info"><div class="roster-player-name">${escapeHtml(player.name)}</div><div class="roster-player-tags"><span class="position">${escapeHtml(player.position || '未登録')}</span><span>${player.cardType === 'special' ? '特別カード' : 'ノーマルカード'}</span></div></div><button class="btn-secondary" onclick="removePlayer('${teamId}','${player.id}',${repairMode})" ${canEditRoster ? '' : 'disabled'}>削除</button></div>`).join('')}</div>
+                    <div class="roster-player-list">${group.players.map((player, index) => `<div class="roster-player-card"><div class="roster-player-index">${String(index + 1).padStart(2, '0')}</div><div class="roster-player-info"><div class="roster-player-name">${escapeHtml(player.name)}</div><div class="roster-player-tags"><span class="position">${escapeHtml(player.position || '未登録')}</span><span>${player.cardType === 'special' ? '特別カード' : 'ノーマルカード'}</span></div></div></div>`).join('')}</div>
                 </section>`).join('') : `<div class="roster-empty">登録選手はまだいません</div>`;
             document.getElementById('sheet-body').innerHTML = `
                 <div class="roster-sheet-hero"><img src="${team.logo}" class="team-logo-lg" alt=""><div class="roster-sheet-title">${escapeHtml(team.name)}</div><div class="roster-sheet-subtitle">SQUAD LIST · ${counts.total} PLAYERS</div><div class="roster-composition-grid">${positions.map(position => `<div class="roster-composition-item"><div class="roster-composition-position">${position}</div><div class="roster-composition-count">${positionCounts[position]}</div></div>`).join('')}</div><div class="roster-sheet-summary"><span>登録 ${counts.total}/25</span><span>特別 ${counts.special}/18</span><span>ノーマル ${counts.normal}</span></div></div>
-                ${repairMode ? '<div class="market-note">整合性修正モードです。問題を減らす変更だけを、理由付きで保存できます。</div>' : canEditRoster ? '' : '<div class="market-note">名簿の追加・削除はシーズン準備期間のみ利用できます。</div>'}
-                <div class="roster-list-heading"><strong>選手一覧</strong><span>ポジション別</span></div>${playerRows}
-                <button class="btn-primary edit-only" style="margin-top:1rem;" onclick="openAddPlayerSheet('${teamId}',${repairMode})" ${canEditRoster ? '' : 'disabled'}>このチームに選手を登録</button>`;
+                <div class="roster-list-heading"><strong>選手一覧</strong><span>ポジション別</span></div>${playerRows}`;
             document.getElementById('sheet-overlay').classList.add('active');
         };
 
