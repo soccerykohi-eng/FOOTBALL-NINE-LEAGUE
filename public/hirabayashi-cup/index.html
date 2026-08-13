@@ -1106,21 +1106,24 @@
         }
 
         /* Standalone Hirabayashi Cup app: only the tournament is displayed. */
-        :root { --bg-body:#07130f; --bg-card:#10251b; --bg-elevated:#173423; --border-color:rgba(228,194,116,.18); --accent-gold:#d6aa50; --accent-gold-light:#ffe0a0; --text-main:#fffaf0; --text-muted:#aebfaf; }
-        body { background:radial-gradient(circle at 50% -15%,#285837 0,transparent 37%),linear-gradient(180deg,#0b2117 0%,#06100b 100%); }
-        header { background:linear-gradient(100deg,#07170f,#163d26 55%,#07170f); border-bottom:1px solid rgba(255,224,160,.2); }
+        :root { --bg-body:#0c1410; --bg-card:#142119; --bg-elevated:#1a2a20; --border-color:rgba(191,171,119,.17); --accent-gold:#a89463; --accent-gold-light:#d7c89b; --text-main:#f0f1e9; --text-muted:#a8b1a5; }
+        body { background:linear-gradient(180deg,#111a15 0%,#0a100d 100%); }
+        header { background:#111b15; border-bottom:1px solid rgba(191,171,119,.18); }
         .bottom-nav, main.container > section:not(#page-cup) { display:none!important; }
         main.container { padding-bottom:1.25rem; }
         #page-cup.active { display:block; }
         #page-cup { min-height:calc(100vh - var(--header-height) - 1.25rem); }
-        #page-cup .cup-hero { border:1px solid rgba(255,224,160,.32); background:radial-gradient(circle at 78% 15%,rgba(255,224,160,.18),transparent 24%),linear-gradient(135deg,#174d2e,#0a2115 68%); box-shadow:0 18px 38px rgba(0,0,0,.25); }
-        #page-cup .cup-hero::after { content:''; position:absolute; inset:0; pointer-events:none; opacity:.3; background:repeating-linear-gradient(135deg,transparent 0 14px,rgba(255,255,255,.08) 14px 15px); }
+        #page-cup .cup-hero { min-height:0!important; padding:1.1rem!important; border:1px solid rgba(191,171,119,.3); background:linear-gradient(145deg,#1d3425,#122017); box-shadow:0 12px 28px rgba(0,0,0,.2); text-align:center; }
+        #page-cup .cup-hero::after { right:-3rem; bottom:-4rem; inset:auto; opacity:.45; }
         #page-cup .cup-hero > * { position:relative; z-index:1; }
-        #page-cup .cup-hero-image { filter:drop-shadow(0 12px 15px rgba(0,0,0,.4)); }
-        #page-cup .cup-hub-tabs { padding:.32rem; border:1px solid rgba(255,224,160,.2); border-radius:14px; background:#0b1d13; }
-        #page-cup .cup-hub-tab.active { background:linear-gradient(135deg,#e6bd67,#b9802d); color:#132015; }
-        #page-cup .cup-match-card, #page-cup .cup-record-card, #page-cup .cup-bracket-match { background:linear-gradient(135deg,rgba(255,255,255,.045),rgba(255,255,255,.01)),#10251b; }
-        #page-cup .btn-primary { background:linear-gradient(135deg,#e8c36f,#b87c28); color:#132015; box-shadow:0 8px 18px rgba(184,124,40,.22); }
+        #page-cup .cup-hero-image { position:static!important; display:block; width:86px!important; height:86px!important; margin:0 auto .65rem; transform:none!important; filter:drop-shadow(0 8px 12px rgba(0,0,0,.34)); }
+        #page-cup .cup-title { font-size:clamp(2.05rem,9vw,2.7rem)!important; line-height:.9; }
+        #page-cup .cup-title span { display:block!important; }
+        #page-cup .cup-hero-stats { margin-top:.9rem; }
+        #page-cup .cup-hub-tabs { padding:.28rem; border:1px solid rgba(191,171,119,.18); border-radius:12px; background:#101a14; }
+        #page-cup .cup-hub-tab.active { background:#a89463; color:#182117; box-shadow:none; }
+        #page-cup .cup-match-card, #page-cup .cup-record-card, #page-cup .cup-bracket-match { background:#142119; }
+        #page-cup .btn-primary { background:#a89463; color:#182117; box-shadow:none; }
     </style>
 </head>
 <body>
