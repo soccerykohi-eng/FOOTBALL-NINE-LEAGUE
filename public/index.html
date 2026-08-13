@@ -666,6 +666,7 @@
         #page-news > .section-header .section-title { font-size:1.08rem; }
         #page-news > .section-header .section-title::before { height:16px; }
         #page-news > .section-header .btn-secondary { min-height:30px; padding:.3rem .5rem; font-size:.62rem; }
+        #page-news > .section-header .news-post-button { min-width:76px; min-height:44px; padding:.55rem .9rem; border-color:var(--accent-gold); background:linear-gradient(135deg,var(--accent-gold-light),var(--accent-gold)); color:#111318; font-size:.8rem; font-weight:900; box-shadow:0 4px 12px rgba(198,166,100,.25); }
         #page-news #news-notification-note { display:none; }
         #page-news .news-feed { padding:.15rem .8rem; margin-bottom:0; border-radius:12px; }
         #page-news .news-item { min-height:68px; padding:.7rem .1rem; gap:.32rem; }
@@ -1210,7 +1211,7 @@
                 <div class="section-title">ニュース</div>
                 <div style="display:flex;gap:0.4rem;">
                     <button id="news-notification-button" class="btn-secondary" onclick="toggleNewsNotifications()">通知を受け取る</button>
-                    <button class="btn-secondary edit-only" onclick="openPostNewsSheet()">投稿</button>
+                    <button class="btn-secondary news-post-button edit-only" onclick="openPostNewsSheet()">投稿</button>
                 </div>
             </div>
             <div id="news-notification-note" class="market-note" style="margin-bottom:0.7rem;">ニュースが公開されたときだけ通知します。</div>
@@ -1239,11 +1240,6 @@
             <div class="stats-pane" id="rules-pane-manage">
                 <div id="rules-management-container"></div>
             </div>
-        </section>
-
-        <!-- PAGE 8: HIRABAYASHI CUP -->
-        <section id="page-cup" class="page" hidden>
-            <div id="hirabayashi-cup-content"></div>
         </section>
 
     </main>
@@ -1783,7 +1779,7 @@
                 if (matchedNav) {
                     matchedNav.classList.add('active');
                     matchedNav.setAttribute('aria-current', 'page');
-                } else if (['transfer', 'news', 'rules', 'cup'].includes(pageId)) {
+                } else if (['transfer', 'news', 'rules'].includes(pageId)) {
                     const moreNav = document.querySelector('#bottom-nav-element .nav-item[data-nav-more]');
                     moreNav?.classList.add('active');
                     moreNav?.setAttribute('aria-current', 'page');
@@ -1801,7 +1797,6 @@
                 renderRules();
                 switchRulesView('current', document.querySelector('[data-rules-tab="current"]'));
             }
-            if (pageId === 'cup') renderHirabayashiCup();
             if (pageId === 'transfer') openRecommendedTransferView();
             // ページ切替後に高さが変わっても、Safariのスクロール位置を確実に先頭へ戻す
             requestAnimationFrame(() => window.scrollTo(0, 0));
@@ -1811,7 +1806,6 @@
             const activePageId = document.querySelector('.page.active')?.id?.replace('page-', '') || '';
             const menuItems = [
                 { page: 'transfer', title: '選手名簿', icon: '<path d="M7 7h8.17l-2.59 2.59L14 11l5-5-5-5 1.41 1.41L12.83 6H7v1zm10 10H8.83l2.59-2.59L10 13l-5 5 5 5-1.41-1.41L11.17 18H17v-1z"/>' },
-                { page: 'cup', title: '平林杯', icon: '<path d="M8 2h8v5a4 4 0 0 1-8 0V2zm0 3H5v2a4 4 0 0 0 4 4M16 5h3v2a4 4 0 0 1-4 4M12 11v5m-3 4h6M8 20h8"/>' },
                 { page: 'news', title: 'ニュース', icon: '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/>' },
                 { page: 'rules', title: '規約', icon: '<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>' }
             ];
@@ -4789,7 +4783,7 @@
             window.location.reload();
         });
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js?v=84', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('./service-worker.js?v=85', { updateViaCache: 'none' })
                 .then(registration => registration.update())
                 .catch(error => console.warn('Service Worker could not be updated', error));
         });

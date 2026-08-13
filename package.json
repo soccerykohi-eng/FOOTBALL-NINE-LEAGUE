@@ -4,8 +4,8 @@
   "description": "FOOTBALL NINE LEAGUE - eFootball League Management Portal",
   "main": "index.js",
   "scripts": {
-    "start": "python3 -m http.server 8000 --directory ./public",
-    "dev": "python3 -m http.server 8000 --directory ./public"
+    "start": "python3 -m http.server 8000",
+    "dev": "python3 -m http.server 8000"
   },
   "keywords": ["football", "league", "eFootball"],
   "author": "FNL",

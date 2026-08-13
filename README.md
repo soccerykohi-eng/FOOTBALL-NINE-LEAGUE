@@ -8,6 +8,8 @@
 FOOTBALL-NINE-LEAGUE/
 ├── public/
 │   └── index.html              # ✅ メインアプリケーション（コードはここに書く）
+├── hirabayashi-cup/             # 平林杯の独立アプリ
+│   └── index.html
 ├── src/                        # 今後の拡張用
 ├── package.json
 ├── .gitignore
@@ -20,13 +22,19 @@ FOOTBALL-NINE-LEAGUE/
 
 ```bash
 # Python サーバーで起動（ポート 8000）
-python3 -m http.server 8000 --directory ./public
+python3 -m http.server 8000
 
 # または npm を使用
 npm start
 ```
 
 ブラウザで `http://localhost:8000` にアクセス
+
+### 平林杯アプリ
+
+平林杯はFNL本体とは別のアプリとして `hirabayashi-cup/` にあります。公開先のURLに
+`/hirabayashi-cup/` を付けると開けます（例：`https://<公開先>/hirabayashi-cup/`）。
+大会データは従来どおりFirebaseで同期されるため、既存の平林杯データを引き継ぎます。
 
 ## 📝 コードを書く場所
 
