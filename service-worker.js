@@ -15,7 +15,7 @@ try {
 }
 
 const CACHE_NAME = 'fnl-app-v116';
-const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './fnl-logo.png', './hirabayashi-cup.png'];
+const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './fnl-logo.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {

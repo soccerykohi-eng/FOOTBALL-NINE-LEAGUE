@@ -1,93 +1,32 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import vm from 'node:vm';
 
 const html = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
 const firebaseSync = fs.readFileSync(new URL('../public/firebase-sync.js', import.meta.url), 'utf8');
+const serviceWorker = fs.readFileSync(new URL('../public/service-worker.js', import.meta.url), 'utf8');
 
-function functionSource(name) {
-  const start = html.indexOf(`function ${name}(`);
-  assert.notEqual(start, -1, `${name} was not found in index.html`);
-  const candidates = [
-    html.indexOf('\n        function ', start + 1),
-    html.indexOf('\n        window.', start + 1)
-  ].filter(index => index > start);
-  return html.slice(start, Math.min(...candidates));
-}
+assert.doesNotMatch(html, /id="page-cup"|hirabayashiCup|createHirabayashiCupState|renderHirabayashiCup/);
+assert.doesNotMatch(html, /第8章 カップ戦・大会特典|第17条（平林杯）/);
+assert.doesNotMatch(html, /transferMarket|renderTransferCenter|openRecommendedTransferView/);
+assert.doesNotMatch(firebaseSync, /hirabayashiCup|transferMarket|storeCloudRecoverySnapshot|cloudRecoveryKey/);
+assert.doesNotMatch(serviceWorker, /hirabayashi-cup\.png/);
+assert.doesNotMatch(html, /previousSeasonSnapshot|undoSeasonTransition|restoreRegulationVersion/);
+assert.doesNotMatch(firebaseSync, /previousSeasonSnapshot/);
 
-const teams = [
-  { id: 'a', name: 'Alpha' },
-  { id: 'b', name: 'Bravo' }
-];
-const normal = (id, name = id) => ({ id, name, cardType: 'normal', status: 'active' });
-const special = (id, name = id) => ({ id, name, cardType: 'special', status: 'active' });
-const sevenNormals = prefix => Array.from({ length: 7 }, (_, index) => normal(`${prefix}${index}`, `${prefix} Player ${index}`));
+assert.match(html, /function getRoster\(teamId\)/);
+assert.match(html, /function activeRosterPlayers\(teamId\)/);
+assert.match(html, /appearances >= 10 \? '<span class="protection-ready"/);
+assert.match(html, /プロテクト可/);
 
-const context = vm.createContext({
-  RAW_TEAMS: teams,
-  state: { rosters: { a: sevenNormals('A'), b: sevenNormals('B') } },
-  cloneTransferData: value => JSON.parse(JSON.stringify(value)),
-  console
-});
+assert.match(html, /const remaining = state\.schedule\.filter\(match => !isMatchCompleted\(match\)\)\.length/);
+assert.match(html, /home !== null && home !== '' && away !== null && away !== ''/);
+assert.doesNotMatch(html, /終了時移籍市場が完了していないため、次シーズン/);
+assert.doesNotMatch(html, /中間移籍市場が完了していないため、MW10/);
 
-for (const name of [
-  'normalizePlayerIdentity',
-  'activePlayersFromRoster',
-  'validateRoster',
-  'inspectRosterIntegrity',
-  'previewRosterMoves'
-]) vm.runInContext(functionSource(name), context);
+assert.match(html, /#page-home\.active \{ display:grid; grid-template-rows:/);
+assert.match(html, /@media \(max-height:720px\)[\s\S]*#page-home \.news-item \{ padding:5px 0; \}/);
+assert.match(html, /\.roster-team-grid \{ display:grid; grid-template-columns:repeat\(3/);
+assert.match(html, /#page-news \.news-page-button \{ min-width:44px; height:44px/);
+assert.match(html, /\.sheet-close-button \{\s*position: sticky/);
 
-const call = (name, ...args) => vm.runInContext(name, context)(...args);
-
-assert.equal(call('normalizePlayerIdentity', ' Ｌ. Messi '), 'lmessi');
-assert.equal(call('validateRoster', 'a', [...sevenNormals('A'), ...Array.from({ length: 19 }, (_, index) => special(`S${index}`))]).valid, false);
-assert.match(call('validateRoster', 'a', Array.from({ length: 26 }, (_, index) => normal(`N${index}`))).errors.join(' '), /25名/);
-assert.match(call('validateRoster', 'a', Array.from({ length: 6 }, (_, index) => normal(`N${index}`))).errors.join(' '), /7名未満/);
-
-context.state.rosters = {
-  a: [...sevenNormals('A'), normal('dup-a', 'Same Player')],
-  b: [...sevenNormals('B'), normal('dup-b', 'Ｓａｍｅ　Ｐｌａｙｅｒ')]
-};
-assert.match(call('inspectRosterIntegrity').issues.map(issue => issue.message).join(' '), /重複登録/);
-
-context.state.rosters = {
-  a: [...sevenNormals('A'), special('trade-a', 'Trade A')],
-  b: [...sevenNormals('B'), special('trade-b', 'Trade B')]
-};
-const validTrade = call('previewRosterMoves', [
-  { sourceTeamId: 'a', playerId: 'trade-a', targetTeamId: 'b' },
-  { sourceTeamId: 'b', playerId: 'trade-b', targetTeamId: 'a' }
-]);
-assert.equal(validTrade.valid, true, validTrade.errors?.join('\n'));
-
-context.state.rosters = { a: sevenNormals('A'), b: sevenNormals('B') };
-const invalidTrade = call('previewRosterMoves', [
-  { sourceTeamId: 'a', playerId: 'A0', targetTeamId: 'b' }
-]);
-assert.equal(invalidTrade.valid, false);
-assert.match(invalidTrade.errors.join(' '), /ノーマルカードが7名未満/);
-
-console.log('transfer rule tests passed');
-
-assert.match(html, /make\('hc_qf1', '準々決勝 1', seeds\.a1, seeds\.r2\)/);
-assert.match(html, /make\('hc_qf2', '準々決勝 2', seeds\.b2, seeds\.c2\)/);
-assert.match(html, /make\('hc_qf3', '準々決勝 3', seeds\.a2, seeds\.c1\)/);
-assert.match(html, /make\('hc_qf4', '準々決勝 4', seeds\.r1, seeds\.b1\)/);
-assert.match(html, /setTeams\('hc_sf1', cupWinner\(qf\[0\]\), cupWinner\(qf\[1\]\)/);
-assert.match(html, /setTeams\('hc_sf2', cupWinner\(qf\[2\]\), cupWinner\(qf\[3\]\)/);
-assert.match(html, /setTeams\('hc_final', cupWinner\(sf1\), cupWinner\(sf2\)/);
-console.log('Hirabayashi Cup bracket tests passed');
-
-assert.match(html, /A: \['MGR United', 'YSC YOSHIDA', 'Koganei 3KSC'\]/);
-assert.match(html, /B: \['Katsukou FC', 'Kasuga United', 'BAYASHI JAPAN'\]/);
-assert.match(html, /C: \['FC Koshi', 'Manchester Cow', 'FC ARG'\]/);
-assert.match(html, /standings\.slice\(0, 3\), standings\.slice\(3, 6\), standings\.slice\(6, 9\)/);
-assert.match(html, /if \(cup\.groupDraw\?\.locked\) return alert\('グループの組み合わせは確定済み/);
-assert.match(firebaseSync, /remote\.hirabayashiCup\?\.groupDraw\?\.locked/);
-assert.match(firebaseSync, /平林杯のグループ組み合わせは確定済みのため変更できません/);
-assert.match(firebaseSync, /let initialCloudStateLoaded = false/);
-assert.match(firebaseSync, /if \(!initialCloudStateLoaded \|\| !lastSyncedPayload\)/);
-assert.match(firebaseSync, /storeCloudRecoverySnapshot\(remote\)/);
-assert.doesNotMatch(html, /cupGroupMigrationSavePending/);
-console.log('Hirabayashi Cup group draw tests passed');
+console.log('FNL roster, season transition and mobile UI tests passed');

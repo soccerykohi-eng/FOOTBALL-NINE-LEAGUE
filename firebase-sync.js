@@ -42,84 +42,15 @@ const syncFields = [
   "schedule",
   "news",
   "rosters",
-  "transferMarket",
   "activityLog",
   "seasonArchive",
   "seasonInfo",
-  "regulations",
-  "hirabayashiCup",
-  "previousSeasonSnapshot",
-  "lastMatchSnapshot"
+  "regulations"
 ];
 
 const cloneData = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 const sameData = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 const currentStatePayload = () => Object.fromEntries(syncFields.map(field => [field, cloneData(state[field])]));
-const cloudRecoveryKey = "fnl-cloud-recovery-v1";
-const partialLeagueRecoveryKey = "fnl-season1-partial-recovery-20260812-v5";
-
-async function recoverConfirmedSeasonOneResults() {
-  if (localStorage.getItem(partialLeagueRecoveryKey) === "done") return;
-  if (!initialCloudStateLoaded || !lastSyncedPayload || Number(state.seasonInfo?.number || 1) !== 1) return;
-  const confirmed = {
-    m_61: [1, 3],
-    m_63: [2, 1],
-    m_64: [0, 1],
-    m_65: [1, 2],
-    m_66: [5, 1],
-    m_67: [0, 3],
-    m_68: [1, 0],
-    m_69: [4, 2],
-    m_70: [3, 4],
-    m_71: [2, 7],
-    m_72: [6, 1]
-  };
-  const restored = [];
-  state.schedule.forEach(match => {
-    const score = confirmed[match.id];
-    if (!score || match.hs !== null || match.as !== null) return;
-    match.hs = score[0];
-    match.as = score[1];
-    restored.push(match.id);
-  });
-  if (!restored.length) {
-    localStorage.setItem(partialLeagueRecoveryKey, "done");
-    return;
-  }
-  state.standingsDirty = true;
-  saveStateToStorage();
-  refreshAllViews();
-  try {
-    await state.dbSaveFn();
-    localStorage.setItem(partialLeagueRecoveryKey, "done");
-    setStatus("試合結果を復元しました", true);
-  } catch (error) {
-    console.error("Confirmed match recovery failed", error);
-    setStatus("試合結果の復元を再試行します", false);
-  }
-}
-
-function storeCloudRecoverySnapshot(remote) {
-  if (!remote || !Array.isArray(remote.schedule)) return;
-  try {
-    const existing = JSON.parse(localStorage.getItem(cloudRecoveryKey) || "[]");
-    const marker = remote.updatedAt || remote.serverUpdatedAt?.toDate?.()?.toISOString?.() || "";
-    if (existing[0]?.marker === marker && marker) return;
-    const payload = Object.fromEntries(syncFields.map(field => [field, cloneData(remote[field])]));
-    const cloudBackup = remote.scheduleBackup?.schedule ? {
-      marker: `cloud-backup-${remote.scheduleBackup.backedUpAt || "latest"}`,
-      savedAt: remote.scheduleBackup.backedUpAt || new Date().toISOString(),
-      payload: { ...payload, schedule: cloneData(remote.scheduleBackup.schedule), seasonInfo: cloneData(remote.scheduleBackup.seasonInfo || payload.seasonInfo) }
-    } : null;
-    const next = [{ marker, savedAt: new Date().toISOString(), payload }, ...(cloudBackup ? [cloudBackup] : []), ...existing]
-      .filter((item, index, items) => items.findIndex(candidate => candidate.marker === item.marker) === index)
-      .slice(0, 10);
-    localStorage.setItem(cloudRecoveryKey, JSON.stringify(next));
-  } catch (error) {
-    console.warn("Cloud recovery snapshot could not be stored", error);
-  }
-}
-
 function mergeArrayById(remoteItems, localItems, baseItems, idKey) {
   if (!Array.isArray(remoteItems) || !Array.isArray(localItems) || !Array.isArray(baseItems)) return localItems;
   const baseById = new Map(baseItems.map(item => [item?.[idKey], item]));
@@ -330,14 +261,10 @@ function applyRemoteState(remote) {
   if (Array.isArray(remote.schedule)) state.schedule = remote.schedule;
   if (Array.isArray(remote.news)) state.news = remote.news;
   if (remote.rosters && typeof remote.rosters === "object") state.rosters = remote.rosters;
-  if (remote.transferMarket && typeof remote.transferMarket === "object") state.transferMarket = remote.transferMarket;
   if (Array.isArray(remote.activityLog)) state.activityLog = remote.activityLog;
   if (Array.isArray(remote.seasonArchive)) state.seasonArchive = remote.seasonArchive;
   if (remote.seasonInfo && typeof remote.seasonInfo === "object") state.seasonInfo = remote.seasonInfo;
   if (remote.regulations && typeof remote.regulations === "object") state.regulations = remote.regulations;
-  if (remote.hirabayashiCup && typeof remote.hirabayashiCup === "object") state.hirabayashiCup = remote.hirabayashiCup;
-  if (Object.prototype.hasOwnProperty.call(remote, "previousSeasonSnapshot")) state.previousSeasonSnapshot = remote.previousSeasonSnapshot;
-  if (Object.prototype.hasOwnProperty.call(remote, "lastMatchSnapshot")) state.lastMatchSnapshot = remote.lastMatchSnapshot;
   state.lastSavedAt = remote.updatedAt || state.lastSavedAt;
   window.normalizeFnlTeamNames?.();
   state.standingsDirty = true;
@@ -360,11 +287,9 @@ function startListening() {
     }
     const remote = snapshot.data();
     initialCloudStateLoaded = true;
-    storeCloudRecoverySnapshot(remote);
     pendingRemotePayload = remote;
     if (pendingSaveCount) return;
     applyRemoteState(remote);
-    recoverConfirmedSeasonOneResults();
   }, (error) => {
     console.error("Firestore listener failed", error);
     setStatus("同期エラー", false);
@@ -394,19 +319,6 @@ state.dbSaveFn = () => {
     await runTransaction(db, async transaction => {
       const snapshot = await transaction.get(leagueRef);
       const remote = snapshot.exists() ? snapshot.data() : {};
-      storeCloudRecoverySnapshot(remote);
-      if (basePayload && changedFields.includes("transferMarket") && !sameData(remote.transferMarket, basePayload.transferMarket)) {
-        throw new Error("他の端末で移籍市場が更新されました。最新状態を読み込んでからもう一度操作してください。");
-      }
-      if (basePayload && changedFields.includes("hirabayashiCup") && !sameData(remote.hirabayashiCup, basePayload.hirabayashiCup)) {
-        throw new Error("他の端末で平林杯が更新されました。最新状態を読み込んでからもう一度操作してください。");
-      }
-      if (remote.hirabayashiCup?.groupDraw?.locked && changedFields.includes("hirabayashiCup")) {
-        const localCup = localPayload.hirabayashiCup || {};
-        if (!sameData(localCup.groups, remote.hirabayashiCup.groups) || !sameData(localCup.groupDraw, remote.hirabayashiCup.groupDraw)) {
-          throw new Error("平林杯のグループ組み合わせは確定済みのため変更できません。");
-        }
-      }
       if (basePayload && changedFields.includes("rosters")) {
         const teamIds = new Set([
           ...Object.keys(basePayload.rosters || {}),
@@ -428,13 +340,7 @@ state.dbSaveFn = () => {
       if (validation && !validation.valid) {
         throw new Error(`保存を中止しました。\n${validation.errors.join("\n")}`);
       }
-      const cloudScheduleBackup = snapshot.exists() && changedFields.includes("schedule") ? {
-          schedule: cloneData(remote.schedule || []),
-          seasonInfo: cloneData(remote.seasonInfo || {}),
-          backedUpAt: new Date().toISOString(),
-          completedMatches: (remote.schedule || []).filter(match => match.hs !== null && match.as !== null).length
-        } : remote.scheduleBackup;
-      transaction.set(leagueRef, { ...patch, ...(cloudScheduleBackup ? { scheduleBackup: cloudScheduleBackup } : {}), updatedAt, serverUpdatedAt: serverTimestamp() }, { merge: true });
+      transaction.set(leagueRef, { ...patch, updatedAt, serverUpdatedAt: serverTimestamp() }, { merge: true });
     });
     setStatus("保存済み", true, "saved", updatedAt);
   };
