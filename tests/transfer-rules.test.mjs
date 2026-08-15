@@ -25,8 +25,10 @@ assert.doesNotMatch(html, /中間移籍市場が完了していないため、MW
 
 assert.match(html, /#page-home\.active \{ display:grid; grid-template-rows:/);
 assert.match(html, /@media \(max-height:720px\)[\s\S]*#page-home \.news-item \{ padding:5px 0; \}/);
-assert.match(html, /\.roster-team-grid \{ display:grid; grid-template-columns:repeat\(3/);
+assert.match(html, /\.roster-team-grid \{ display:grid; grid-template-rows:repeat\(9/);
+assert.match(html, /class="roster-team-count"/);
 assert.match(html, /#page-news \.news-page-button \{ min-width:44px; height:44px/);
-assert.match(html, /\.sheet-close-button \{\s*position: sticky/);
+assert.match(html, /class="sheet-toolbar"/);
+assert.match(html, /class="sheet-close-button"[\s\S]*aria-label="閉じる"[\s\S]*<svg/);
 
 console.log('FNL roster, season transition and mobile UI tests passed');
