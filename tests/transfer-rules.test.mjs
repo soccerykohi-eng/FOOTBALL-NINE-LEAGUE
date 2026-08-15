@@ -12,6 +12,9 @@ assert.doesNotMatch(firebaseSync, /hirabayashiCup|transferMarket|storeCloudRecov
 assert.doesNotMatch(serviceWorker, /hirabayashi-cup\.png/);
 assert.doesNotMatch(html, /previousSeasonSnapshot|undoSeasonTransition|restoreRegulationVersion/);
 assert.doesNotMatch(firebaseSync, /previousSeasonSnapshot/);
+assert.match(firebaseSync, /function mergeRosterMap\(/);
+assert.match(firebaseSync, /mergeArrayById\(remoteRoster, localRoster, baseRoster, "id"\)/);
+assert.doesNotMatch(firebaseSync, /他の端末で同じクラブの名簿が更新されました/);
 
 assert.match(html, /function getRoster\(teamId\)/);
 assert.match(html, /function activeRosterPlayers\(teamId\)/);

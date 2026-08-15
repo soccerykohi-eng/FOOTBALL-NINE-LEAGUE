@@ -90,6 +90,22 @@ function mergeObjectByKey(remoteValue, localValue, baseValue) {
   return merged;
 }
 
+function mergeRosterMap(remoteValue = {}, localValue = {}, baseValue = {}) {
+  const keys = new Set([
+    ...Object.keys(remoteValue || {}),
+    ...Object.keys(localValue || {}),
+    ...Object.keys(baseValue || {})
+  ]);
+  const merged = {};
+  keys.forEach(teamId => {
+    const remoteRoster = Array.isArray(remoteValue?.[teamId]) ? remoteValue[teamId] : [];
+    const localRoster = Array.isArray(localValue?.[teamId]) ? localValue[teamId] : [];
+    const baseRoster = Array.isArray(baseValue?.[teamId]) ? baseValue[teamId] : [];
+    merged[teamId] = mergeArrayById(remoteRoster, localRoster, baseRoster, "id");
+  });
+  return merged;
+}
+
 function mergeActivityLog(remoteItems, localItems) {
   const seen = new Set();
   return [...(Array.isArray(localItems) ? localItems : []), ...(Array.isArray(remoteItems) ? remoteItems : [])]
@@ -106,7 +122,7 @@ function mergeChangedField(field, remoteValue, localValue, baseValue) {
   if (field === "schedule") return mergeArrayById(remoteValue, localValue, baseValue, "id");
   if (field === "news") return mergeArrayById(remoteValue, localValue, baseValue, "id");
   if (field === "seasonArchive") return mergeArrayById(remoteValue, localValue, baseValue, "id");
-  if (field === "rosters") return mergeObjectByKey(remoteValue, localValue, baseValue);
+  if (field === "rosters") return mergeRosterMap(remoteValue, localValue, baseValue);
   if (field === "activityLog") return mergeActivityLog(remoteValue, localValue);
   return localValue;
 }
@@ -319,18 +335,6 @@ state.dbSaveFn = () => {
     await runTransaction(db, async transaction => {
       const snapshot = await transaction.get(leagueRef);
       const remote = snapshot.exists() ? snapshot.data() : {};
-      if (basePayload && changedFields.includes("rosters")) {
-        const teamIds = new Set([
-          ...Object.keys(basePayload.rosters || {}),
-          ...Object.keys(localPayload.rosters || {}),
-          ...Object.keys(remote.rosters || {})
-        ]);
-        const conflictingTeam = [...teamIds].find(teamId =>
-          !sameData(localPayload.rosters?.[teamId], basePayload.rosters?.[teamId])
-          && !sameData(remote.rosters?.[teamId], basePayload.rosters?.[teamId])
-        );
-        if (conflictingTeam) throw new Error("他の端末で同じクラブの名簿が更新されました。最新状態を読み込んでからもう一度操作してください。");
-      }
       const patch = Object.fromEntries(changedFields.map(field => [
         field,
         mergeChangedField(field, remote[field], localPayload[field], basePayload?.[field])
