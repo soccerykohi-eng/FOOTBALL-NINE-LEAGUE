@@ -2534,7 +2534,7 @@
             const player = getRoster(teamId).find(item => item.id === playerId);
             if (!player || !confirm(`${player.name}を名簿から削除しますか？`)) return;
             const proposed = getRoster(teamId).filter(item => item.id !== playerId);
-            const validation = validateRoster(teamId, proposed);
+            const validation = validateRoster(teamId, proposed, true);
             if (!validation.valid) return alert(validation.errors.join('\n'));
             const previous = cloneRosterData(state.rosters);
             state.rosters[teamId] = proposed;

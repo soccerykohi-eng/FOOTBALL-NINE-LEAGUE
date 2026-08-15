@@ -20,6 +20,7 @@ assert.match(html, /function getRoster\(teamId\)/);
 assert.match(html, /function activeRosterPlayers\(teamId\)/);
 assert.match(html, /appearances >= 10 \? '<span class="protection-ready"/);
 assert.match(html, /プロテクト可/);
+assert.match(html, /window\.removePlayer[\s\S]*?validateRoster\(teamId, proposed, true\)/);
 
 assert.match(html, /const remaining = state\.schedule\.filter\(match => !isMatchCompleted\(match\)\)\.length/);
 assert.match(html, /home !== null && home !== '' && away !== null && away !== ''/);
