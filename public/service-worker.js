@@ -14,8 +14,8 @@ try {
   console.warn('Firebase Messaging could not be initialized', error);
 }
 
-const CACHE_NAME = 'fnl-app-v119';
-const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './fnl-logo.png'];
+const CACHE_NAME = 'fnl-app-v120';
+const APP_SHELL = ['./', './index.html', './fnl-v2.css', './manifest.webmanifest', './fnl-logo.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
