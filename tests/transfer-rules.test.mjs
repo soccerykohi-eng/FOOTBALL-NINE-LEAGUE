@@ -4,7 +4,6 @@ import fs from 'node:fs';
 const html = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
 const firebaseSync = fs.readFileSync(new URL('../public/firebase-sync.js', import.meta.url), 'utf8');
 const serviceWorker = fs.readFileSync(new URL('../public/service-worker.js', import.meta.url), 'utf8');
-const v2Css = fs.readFileSync(new URL('../public/fnl-v2.css', import.meta.url), 'utf8');
 
 assert.doesNotMatch(html, /id="page-cup"|hirabayashiCup|createHirabayashiCupState|renderHirabayashiCup/);
 assert.doesNotMatch(html, /第8章 カップ戦・大会特典|第17条（平林杯）/);
@@ -35,16 +34,5 @@ assert.match(html, /class="roster-team-count"/);
 assert.match(html, /#page-news \.news-page-button \{ min-width:44px; height:44px/);
 assert.match(html, /class="sheet-toolbar"/);
 assert.match(html, /class="sheet-close-button"[\s\S]*aria-label="閉じる"[\s\S]*<svg/);
-assert.match(html, /id="home-standings-preview"/);
-assert.match(html, /id="home-player-preview"/);
-assert.match(html, /function renderHomeLeaguePreview\(/);
-assert.match(html, /<th>POS<\/th>[\s\S]*<th style="text-align:left">CLUB<\/th>[\s\S]*<th class="table-number">PTS<\/th>/);
-assert.match(html, /class="team-directory-copy"/);
-assert.match(v2Css, /--space-1:4px/);
-assert.match(v2Css, /--color-gold:#c6a664/);
-assert.match(v2Css, /@media \(max-width:380px\)/);
-assert.match(v2Css, /@media \(prefers-reduced-motion:reduce\)/);
-assert.match(serviceWorker, /fnl-app-v120/);
-assert.match(serviceWorker, /\.\/fnl-v2\.css/);
 
 console.log('FNL roster, season transition and mobile UI tests passed');

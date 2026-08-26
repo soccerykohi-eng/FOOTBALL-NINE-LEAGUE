@@ -10,7 +10,7 @@
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="icon" type="image/png" href="./fnl-logo.png">
     <link rel="apple-touch-icon" href="./fnl-logo.png">
-    <title>FOOTBALL NINE LEAGUE</title>
+    <title>FOOTBALL NINE LEAGUE Mobile Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@700;800;900&family=Teko:wght@600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -962,19 +962,18 @@
             header, .bottom-nav { border-left:1px solid rgba(255,255,255,.05); border-right:1px solid rgba(255,255,255,.05); }
         }
     </style>
-    <link rel="stylesheet" href="./fnl-v2.css">
 </head>
 <body>
     <div id="orientation-lock" role="alert"><strong>縦画面でご利用ください</strong><span>このアプリは横画面に対応していません。端末を縦向きにしてください。</span></div>
     <!-- ヘッダー -->
     <header>
-        <button type="button" class="header-logo-wrap" onclick="navigateTo('home', 'HOME')" aria-label="ホームへ移動">
+        <div class="header-logo-wrap" onclick="navigateTo('home', 'HOME')">
             <img class="fnl-logo-header" src="./fnl-logo.png" alt="FNL ロゴ">
             <div class="fnl-brand-text">
                 <span class="fnl-brand-title">FNL</span>
                 <span class="fnl-brand-sub">FOOTBALL NINE LEAGUE</span>
             </div>
-        </button>
+        </div>
 
         <div class="header-right-status">
             <div class="sync-badge" id="sync-status-badge" data-state="loading">
@@ -996,10 +995,6 @@
             </div>
             <div id="home-dashboard" class="dashboard-grid"></div>
             <div class="match-card-mobile" style="background: var(--bg-card); border-color: rgba(198, 166, 100, 0.4);" id="home-featured-match"></div>
-            <div class="home-section-heading"><strong>リーグ順位</strong><button type="button" class="btn-ghost" onclick="navigateTo('standings','順位表')">全順位を見る</button></div>
-            <div class="home-table" id="home-standings-preview"></div>
-            <div class="home-section-heading"><strong>トッププレイヤー</strong><button type="button" class="btn-ghost" onclick="openPlayerRankingsPage()">ランキングを見る</button></div>
-            <div class="home-player-list" id="home-player-preview"></div>
             <div class="home-news-heading"><strong>最新ニュース</strong></div>
             <div class="card news-feed" id="home-news-preview"></div>
         </section>
@@ -2159,12 +2154,6 @@
             button?.classList.add('active');
         };
 
-        window.openPlayerRankingsPage = function() {
-            navigateTo('standings', '順位表');
-            const playerTab = document.querySelector('[data-stats-tab="players"]');
-            switchStatsView('players', playerTab);
-        };
-
         function renderPlayerDirectory() {
             const rosterList = document.getElementById('roster-club-list');
             if (!rosterList) return;
@@ -2300,31 +2289,6 @@
                 <div class="metric-card home-progress-card"><div class="metric-label">消化試合</div><div class="metric-value">${played} / ${state.schedule.length}</div></div>`;
         }
 
-        function renderHomeLeaguePreview() {
-            const standingsWrap = document.getElementById('home-standings-preview');
-            const playersWrap = document.getElementById('home-player-preview');
-            if (standingsWrap) {
-                standingsWrap.innerHTML = calculateStandings().slice(0, 5).map(team => `
-                    <button type="button" class="home-table-row" onclick="openStandingsTeamSheet('${escapeHtml(team.name)}')" aria-label="${escapeHtml(team.name)}の順位詳細">
-                        <span class="home-table-rank">${team.rank}</span>
-                        <img src="${team.logo}" class="home-table-logo" alt="">
-                        <span class="home-table-club">${escapeHtml(team.name)}</span>
-                        <span class="home-table-played">${team.p}<small>試合</small></span>
-                        <strong class="home-table-points">${team.pts}<small>PTS</small></strong>
-                    </button>`).join('');
-            }
-            if (playersWrap) {
-                const scorers = getPlayerRanking('goals').players.slice(0, 3);
-                playersWrap.innerHTML = scorers.length ? scorers.map((player, index) => `
-                    <div class="home-player-row">
-                        <span class="home-player-rank">${index + 1}</span>
-                        <img src="${getTeamLogo(player.team || '')}" class="home-player-logo" alt="">
-                        <span class="home-player-copy"><strong>${escapeHtml(player.name)}</strong><small>${escapeHtml(player.team || '所属未設定')}</small></span>
-                        <strong class="home-player-value">${player.goals}<small>GOALS</small></strong>
-                    </div>`).join('') : '<div class="empty-state">得点記録はまだありません</div>';
-            }
-        }
-
         // --- 描画更新 ---
         function refreshAllViews() {
             renderStandings();
@@ -2333,7 +2297,6 @@
             renderMatches(state.currentFilterMw);
             renderHomeFeaturedMatch();
             renderHomeDashboard();
-            renderHomeLeaguePreview();
             renderTeams();
             renderPlayerDirectory();
             renderRules();
@@ -2343,9 +2306,9 @@
             const card = document.getElementById('standings-card');
             if (!card) return;
             const list = calculateStandings();
-            let html = `<table class="mobile-table standings-table"><thead><tr><th>POS</th><th style="text-align:left">CLUB</th><th class="table-number">PL</th><th class="table-number">GD</th><th class="table-number">PTS</th></tr></thead><tbody>`;
+            let html = `<table class="mobile-table standings-table"><thead><tr><th>#</th><th style="text-align:left">チーム</th><th class="table-number">試</th><th class="table-number">勝</th><th class="table-number">差</th><th class="table-number">点</th></tr></thead><tbody>`;
             list.forEach(t => {
-                html += `<tr onclick="openStandingsTeamSheet('${escapeHtml(t.name)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openStandingsTeamSheet('${escapeHtml(t.name)}')}" tabindex="0" role="button" aria-label="${escapeHtml(t.name)}の順位詳細"><td class="rank-num ${t.rank <= 3 ? 'rank-highlight' : ''}">${t.rank}</td><td class="team-col"><span class="standings-team-cell"><img src="${t.logo}" class="team-logo-img" alt=""><span>${escapeHtml(t.name)}</span></span></td><td class="table-number">${t.p}</td><td class="table-number">${t.gd > 0 ? '+'+t.gd : t.gd}</td><td class="pts-badge table-number">${t.pts}</td></tr>`;
+                html += `<tr onclick="openStandingsTeamSheet('${escapeHtml(t.name)}')"><td class="rank-num ${t.rank <= 3 ? 'rank-highlight' : ''}">${t.rank}</td><td class="team-col"><span class="standings-team-cell"><img src="${t.logo}" class="team-logo-img"><span>${escapeHtml(t.name)}</span></span></td><td class="table-number">${t.p}</td><td class="table-number">${t.w}</td><td class="table-number">${t.gd > 0 ? '+'+t.gd : t.gd}</td><td class="pts-badge table-number">${t.pts}</td></tr>`;
             });
             html += `</tbody></table>`;
             card.innerHTML = html;
@@ -2399,7 +2362,7 @@
                                 <div class="match-team-box away"><img src="${awayLogo}" class="team-logo-img"><span>${escapeHtml(m.a)}</span></div>
                             </div>
                         </div>
-                        ${(goalCount || cardCount || details.motm?.name) ? `<div class="match-detail-summary">${goalCount ? `<span class="detail-chip">GOALS ${goalCount}</span>` : ''}${cardCount ? `<span class="detail-chip">CARDS ${cardCount}</span>` : ''}${details.motm?.name ? `<span class="detail-chip mom-detail-chip"><span class="mom-mark" aria-label="MOM">MOM</span>${escapeHtml(details.motm.name)}</span>` : ''}</div>` : ''}
+                        ${(goalCount || cardCount || details.motm?.name) ? `<div class="match-detail-summary">${goalCount ? `<span class="detail-chip">⚽ ${goalCount}件</span>` : ''}${cardCount ? `<span class="detail-chip">カード ${cardCount}件</span>` : ''}${details.motm?.name ? `<span class="detail-chip mom-detail-chip"><span class="mom-mark" aria-label="MOM">MOM</span>${escapeHtml(details.motm.name)}</span>` : ''}</div>` : ''}
                         <button class="edit-score-btn" onclick="openScoreInputSheet('${m.id}')">MATCH CENTERを開く</button>
                     </div>
                 `;
@@ -2441,10 +2404,10 @@
             let html = '';
             list.forEach(t => {
                 html += `<button type="button" class="card team-directory-card" onclick="openTeamSheet('${escapeHtml(t.name)}')" aria-label="${escapeHtml(t.name)}の詳細を開く">
-                    <span class="team-directory-rank">${String(t.rank).padStart(2, '0')}</span>
+                    <span class="team-directory-rank">RANK <b>${String(t.rank).padStart(2, '0')}</b></span>
                     <span class="team-directory-crest"><img src="${t.logo}" class="team-directory-logo" alt=""></span>
-                    <span class="team-directory-copy"><strong class="team-directory-name">${escapeHtml(t.name)}</strong><small>${t.p}試合 ・ ${t.w}勝 ${t.d}分 ${t.l}敗</small></span>
-                    <span class="team-directory-meta">${t.pts}<small>PTS</small></span><span class="team-directory-chevron" aria-hidden="true">›</span>
+                    <span class="team-directory-name">${escapeHtml(t.name)}</span>
+                    <span class="team-directory-meta">${t.pts}<small>PTS</small></span>
                 </button>`;
             });
             grid.innerHTML = html;
