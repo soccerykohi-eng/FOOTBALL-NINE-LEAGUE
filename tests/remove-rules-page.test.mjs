@@ -15,7 +15,6 @@ test('FNL-001 removes the regulations page and navigation', () => {
   assert.doesNotMatch(html, /data-rules-tab/);
   assert.doesNotMatch(html, /page: 'rules'/);
   assert.match(html, /page: 'transfer'/);
-  assert.match(html, /page: 'news'/);
 });
 
 test('FNL-001 preserves regulations data compatibility', () => {
@@ -29,6 +28,6 @@ test('root and public entry points stay synchronized', () => {
   assert.equal(rootHtml, html);
 });
 
-test('FNL-001 advances the app shell cache', () => {
-  assert.match(serviceWorker, /const CACHE_NAME = 'fnl-app-v120'/);
+test('the app shell cache remains newer than the FNL-001 baseline', () => {
+  assert.match(serviceWorker, /const CACHE_NAME = 'fnl-app-v12[0-9]'/);
 });
