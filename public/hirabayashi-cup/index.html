@@ -354,22 +354,6 @@
         .rank-num { font-family: 'Teko', sans-serif; font-size: 1.1rem; font-weight: bold; width: 18px; color: var(--text-muted); }
         .pts-badge { font-family: 'Teko', sans-serif; font-size: 1.1rem; font-weight: bold; color: var(--accent-gold); }
 
-        /* ニュース */
-        .news-feed { padding:.2rem .9rem; border-radius:16px; }
-        .news-item { width:100%; padding:1rem .1rem; border:0; border-bottom:1px solid var(--border-color); background:transparent; color:var(--text-main); display:flex; flex-direction:column; gap:.42rem; text-align:left; font:inherit; cursor:pointer; transition:background .18s ease, transform .18s ease; }
-        .news-item:last-child { border-bottom:0; }
-        .news-item:hover, .news-item:focus-visible { background:rgba(255,255,255,.025); outline:0; }
-        .news-item:active { transform:scale(.995); }
-        .news-meta { display:flex; align-items:center; gap:.38rem; min-width:0; }
-        .news-date { margin-left:auto; color:var(--text-muted); font-size:.62rem; font-weight:700; white-space:nowrap; }
-        .news-category { font-size:.58rem; background:rgba(198,166,100,.13); color:var(--accent-gold-light); padding:.18rem .42rem; border-radius:999px; font-weight:900; letter-spacing:.03em; white-space:nowrap; }
-        .news-source { min-width:0; overflow:hidden; color:var(--text-muted); font-size:.62rem; font-weight:800; text-overflow:ellipsis; white-space:nowrap; }
-        .news-title { padding-right:.6rem; font-size:.9rem; font-weight:800; line-height:1.42; }
-        .news-detail-header { margin:-.15rem -.1rem 1.1rem; padding:.15rem .1rem 1rem; border-bottom:1px solid var(--border-color); }
-        .news-detail-title { margin:.7rem 0 0; color:var(--text-main); font-size:1.18rem; font-weight:900; line-height:1.45; letter-spacing:.01em; }
-        .news-detail-content { margin:.15rem 0 1.2rem; color:#d7dbe2; font-size:.87rem; line-height:1.8; white-space:pre-wrap; }
-        .news-detail-delete { margin-top:.2rem; }
-
         /* 平林杯 */
         .cup-hero { position:relative; overflow:hidden; padding:1.2rem; border:1px solid rgba(198,166,100,.36); border-radius:18px; background:linear-gradient(145deg,rgba(18,89,52,.6),var(--bg-card) 58%); }
         .cup-hero::after { content:''; position:absolute; right:-3rem; bottom:-4rem; width:11rem; height:11rem; border:1px solid rgba(198,166,100,.2); border-radius:50%; box-shadow:inset 0 0 0 16px rgba(18,89,52,.18); pointer-events:none; }
@@ -658,23 +642,6 @@
         .detail-chip { padding:0.2rem 0.45rem; border-radius:999px; color:var(--text-muted); background:rgba(255,255,255,0.04); font-size:0.6rem; }
         .mom-detail-chip { display:inline-flex; align-items:center; gap:.35rem; color:var(--text-main); border:1px solid rgba(198,166,100,.28); background:rgba(198,166,100,.08); }
         .mom-mark { display:inline-grid; place-items:center; width:18px; height:18px; clip-path:polygon(50% 0,92% 24%,84% 78%,50% 100%,16% 78%,8% 24%); background:var(--accent-gold); color:#11151b; font:900 8px/1 'Teko',sans-serif; letter-spacing:-.03em; }
-        .news-pagination { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:.35rem; margin:1rem 0 .35rem; }
-        .news-page-button { display:grid; place-items:center; min-width:34px; height:34px; padding:0 .45rem; border:1px solid var(--border-color); border-radius:9px; background:var(--bg-card); color:var(--text-muted); font:800 .72rem 'Noto Sans JP',sans-serif; cursor:pointer; }
-        .news-page-button.active { border-color:var(--accent-gold); background:var(--accent-gold); color:#111318; }
-        .news-page-button:disabled { opacity:.35; cursor:default; }
-        #page-news > .section-header { margin-bottom:.45rem; }
-        #page-news > .section-header .section-title { font-size:1.08rem; }
-        #page-news > .section-header .section-title::before { height:16px; }
-        #page-news > .section-header .btn-secondary { min-height:30px; padding:.3rem .5rem; font-size:.62rem; }
-        #page-news #news-notification-note { display:none; }
-        #page-news .news-feed { padding:.15rem .8rem; margin-bottom:0; border-radius:12px; }
-        #page-news .news-item { min-height:68px; padding:.7rem .1rem; gap:.32rem; }
-        #page-news .news-title { display:block; width:100%; padding:0; overflow:hidden; font-size:.82rem; line-height:1.35; text-overflow:ellipsis; white-space:nowrap; }
-        #page-news .news-meta { gap:.34rem; }
-        #page-news .news-category { padding:.15rem .38rem; font-size:.56rem; }
-        #page-news .news-source, #page-news .news-date { font-size:.59rem; }
-        #page-news .news-pagination { gap:.28rem; margin:.5rem 0 0; }
-        #page-news .news-page-button { min-width:30px; height:30px; border-radius:8px; font-size:.66rem; }
         /* Home: one-screen league snapshot */
         #page-home { gap:.85rem; align-content:start; }
         #page-home.active { display:grid; }
@@ -698,13 +665,6 @@
         #page-home .team-logo-img { width:22px; height:22px; }
         #page-home .match-score-pill { min-width:48px; padding:.14rem .4rem; font-size:1.22rem; }
         #page-home .edit-score-btn { min-height:34px; padding:4px 8px; font-size:.66rem; }
-        .home-news-heading { display:flex; align-items:center; gap:.6rem; margin-top:.15rem; }
-        .home-news-heading strong { font-size:.82rem; letter-spacing:.04em; }
-        #page-home .news-feed { width:100%; min-width:0; max-width:100%; margin:0; padding:.08rem .7rem; overflow:hidden; border-radius:12px; }
-        #page-home .news-item { width:100%; min-width:0; max-width:100%; padding:.65rem .05rem; overflow:hidden; gap:.28rem; }
-        #page-home .news-title { display:block; width:100%; min-width:0; max-width:100%; padding:0; overflow:hidden; font-size:.76rem; line-height:1.3; text-overflow:ellipsis; white-space:nowrap; }
-        #page-home .news-category { font-size:.52rem; }
-        #page-home .news-source, #page-home .news-date { font-size:.55rem; }
         @media (max-height:720px) { #page-home { gap:.5rem; } #page-home .hero-banner { padding:.62rem .7rem; } #page-home .hero-logo-large { width:48px; height:48px; } #page-home .hero-title { font-size:1.5rem; } #page-home .metric-card { padding:.42rem .25rem; } }
         .empty-state { padding:1rem; text-align:center; color:var(--text-muted); font-size:0.74rem; }
 
@@ -873,25 +833,24 @@
         .roster-player-tags .position { min-width:30px; text-align:center; }
         .roster-empty { padding:.9rem; border:1px dashed var(--border-color); border-radius:12px; color:var(--text-muted); text-align:center; font-size:.72rem; }
 
-        /* News composer: clear editorial workflow */
-        .news-composer-header { padding:1rem; margin:-.15rem -.15rem 1rem; border:1px solid rgba(198,166,100,.24); border-radius:16px; background:linear-gradient(145deg,rgba(198,166,100,.13),var(--bg-card) 62%); }
-        .news-composer-kicker { color:var(--accent-gold); font-size:.64rem; font-weight:900; letter-spacing:.12em; }
-        .news-composer-title { margin-top:.26rem; font-family:'Teko',sans-serif; font-size:1.9rem; line-height:1; }
-        .news-composer-copy { margin-top:.38rem; color:var(--text-muted); font-size:.72rem; line-height:1.5; }
-        .news-composer-section { margin-top:1rem; }
-        .news-composer-section-heading { display:flex; align-items:center; justify-content:space-between; margin-bottom:.55rem; font-size:.78rem; font-weight:900; }
-        .news-composer-section-heading small { color:var(--text-muted); font-size:.61rem; font-weight:700; }
-        .news-composer-panel { padding:.8rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
-        .news-composer-meta { display:grid; grid-template-columns:1fr 1fr; gap:.55rem; }
-        .news-composer-field { margin:0; }
-        .news-composer-field.is-wide { grid-column:1 / -1; }
-        .news-composer-field .form-label { font-size:.66rem; letter-spacing:.04em; }
-        .news-composer-field .form-input, .news-composer-field .form-select, .news-composer-field .form-textarea { min-height:40px; border-radius:10px; background:#0b0f14; font-size:.82rem; }
-        .news-composer-field .form-textarea { min-height:160px; resize:vertical; line-height:1.6; }
-        .news-composer-publish-note { display:flex; gap:.5rem; align-items:flex-start; margin-top:.75rem; padding:.7rem .75rem; border-radius:10px; background:rgba(255,255,255,.035); color:var(--text-muted); font-size:.66rem; line-height:1.5; }
-        .news-composer-publish-note::before { content:''; width:6px; height:6px; margin-top:.28rem; flex:0 0 auto; border-radius:50%; background:var(--accent-gold); }
-        .news-composer-submit { min-height:46px; margin-top:.75rem; border-radius:12px; }
-        @media (max-width:380px) { .news-composer-meta { grid-template-columns:1fr; } }
+        .cup-composer-header { padding:1rem; margin:-.15rem -.15rem 1rem; border:1px solid rgba(198,166,100,.24); border-radius:16px; background:linear-gradient(145deg,rgba(198,166,100,.13),var(--bg-card) 62%); }
+        .cup-composer-kicker { color:var(--accent-gold); font-size:.64rem; font-weight:900; letter-spacing:.12em; }
+        .cup-composer-title { margin-top:.26rem; font-family:'Teko',sans-serif; font-size:1.9rem; line-height:1; }
+        .cup-composer-copy { margin-top:.38rem; color:var(--text-muted); font-size:.72rem; line-height:1.5; }
+        .cup-composer-section { margin-top:1rem; }
+        .cup-composer-section-heading { display:flex; align-items:center; justify-content:space-between; margin-bottom:.55rem; font-size:.78rem; font-weight:900; }
+        .cup-composer-section-heading small { color:var(--text-muted); font-size:.61rem; font-weight:700; }
+        .cup-composer-panel { padding:.8rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
+        .cup-composer-meta { display:grid; grid-template-columns:1fr 1fr; gap:.55rem; }
+        .cup-composer-field { margin:0; }
+        .cup-composer-field.is-wide { grid-column:1 / -1; }
+        .cup-composer-field .form-label { font-size:.66rem; letter-spacing:.04em; }
+        .cup-composer-field .form-input, .cup-composer-field .form-select, .cup-composer-field .form-textarea { min-height:40px; border-radius:10px; background:#0b0f14; font-size:.82rem; }
+        .cup-composer-field .form-textarea { min-height:160px; resize:vertical; line-height:1.6; }
+        .cup-composer-publish-note { display:flex; gap:.5rem; align-items:flex-start; margin-top:.75rem; padding:.7rem .75rem; border-radius:10px; background:rgba(255,255,255,.035); color:var(--text-muted); font-size:.66rem; line-height:1.5; }
+        .cup-composer-publish-note::before { content:''; width:6px; height:6px; margin-top:.28rem; flex:0 0 auto; border-radius:50%; background:var(--accent-gold); }
+        .cup-composer-submit { min-height:46px; margin-top:.75rem; border-radius:12px; }
+        @media (max-width:380px) { .cup-composer-meta { grid-template-columns:1fr; } }
         #teams-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.55rem; }
         .team-directory-card { position:relative; display:flex; min-width:0; min-height:132px; margin:0; padding:.5rem .38rem .65rem; overflow:hidden; flex-direction:column; align-items:center; border:1px solid rgba(255,255,255,.08); border-radius:16px; background:linear-gradient(155deg,rgba(255,255,255,.045),rgba(255,255,255,.012) 58%),var(--bg-card); color:var(--text-main); font:inherit; text-align:center; cursor:pointer; isolation:isolate; }
         .team-directory-card::before { content:''; position:absolute; z-index:-1; top:-44px; left:50%; width:108px; height:108px; border-radius:50%; background:radial-gradient(circle,rgba(198,166,100,.15),transparent 67%); transform:translateX(-50%); }
@@ -975,13 +934,13 @@
         }
         .btn-primary { border:1px solid var(--accent-gold); background:var(--accent-gold); color:#111318; }
         .btn-secondary,.edit-score-btn,.share-action-btn { border:1px solid var(--border-color); background:var(--bg-elevated); color:var(--text-main); }
-        button:focus-visible,.card[onclick]:focus-visible,.news-item:focus-visible,.team-directory-card:focus-visible {
+        button:focus-visible,.card[onclick]:focus-visible,.team-directory-card:focus-visible {
             outline:2px solid var(--accent-gold); outline-offset:2px;
         }
         .form-label { color:#aab1bb; font-size:.72rem; }
         .form-input,select,textarea { min-height:44px!important; border-radius:11px!important; background:#0c1117!important; }
 
-        /* ホーム：スコア、順位、ニュースへ自然に視線が流れる密度 */
+        /* ホーム：スコア、順位、主要情報へ自然に視線が流れる密度 */
         #page-home { gap:14px; }
         #page-home .hero-banner {
             position:relative; padding:16px; border:1px solid var(--border-color); border-radius:16px;
@@ -1003,8 +962,6 @@
         #page-home .match-card-mobile { padding:14px; border-color:var(--border-color)!important; }
         .match-card-mobile { overflow:hidden; }
         .match-score-pill { border:1px solid rgba(200,168,97,.3); border-radius:10px; background:#090d12; color:var(--text-main); }
-        .home-news-heading { margin:0; }
-        #page-home .news-feed { padding:2px 12px; border:1px solid var(--border-color); }
 
         /* 共通の切替。大きなページ切替と小さなランキング切替を別の階層にする */
         .tab-bar { gap:4px; padding:4px; border-radius:13px; background:#0c1117; }
@@ -1035,20 +992,13 @@
         .team-directory-card::before,.team-directory-card::after { display:none; }
         .team-directory-logo-shell { background:transparent!important; border:0!important; }
         .team-directory-card:active { border-color:rgba(200,168,97,.38); }
-        .team-sheet-hero,.roster-sheet-hero,.news-composer-header {
+        .team-sheet-hero,.roster-sheet-hero,.cup-composer-header {
             border-color:var(--border-color); background:var(--bg-card); border-radius:16px;
         }
         .team-sheet-hero .team-logo-lg { width:80px!important; height:80px!important; }
         .roster-position-header { color:var(--text-main); }
         .roster-position-header::before { background:var(--accent-gold); }
 
-        /* ニュース：一般的なニュースアプリ同様、見出しと発信元を優先 */
-        #page-news .news-feed { padding:2px 14px; border:1px solid var(--border-color); border-radius:14px; }
-        .news-item { min-height:82px; padding:14px 0; }
-        .news-title { color:var(--text-main); font-size:.83rem; line-height:1.5; }
-        .news-category { border:0!important; background:rgba(200,168,97,.1)!important; color:var(--accent-gold-light)!important; }
-        .news-page-button { border-radius:9px; background:transparent; }
-        .news-page-button.active { border-color:var(--accent-gold); background:var(--accent-gold); color:#111318; }
 
         /* マッチセンター：入力順は維持しつつ、一つの業務フォームに見せる */
         .match-center-header { margin-bottom:12px; }
@@ -1158,8 +1108,6 @@
             </div>
             <div id="home-dashboard" class="dashboard-grid"></div>
             <div class="match-card-mobile" style="background: var(--bg-card); border-color: rgba(198, 166, 100, 0.4);" id="home-featured-match"></div>
-            <div class="home-news-heading"><strong>最新ニュース</strong></div>
-            <div class="card news-feed" id="home-news-preview"></div>
         </section>
 
         <!-- PAGE 2: STANDINGS -->
@@ -1222,20 +1170,6 @@
             </div>
             <p class="player-directory-intro">チームを選択すると、登録選手を確認できます。</p>
             <div id="roster-club-list"></div>
-        </section>
-
-        <!-- PAGE 6: NEWS -->
-        <section id="page-news" class="page" hidden>
-            <div class="section-header">
-                <div class="section-title">ニュース</div>
-                <div style="display:flex;gap:0.4rem;">
-                    <button id="news-notification-button" class="btn-secondary" onclick="toggleNewsNotifications()">通知を受け取る</button>
-                    <button class="btn-secondary edit-only" onclick="openPostNewsSheet()">投稿</button>
-                </div>
-            </div>
-            <div id="news-notification-note" class="market-note" style="margin-bottom:0.7rem;">ニュースが公開されたときだけ通知します。</div>
-            <div class="card news-feed" id="full-news-list"></div>
-            <nav id="news-pagination" class="news-pagination" aria-label="ニュースのページ送り"></nav>
         </section>
 
         <!-- PAGE 7: RULES -->
@@ -1477,19 +1411,6 @@
             return { assignment, schedule };
         }
 
-        const INITIAL_NEWS = [
-            {
-                id: 'n_1', date: '2026.07.23', category: 'お知らせ',
-                title: 'FNL Season 1 公式ポータルオープン！',
-                content: 'Football Nine League (FNL) Season 1 の全18節公式スケジュールおよび対戦結果、公式規約を公開いたしました。'
-            },
-            {
-                id: 'n_2', date: '2026.07.20', category: '試合情報',
-                title: 'FNL Season 1 全18節の公式対戦カード決定',
-                content: '全9クラブによる総当たり2巡（全18マッチウィーク）の対戦カードがすべて決定いたしました。'
-            }
-        ];
-
         const FNL_REGULATIONS = [
             { chapter: '第1章 総則', articles: [{ title: '第1条（名称）', text: '本リーグの名称を <b>Football Nine League</b>（略称：<b>FNL</b>）とする。' }] },
             { chapter: '第2章 クラブ', articles: [{ title: '第2条（参加クラブ）', text: '参加クラブは原則として以下の9クラブとする。<ul class="rule-list"><li>FC Koshi</li><li>MGR United</li><li>BAYASHI JAPAN</li><li>Katsukou FC</li><li>Manchester Cow</li><li>Koganei 3KSC</li><li>YSC YOSHIDA</li><li>Kasuga United</li><li>FC ARG</li></ul><div class="rule-article-title">オーナー</div>クラブオーナー（参加者）は原則変更しない。<div class="rule-article-title">クラブ名称</div>クラブ名を変更する場合は、事前に運営へ申請し承認を得るものとする。<div class="rule-article-title">エンブレム</div>クラブは独自のエンブレムを保有する。<div class="rule-article-title">ユニフォーム</div>各クラブはシーズン開始前までにホーム・アウェイ（必要に応じてサード）ユニフォームを運営へ提出する。<div class="rule-article-title">ホームスタジアム</div>各クラブはホームスタジアムを設定する。<div class="rule-article-title">クラブ解散</div>クラブの解散は原則認めない。' }] },
@@ -1500,7 +1421,7 @@
             { chapter: '第7章 選手登録・移籍', articles: [{ title: '第13条（選手登録）', text: '登録人数は25名までとする。選手名簿の追加・削除はシーズン準備期間中に行う。<div class="rule-article-title">特別カード選手</div>レジェンド・エピック・ショータイム・ビッグタイム選手は合計18名まで登録可能。<div class="rule-article-title">ノーマルカード選手</div>通常, POTS, POTW, POTD, ハイライト等のノーマルカード選手を7名以上登録すること。' }, { title: '第14条（トレード）', text: 'クラブ間トレードは両クラブの合意がある場合のみ成立する。トレードはシーズン中間移籍市場期間中のみ可能とする。' }, { title: '第15条（シーズン中間移籍市場）', text: 'MW9までの全試合終了後に自動的に開始し、MW10の最初の試合結果が登録されると終了する。「放出なし」「1名放出」「2名放出」「3名放出」を選択でき、放出人数と同数の補強が可能となる。指名順はリーグ順位の低いクラブから行う。トレードもこの期間中に行う。' }, { title: '第16条（シーズン終了移籍市場）', text: '全マッチウィークの試合終了後に自動的に開始し、次のシーズンを開始すると終了する。<div class="rule-article-title">プロテクト</div>各クラブはプロテクト選手を6名指定する（ドラフト対象外）。プロテクト対象は、そのシーズンのリーグ戦に10試合以上出場した選手に限る。<div class="rule-article-title">ドラフト</div><b>1巡目：</b>希望選手を全クラブ非公開で提出し、重複した場合は抽選を行う。<br><b>2巡目以降：</b>ウェーバー方式を採用する。指名順は 9→8→7→6→5→4→3→2→1 、次巡は 1→2→3→4→5→6→7→8→9 を繰り返す。' }] },
             { chapter: '第8章 カップ戦・大会特典', articles: [{ title: '第17条（平林杯）', text: '平林杯はシーズン終了後に開催する。大会運営は <b>BAYASHI JAPAN</b> が担当する（試合結果・大会管理はFNL公式では行わない）。' }, { title: '第18条（優勝特典）', text: '平林杯の成績に応じた特典：<ul class="rule-list"><li>優勝：翌シーズン プロテクト枠 ＋2</li><li>準優勝：翌シーズン プロテクト枠 ＋1</li></ul>' }] },
             { chapter: '第9章 表彰', articles: [{ title: '第19条（表彰）', text: 'シーズン終了後、<b>FNL Champion</b> および <b>シーズンMVP</b> を表彰する。' }] },
-            { chapter: '第10章 メディア', articles: [{ title: '第20条（メディア）', text: '<div class="rule-article-title">FNL Official Media</div>試合告知、試合結果、公式声明を発信。<div class="rule-article-title">Club Media</div>各クラブは自由にニュース・インタビュー・クラブ情報等を発信できる。' }] },
+            { chapter: '第10章 メディア', articles: [{ title: '第20条（メディア）', text: '<div class="rule-article-title">FNL Official Media</div>試合告知、試合結果、公式声明を発信。<div class="rule-article-title">Club Media</div>各クラブは自由にインタビュー・クラブ情報等を発信できる。' }] },
             { chapter: '第11章 運営', articles: [{ title: '第21条（運営）', text: '運営権限はリーグ創設者が有する。' }] },
             { chapter: '第12章 懲戒規定', articles: [{ title: '第22条（懲戒規定）', text: '<div class="rule-article-title">禁止行為</div>参加者は、リーグの公平性を損なう次の行為（故意の回線切断、試合放棄、虚偽報告、不正行為・チート、暴言・誹謗中傷等）をしてはならない。<div class="rule-article-title">処分</div>違反行為が確認された場合、注意、試合の没収（0-3敗戦）、勝点剥奪、ドラフト指名権の制限、一定期間の出場停止、リーグ除名等の処分を科すことができる。' }] },
             { chapter: '第13章 規約改正', articles: [{ title: '第23条（規約改正）', text: '規約の追加・変更は参加クラブの賛成多数をもって成立する。審議中は新たな改正案を提出できない。<div class="rule-article-title">緊急措置</div>大型アップデートや障害等の緊急時は運営が暫定ルールを制定できる。' }] },
@@ -1587,7 +1508,6 @@
         // アプリ状態
         const state = {
             schedule: JSON.parse(JSON.stringify(INITIAL_SCHEDULE)),
-            news: JSON.parse(JSON.stringify(INITIAL_NEWS)),
             rosters: {},
             transferMarket: { releasePlans: {} },
             activityLog: [],
@@ -1613,7 +1533,6 @@
                 if (!raw) return;
                 const parsed = JSON.parse(raw);
                 if (parsed.schedule) state.schedule = parsed.schedule;
-                if (parsed.news) state.news = parsed.news;
                 if (parsed.rosters) state.rosters = parsed.rosters;
                 if (parsed.transferMarket) state.transferMarket = parsed.transferMarket;
                 if (Array.isArray(parsed.activityLog)) state.activityLog = parsed.activityLog;
@@ -1634,7 +1553,6 @@
             try {
                 const payload = {
                     schedule: state.schedule,
-                    news: state.news,
                     rosters: state.rosters,
                     transferMarket: state.transferMarket,
                     activityLog: state.activityLog,
@@ -1666,7 +1584,6 @@
                     : decodeURIComponent(encoded);
                 const parsed = JSON.parse(serialized);
                 if (parsed.schedule) state.schedule = parsed.schedule;
-                if (parsed.news) state.news = parsed.news;
                 if (parsed.rosters) state.rosters = parsed.rosters;
                 if (parsed.transferMarket) state.transferMarket = parsed.transferMarket;
                 if (Array.isArray(parsed.activityLog)) state.activityLog = parsed.activityLog;
@@ -1680,7 +1597,6 @@
                 state.standingsDirty = true;
                 if (typeof refreshAllViews === 'function') {
                     refreshAllViews();
-                    renderNews();
                 }
                 return true;
             } catch (e) {
@@ -1726,7 +1642,7 @@
         }
 
         window.normalizeFnlTeamNames = function() {
-            ['schedule', 'news', 'activityLog', 'seasonArchive', 'seasonInfo', 'regulations', 'previousSeasonSnapshot', 'lastMatchSnapshot']
+            ['schedule', 'activityLog', 'seasonArchive', 'seasonInfo', 'regulations', 'previousSeasonSnapshot', 'lastMatchSnapshot']
                 .forEach(key => { state[key] = normalizeStoredTeamNames(state[key]); });
             state.standingsDirty = true;
         };
@@ -1803,7 +1719,7 @@
                 if (matchedNav) {
                     matchedNav.classList.add('active');
                     matchedNav.setAttribute('aria-current', 'page');
-                } else if (['transfer', 'news', 'rules', 'cup'].includes(pageId)) {
+                } else if (['transfer', 'rules', 'cup'].includes(pageId)) {
                     const moreNav = document.querySelector('#bottom-nav-element .nav-item[data-nav-more]');
                     moreNav?.classList.add('active');
                     moreNav?.setAttribute('aria-current', 'page');
@@ -1832,7 +1748,6 @@
             const menuItems = [
                 { page: 'transfer', title: '選手名簿', icon: '<path d="M7 7h8.17l-2.59 2.59L14 11l5-5-5-5 1.41 1.41L12.83 6H7v1zm10 10H8.83l2.59-2.59L10 13l-5 5 5 5-1.41-1.41L11.17 18H17v-1z"/>' },
                 { page: 'cup', title: '平林杯', icon: '<path d="M8 2h8v5a4 4 0 0 1-8 0V2zm0 3H5v2a4 4 0 0 0 4 4M16 5h3v2a4 4 0 0 1-4 4M12 11v5m-3 4h6M8 20h8"/>' },
-                { page: 'news', title: 'ニュース', icon: '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/>' },
                 { page: 'rules', title: '規約', icon: '<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>' }
             ];
             document.getElementById('sheet-body').innerHTML = `
@@ -1910,157 +1825,6 @@
             }
         };
 
-        // --- ニュース ---
-        function getNewsSourceLabel(item) {
-            if (item?.sourceType === 'team') return item.sourceName || RAW_TEAMS.find(team => team.id === item.sourceTeamId)?.name || 'クラブメディア';
-            return 'FNL運営';
-        }
-
-        function getNewsCategoryLabel(item) {
-            const legacyLabels = {
-                '結果速報': '試合結果',
-                'プレビュー': '試合情報',
-                '運営': '規約・運営'
-            };
-            const category = item?.category || 'お知らせ';
-            return legacyLabels[category] || category;
-        }
-
-        let currentNewsPage = 1;
-        const NEWS_PER_PAGE = 6;
-
-        function renderNews() {
-            const homeWrap = document.getElementById('home-news-preview');
-            const fullWrap = document.getElementById('full-news-list');
-            const paginationWrap = document.getElementById('news-pagination');
-            if (!homeWrap || !fullWrap || !paginationWrap) return;
-
-            if (state.news.length === 0) {
-                homeWrap.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:1rem;">ニュースはありません</div>`;
-                fullWrap.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:1rem;">ニュースはありません</div>`;
-                paginationWrap.innerHTML = '';
-                return;
-            }
-
-            const renderNewsItems = items => items.map(n => `
-                    <button type="button" class="news-item" onclick="openNewsDetailSheet('${n.id}')">
-                        <div class="news-meta">
-                            <span class="news-category">${escapeHtml(getNewsCategoryLabel(n))}</span>
-                            <span class="news-source">${escapeHtml(getNewsSourceLabel(n))}</span>
-                            <span class="news-date">${escapeHtml(n.date)}</span>
-                        </div>
-                        <div class="news-title">${escapeHtml(n.title)}</div>
-                    </button>
-                `).join('');
-            homeWrap.innerHTML = renderNewsItems(state.news.slice(0, 3));
-            const totalPages = Math.ceil(state.news.length / NEWS_PER_PAGE);
-            currentNewsPage = Math.min(Math.max(currentNewsPage, 1), totalPages);
-            const start = (currentNewsPage - 1) * NEWS_PER_PAGE;
-            fullWrap.innerHTML = renderNewsItems(state.news.slice(start, start + NEWS_PER_PAGE));
-            paginationWrap.innerHTML = totalPages > 1 ? `
-                <button class="news-page-button" type="button" onclick="goToNewsPage(${currentNewsPage - 1})" ${currentNewsPage === 1 ? 'disabled' : ''} aria-label="前のページ">‹</button>
-                ${Array.from({ length: totalPages }, (_, index) => {
-                    const page = index + 1;
-                    return `<button class="news-page-button ${page === currentNewsPage ? 'active' : ''}" type="button" onclick="goToNewsPage(${page})" ${page === currentNewsPage ? 'aria-current="page"' : ''}>${page}</button>`;
-                }).join('')}
-                <button class="news-page-button" type="button" onclick="goToNewsPage(${currentNewsPage + 1})" ${currentNewsPage === totalPages ? 'disabled' : ''} aria-label="次のページ">›</button>` : '';
-        }
-
-        window.goToNewsPage = function(page) {
-            const totalPages = Math.ceil(state.news.length / NEWS_PER_PAGE);
-            if (page < 1 || page > totalPages || page === currentNewsPage) return;
-            currentNewsPage = page;
-            renderNews();
-            document.getElementById('page-news')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        };
-
-        window.openNewsDetailSheet = function(newsId) {
-            const item = state.news.find(n => n.id === newsId);
-            if (!item) return;
-
-            const body = document.getElementById('sheet-body');
-            body.innerHTML = `
-                <div class="news-detail-header">
-                    <div class="news-meta">
-                        <span class="news-category">${escapeHtml(getNewsCategoryLabel(item))}</span>
-                        <span class="news-source">${escapeHtml(getNewsSourceLabel(item))}</span>
-                        <span class="news-date">${escapeHtml(item.date)}</span>
-                    </div>
-                    <h2 class="news-detail-title">${escapeHtml(item.title)}</h2>
-                </div>
-                <div class="news-detail-content">${escapeHtml(item.content)}</div>
-                <button class="btn-danger news-detail-delete" onclick="deleteNewsFromCloud('${item.id}')">このニュースを削除</button>
-            `;
-            document.getElementById('sheet-overlay').classList.add('active');
-        };
-
-        window.deleteNewsFromCloud = function(newsId) {
-            if (confirm('このニュースを削除しますか？')) {
-                state.news = state.news.filter(n => n.id !== newsId);
-                renderNews();
-                persistAppState();
-                document.getElementById('sheet-overlay').classList.remove('active');
-            }
-        };
-
-        window.openPostNewsSheet = function() {
-            if (!requireEditMode('ニュース投稿')) return;
-            const todayStr = new Date().toISOString().split('T')[0].replace(/-/g, '.');
-            const body = document.getElementById('sheet-body');
-            body.innerHTML = `
-                <div class="news-composer-header">
-                    <div class="news-composer-kicker">FNL NEWSROOM</div>
-                    <h3 class="news-composer-title">ニュースを投稿</h3>
-                    <div class="news-composer-copy">掲載情報を選び、見出しと本文を入力して公開します。</div>
-                </div>
-                <div class="news-composer-section">
-                    <div class="news-composer-section-heading"><span>掲載情報</span><small>公開時に表示されます</small></div>
-                    <div class="news-composer-panel news-composer-meta">
-                        <div class="form-group news-composer-field"><label class="form-label">カテゴリー</label><select id="post-category" class="form-select"><option value="お知らせ">お知らせ</option><option value="試合情報">試合情報</option><option value="試合結果">試合結果</option><option value="移籍情報">移籍情報</option><option value="チーム情報">チーム情報</option><option value="選手情報">選手情報</option><option value="大会・イベント">大会・イベント</option><option value="規約・運営">規約・運営</option></select></div>
-                        <div class="form-group news-composer-field"><label class="form-label">発信元</label><select id="post-source" class="form-select"><option value="official">FNL運営</option>${RAW_TEAMS.map(team => `<option value="team:${team.id}">${escapeHtml(team.name)} メディア</option>`).join('')}</select></div>
-                        <div class="form-group news-composer-field is-wide"><label class="form-label">投稿日</label><input type="text" id="post-date" class="form-input" value="${todayStr}" aria-label="投稿日"></div>
-                    </div>
-                </div>
-                <div class="news-composer-section">
-                    <div class="news-composer-section-heading"><span>記事内容</span><small>タイトルは60文字まで</small></div>
-                    <div class="news-composer-panel">
-                        <div class="form-group news-composer-field"><label class="form-label">タイトル</label><input type="text" id="post-title" class="form-input" placeholder="例：MATCHWEEK 3 の試合結果を公開" maxlength="60" autocomplete="off"></div>
-                        <div class="form-group news-composer-field"><label class="form-label">本文</label><textarea id="post-content" class="form-textarea" placeholder="ニュースの詳細を入力してください"></textarea></div>
-                    </div>
-                </div>
-                <div class="news-composer-publish-note">公開するとホームとニュース一覧に表示され、通知を受け取る設定の利用者へもお知らせされます。</div>
-                <button class="btn-primary news-composer-submit" onclick="submitNewsPostToCloud()">ニュースを公開</button>
-            `;
-            document.getElementById('sheet-overlay').classList.add('active');
-        };
-
-        window.submitNewsPostToCloud = function() {
-            const category = document.getElementById('post-category').value;
-            const date = document.getElementById('post-date').value.trim();
-            const title = document.getElementById('post-title').value.trim();
-            const content = document.getElementById('post-content').value.trim();
-            const sourceValue = document.getElementById('post-source')?.value || 'official';
-            if (!title || !content) return;
-
-            const sourceTeamId = sourceValue.startsWith('team:') ? sourceValue.slice(5) : '';
-            const sourceTeam = RAW_TEAMS.find(team => team.id === sourceTeamId);
-
-            const newsId = 'n_' + Date.now();
-            state.news.unshift({
-                id: newsId, date: date || new Date().toISOString().split('T')[0].replace(/-/g, '.'),
-                category, title, content,
-                sourceType: sourceTeam ? 'team' : 'official',
-                sourceTeamId: sourceTeam?.id || '',
-                sourceName: sourceTeam?.name || 'FNL運営'
-            });
-            currentNewsPage = 1;
-            renderNews();
-            Promise.resolve(persistAppState())
-                .then(() => window.notifyNewsPublished?.(newsId))
-                .catch(error => console.error('News publish sync failed', error));
-            document.getElementById('sheet-overlay').classList.remove('active');
-            navigateTo('news', 'ニュース');
-        };
 
         // --- 試合センター ---
         function ensureMatchDetails(match) {
@@ -2490,7 +2254,7 @@
             const currentCompleted = countCompletedMatches(state), backupCompleted = countCompletedMatches(snapshot.payload);
             if (backupCompleted < currentCompleted) return alert('現在より試合結果が少ないバックアップは、安全のため復元できません。');
             if (!confirm(`${formatAppDate(snapshot.savedAt)} の状態を復元します。\n試合結果 ${backupCompleted}件 / Season ${Number(snapshot.payload.seasonInfo?.number || 1)}\nよろしいですか？`)) return;
-            const fields = ['schedule','news','rosters','transferMarket','activityLog','seasonArchive','seasonInfo','regulations','hirabayashiCup','previousSeasonSnapshot','lastMatchSnapshot'];
+            const fields = ['schedule','rosters','transferMarket','activityLog','seasonArchive','seasonInfo','regulations','hirabayashiCup','previousSeasonSnapshot','lastMatchSnapshot'];
             const before = Object.fromEntries(fields.map(field => [field, JSON.parse(JSON.stringify(state[field] ?? null))]));
             fields.forEach(field => { if (Object.prototype.hasOwnProperty.call(snapshot.payload, field)) state[field] = JSON.parse(JSON.stringify(snapshot.payload[field])); });
             addActivity('バックアップを復元', `${formatAppDate(snapshot.savedAt)} の状態`, { before: `試合結果 ${currentCompleted}件`, after: `試合結果 ${backupCompleted}件` });
@@ -2564,7 +2328,7 @@
             }
             document.getElementById('sheet-body').innerHTML = `
                 <div style="text-align:center;margin-bottom:1rem;"><h3>次のシーズンを開始</h3></div>
-                <div class="market-note" style="margin-bottom:0.8rem;">現在の記録を自動保存して試合結果・選手成績を初期化します。9チームをA〜Iへランダムに割り当て、全18マッチウィークの日程を自動生成します。チーム、エンブレム、選手名簿、ニュースは引き継ぎます。</div>
+                <div class="market-note" style="margin-bottom:0.8rem;">現在の記録を自動保存して試合結果・選手成績を初期化します。9チームをA〜Iへランダムに割り当て、全18マッチウィークの日程を自動生成します。チーム、エンブレム、選手名簿は引き継ぎます。</div>
                 <div class="form-group"><label class="form-label">シーズン番号</label><input id="next-season-number" class="form-input" type="number" min="1" value="${Number(info.number) + 1}"></div>
                 <div class="form-group"><label class="form-label">開催年</label><input id="next-season-year" class="form-input" type="number" min="2026" value="${Number(info.year) + 1}"></div>
                 <button class="btn-primary" onclick="startNextSeason()">抽選して次シーズンを開始</button>`;
@@ -4297,7 +4061,7 @@
             const standings = calculateStandings();
             if (standings.length !== 9) return alert('リーグ順位9クラブ分が確定していません。');
             const pots = [standings.slice(0, 3), standings.slice(3, 6), standings.slice(6, 9)];
-            document.getElementById('sheet-body').innerHTML = `<div class="news-composer-header"><div class="news-composer-kicker">HIRABAYASHI CUP DRAW</div><h3 class="news-composer-title">グループ抽選会</h3><div class="news-composer-copy">各ポットから1クラブずつ、GROUP A・B・Cへ抽選します。確定後は変更できません。</div></div>${pots.map((pot, index) => `<div class="card" style="padding:.7rem;margin-bottom:.55rem"><b>POT ${index + 1}</b><div style="font-size:.72rem;color:var(--text-muted);margin-top:.3rem">${pot.map(team => `${team.rank}位 ${escapeHtml(team.name)}`).join('<br>')}</div></div>`).join('')}<button class="btn-primary" onclick="runCupGroupDraw()">抽選を実行して確定</button><button class="btn-secondary event-entry-back" onclick="closeCupSheet()">閉じる</button>`;
+            document.getElementById('sheet-body').innerHTML = `<div class="cup-composer-header"><div class="cup-composer-kicker">HIRABAYASHI CUP DRAW</div><h3 class="cup-composer-title">グループ抽選会</h3><div class="cup-composer-copy">各ポットから1クラブずつ、GROUP A・B・Cへ抽選します。確定後は変更できません。</div></div>${pots.map((pot, index) => `<div class="card" style="padding:.7rem;margin-bottom:.55rem"><b>POT ${index + 1}</b><div style="font-size:.72rem;color:var(--text-muted);margin-top:.3rem">${pot.map(team => `${team.rank}位 ${escapeHtml(team.name)}`).join('<br>')}</div></div>`).join('')}<button class="btn-primary" onclick="runCupGroupDraw()">抽選を実行して確定</button><button class="btn-secondary event-entry-back" onclick="closeCupSheet()">閉じる</button>`;
             document.getElementById('sheet-overlay').classList.add('active');
         };
 
@@ -4334,7 +4098,7 @@
             if (getCupAllMatches().some(match => match.hs !== null)) return alert('試合結果を登録した後はグループ編成を変更できません。必要な場合は結果を取り消してから設定してください。');
             const options = selected => RAW_TEAMS.map(team => `<option value="${escapeHtml(team.name)}" ${team.name === selected ? 'selected' : ''}>${escapeHtml(team.name)}</option>`).join('');
             const fields = ['A','B','C'].flatMap(group => cup.groups[group].map((team, index) => `<div class="form-group"><label class="form-label">GROUP ${group} ${index + 1}</label><select class="form-select" data-cup-group="${group}" data-cup-slot="${index}">${options(team)}</select></div>`)).join('');
-            document.getElementById('sheet-body').innerHTML = `<div class="news-composer-header"><div class="news-composer-kicker">HIRABAYASHI CUP</div><h3 class="news-composer-title">グループ編成</h3><div class="news-composer-copy">各クラブを1回ずつ選択してください。保存するとグループステージの対戦カードが作り直されます。</div></div><div class="news-composer-panel">${fields}</div><button class="btn-primary news-composer-submit" onclick="saveCupGroupSetup()">グループ編成を保存</button><button class="btn-secondary event-entry-back" onclick="closeCupSheet()">閉じる</button>`;
+            document.getElementById('sheet-body').innerHTML = `<div class="cup-composer-header"><div class="cup-composer-kicker">HIRABAYASHI CUP</div><h3 class="cup-composer-title">グループ編成</h3><div class="cup-composer-copy">各クラブを1回ずつ選択してください。保存するとグループステージの対戦カードが作り直されます。</div></div><div class="cup-composer-panel">${fields}</div><button class="btn-primary cup-composer-submit" onclick="saveCupGroupSetup()">グループ編成を保存</button><button class="btn-secondary event-entry-back" onclick="closeCupSheet()">閉じる</button>`;
             document.getElementById('sheet-overlay').classList.add('active');
         };
         window.saveCupGroupSetup = function() {
@@ -4788,7 +4552,6 @@
 
             applyEditMode();
             refreshAllViews();
-            renderNews();
         }
 
 

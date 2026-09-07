@@ -28,10 +28,8 @@ assert.doesNotMatch(html, /終了時移籍市場が完了していないため�
 assert.doesNotMatch(html, /中間移籍市場が完了していないため、MW10/);
 
 assert.match(html, /#page-home\.active \{ display:grid; grid-template-rows:/);
-assert.match(html, /@media \(max-height:720px\)[\s\S]*#page-home \.news-item \{ padding:5px 0; \}/);
 assert.match(html, /\.roster-team-grid \{ display:grid; grid-template-rows:repeat\(9/);
 assert.match(html, /class="roster-team-count"/);
-assert.match(html, /#page-news \.news-page-button \{ min-width:44px; height:44px/);
 assert.match(html, /class="sheet-toolbar"/);
 assert.match(html, /class="sheet-close-button"[\s\S]*aria-label="閉じる"[\s\S]*<svg/);
 
