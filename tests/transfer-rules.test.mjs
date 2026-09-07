@@ -27,7 +27,7 @@ assert.match(html, /home !== null && home !== '' && away !== null && away !== ''
 assert.doesNotMatch(html, /終了時移籍市場が完了していないため、次シーズン/);
 assert.doesNotMatch(html, /中間移籍市場が完了していないため、MW10/);
 
-assert.match(html, /#page-home\.active \{ display:grid; grid-template-rows:/);
+assert.match(html, /#page-home\.active \{ display:flex; flex-direction:column; \}/);
 assert.match(html, /\.roster-team-grid \{ display:grid; grid-template-rows:repeat\(9/);
 assert.match(html, /class="roster-team-count"/);
 assert.match(html, /class="sheet-toolbar"/);
