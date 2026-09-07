@@ -14,7 +14,7 @@ test('FNL-001 removes the regulations page and navigation', () => {
   assert.doesNotMatch(html, /switchRulesView/);
   assert.doesNotMatch(html, /data-rules-tab/);
   assert.doesNotMatch(html, /page: 'rules'/);
-  assert.match(html, /page: 'transfer'/);
+  assert.match(html, /data-page="transfer"/);
 });
 
 test('FNL-001 preserves regulations data compatibility', () => {
