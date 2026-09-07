@@ -477,9 +477,7 @@
         #page-home .metric-value.metric-player-name { min-height:1.2em; font-size:.62rem; }
         #page-home .metric-detail { display:block; margin-top:.2rem; color:var(--text-muted); font-size:.58rem; font-weight:800; }
         #page-home .home-progress-card { display:flex; flex-direction:column; }
-        #page-home .home-progress-card .metric-value { margin:.75rem 0 .5rem; font-size:1.02rem; line-height:1; letter-spacing:.025em; }
-        .home-progress-track { height:5px; overflow:hidden; border-radius:999px; background:rgba(255,255,255,.08); }
-        .home-progress-fill { display:block; height:100%; border-radius:inherit; background:var(--accent-gold); }
+        #page-home .home-progress-card .metric-value { flex:1; display:flex; align-items:center; justify-content:center; margin:0; padding-top:.12rem; font-size:2rem; line-height:1; letter-spacing:.025em; }
         .home-section { display:flex; flex-direction:column; gap:.45rem; }
         .home-section-heading { display:flex; align-items:center; justify-content:space-between; padding:0 .1rem; }
         .home-section-heading h2 { color:var(--text-main); font-size:.76rem; font-weight:900; letter-spacing:.08em; }
@@ -1976,13 +1974,11 @@
             const standings = calculateStandings();
             const topScorer = calculatePlayerStats().filter(player => player.goals > 0).sort((a,b) => b.goals - a.goals || b.assists - a.assists)[0];
             const played = state.schedule.filter(isMatchCompleted).length;
-            const total = state.schedule.length;
-            const progress = total ? Math.round((played / total) * 100) : 0;
             const dashboard = document.getElementById('home-dashboard');
             if (dashboard) dashboard.innerHTML = `
                 <div class="metric-card"><div class="metric-label">現在の首位</div><img class="home-metric-logo" src="${getTeamLogo(standings[0]?.name || '')}" alt="${escapeHtml(standings[0]?.name || '')}"><div class="metric-value">${escapeHtml(standings[0]?.name || '-')}</div></div>
                 <div class="metric-card"><div class="metric-label">得点王</div><img class="home-metric-logo" src="${getTeamLogo(topScorer?.team || '')}" alt="${escapeHtml(topScorer?.team || '')}"><div class="metric-value metric-player-name" title="${escapeHtml(topScorer?.name || '得点記録なし')}">${escapeHtml(topScorer?.name || '得点記録なし')}</div><div class="metric-detail">${topScorer ? `${topScorer.goals} 得点` : ''}</div></div>
-                <div class="metric-card home-progress-card"><div class="metric-label">リーグ進行</div><div class="metric-value">消化試合 ${played} / ${total}</div><div class="home-progress-track" role="progressbar" aria-label="リーグ進行" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${played}"><span class="home-progress-fill" style="width:${progress}%"></span></div></div>`;
+                <div class="metric-card home-progress-card"><div class="metric-label">消化試合</div><div class="metric-value">${played} / ${state.schedule.length}</div></div>`;
         }
 
         // --- 描画更新 ---
