@@ -1,0 +1,33 @@
+name: FNL Check
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get FNL files
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run FNL tests
+        run: node --test tests/*.test.mjs
+
+      - name: Check duplicated files
+        run: |
+          cmp -s index.html public/index.html
+          cmp -s firebase-config.js public/firebase-config.js
+          cmp -s firebase-sync.js public/firebase-sync.js
+          cmp -s manifest.webmanifest public/manifest.webmanifest
+          cmp -s service-worker.js public/service-worker.js
