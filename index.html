@@ -462,8 +462,8 @@
         .mom-detail-chip { display:inline-flex; align-items:center; gap:.35rem; color:var(--text-main); border:1px solid rgba(198,166,100,.28); background:rgba(198,166,100,.08); }
         .mom-mark { display:inline-grid; place-items:center; width:18px; height:18px; clip-path:polygon(50% 0,92% 24%,84% 78%,50% 100%,16% 78%,8% 24%); background:var(--accent-gold); color:#11151b; font:900 8px/1 'Teko',sans-serif; letter-spacing:-.03em; }
         /* Home: one-screen league snapshot */
-        #page-home { gap:.6rem; align-content:start; }
-        #page-home.active { display:grid; grid-template-rows:auto auto minmax(0,1fr); height:calc(100dvh - var(--header-height) - var(--nav-height) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 48px); overflow:hidden; }
+        #page-home { gap:.75rem; }
+        #page-home.active { display:flex; flex-direction:column; }
         #page-home .hero-banner { display:flex; align-items:center; gap:.9rem; padding:.92rem 1rem; margin:0; text-align:left; border-radius:14px; }
         #page-home .hero-logo-large { flex:0 0 auto; width:66px; height:66px; margin:0; border-radius:10px; }
         .home-hero-copy { min-width:0; flex:1; }
@@ -475,16 +475,23 @@
         .home-metric-logo { display:block; width:30px; height:30px; margin:.34rem auto .26rem; object-fit:contain; border-radius:8px; background:#0b0f14; }
         #page-home .metric-value { font-size:1.17rem; }
         #page-home .metric-value.metric-player-name { min-height:1.2em; font-size:.62rem; }
+        #page-home .metric-detail { display:block; margin-top:.2rem; color:var(--text-muted); font-size:.58rem; font-weight:800; }
         #page-home .home-progress-card { display:flex; flex-direction:column; }
-        #page-home .home-progress-card .metric-value { flex:1; display:flex; align-items:center; justify-content:center; margin:0; padding-top:.12rem; font-size:2rem; line-height:1; letter-spacing:.025em; }
-        #page-home .metric-detail { display:none; }
+        #page-home .home-progress-card .metric-value { margin:.75rem 0 .5rem; font-size:1.02rem; line-height:1; letter-spacing:.025em; }
+        .home-progress-track { height:5px; overflow:hidden; border-radius:999px; background:rgba(255,255,255,.08); }
+        .home-progress-fill { display:block; height:100%; border-radius:inherit; background:var(--accent-gold); }
+        .home-section { display:flex; flex-direction:column; gap:.45rem; }
+        .home-section-heading { display:flex; align-items:center; justify-content:space-between; padding:0 .1rem; }
+        .home-section-heading h2 { color:var(--text-main); font-size:.76rem; font-weight:900; letter-spacing:.08em; }
+        .home-section-heading span { color:var(--accent-gold); font:700 .7rem 'Teko',sans-serif; letter-spacing:.12em; }
         #page-home .match-card-mobile { margin:0; padding:.8rem .85rem; gap:.55rem; border-radius:12px; }
         #page-home .match-card-top { min-height:16px; }
         #page-home .match-team-box span { font-size:.74rem; }
         #page-home .team-logo-img { width:22px; height:22px; }
         #page-home .match-score-pill { min-width:48px; padding:.14rem .4rem; font-size:1.22rem; }
         #page-home .edit-score-btn { min-height:34px; padding:4px 8px; font-size:.66rem; }
-        @media (max-height:720px) { #page-home { gap:.5rem; } #page-home .hero-banner { padding:.62rem .7rem; } #page-home .hero-logo-large { width:48px; height:48px; } #page-home .hero-title { font-size:1.5rem; } #page-home .metric-card { padding:.42rem .25rem; } }
+        .home-match-empty { display:grid; min-height:74px; place-items:center; color:var(--text-muted); font-size:.72rem; font-weight:700; }
+        @media (max-height:720px) { #page-home { gap:.6rem; } #page-home .hero-banner { padding:.62rem .7rem; } #page-home .hero-logo-large { width:48px; height:48px; } #page-home .hero-title { font-size:1.5rem; } #page-home .metric-card { padding:.42rem .25rem; } }
         .empty-state { padding:1rem; text-align:center; color:var(--text-muted); font-size:0.74rem; }
 
         /* モーダルシート */
@@ -884,8 +891,18 @@
                 <img class="hero-logo-large" src="./fnl-logo.png" alt="FNL ロゴ">
                 <div class="home-hero-copy"><div class="hero-subtitle" id="current-season-label">SEASON 1 - 2026</div><div class="hero-title">FOOTBALL NINE LEAGUE</div><p class="home-hero-description">9クラブ公式ポータル</p></div>
             </div>
-            <div id="home-dashboard" class="dashboard-grid"></div>
-            <div class="match-card-mobile" style="background: var(--bg-card); border-color: rgba(198, 166, 100, 0.4);" id="home-featured-match"></div>
+            <section class="home-section" aria-labelledby="home-status-title">
+                <div class="home-section-heading"><h2 id="home-status-title">リーグ状況</h2><span>LEAGUE STATUS</span></div>
+                <div id="home-dashboard" class="dashboard-grid"></div>
+            </section>
+            <section class="home-section" aria-labelledby="home-next-title">
+                <div class="home-section-heading"><h2 id="home-next-title">NEXT MATCH</h2><span>UP NEXT</span></div>
+                <div class="match-card-mobile" id="home-featured-match"></div>
+            </section>
+            <section class="home-section" aria-labelledby="home-latest-title">
+                <div class="home-section-heading"><h2 id="home-latest-title">LATEST RESULT</h2><span>RECENT</span></div>
+                <div class="match-card-mobile" id="home-latest-result"></div>
+            </section>
         </section>
 
         <!-- PAGE 2: STANDINGS -->
@@ -1958,12 +1975,14 @@
         function renderHomeDashboard() {
             const standings = calculateStandings();
             const topScorer = calculatePlayerStats().filter(player => player.goals > 0).sort((a,b) => b.goals - a.goals || b.assists - a.assists)[0];
-            const played = state.schedule.filter(match => match.hs !== null && match.as !== null).length;
+            const played = state.schedule.filter(isMatchCompleted).length;
+            const total = state.schedule.length;
+            const progress = total ? Math.round((played / total) * 100) : 0;
             const dashboard = document.getElementById('home-dashboard');
             if (dashboard) dashboard.innerHTML = `
                 <div class="metric-card"><div class="metric-label">現在の首位</div><img class="home-metric-logo" src="${getTeamLogo(standings[0]?.name || '')}" alt="${escapeHtml(standings[0]?.name || '')}"><div class="metric-value">${escapeHtml(standings[0]?.name || '-')}</div></div>
                 <div class="metric-card"><div class="metric-label">得点王</div><img class="home-metric-logo" src="${getTeamLogo(topScorer?.team || '')}" alt="${escapeHtml(topScorer?.team || '')}"><div class="metric-value metric-player-name" title="${escapeHtml(topScorer?.name || '得点記録なし')}">${escapeHtml(topScorer?.name || '得点記録なし')}</div><div class="metric-detail">${topScorer ? `${topScorer.goals} 得点` : ''}</div></div>
-                <div class="metric-card home-progress-card"><div class="metric-label">消化試合</div><div class="metric-value">${played} / ${state.schedule.length}</div></div>`;
+                <div class="metric-card home-progress-card"><div class="metric-label">リーグ進行</div><div class="metric-value">消化試合 ${played} / ${total}</div><div class="home-progress-track" role="progressbar" aria-label="リーグ進行" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${played}"><span class="home-progress-fill" style="width:${progress}%"></span></div></div>`;
         }
 
         // --- 描画更新 ---
@@ -2047,30 +2066,26 @@
         }
 
         function renderHomeFeaturedMatch() {
-            const wrap = document.getElementById('home-featured-match');
-            if (!wrap) return;
-            const nextMatch = state.schedule.find(m => m.hs === null || m.as === null);
+            const nextWrap = document.getElementById('home-featured-match');
+            const latestWrap = document.getElementById('home-latest-result');
+            if (!nextWrap || !latestWrap) return;
+            const nextMatch = state.schedule.find(match => !isMatchCompleted(match));
             const latestCompletedMatch = state.schedule
-                .filter(m => m.hs !== null && m.as !== null)
-                .reduce((latest, match) => !latest || Number(match.mw) > Number(latest.mw) ? match : latest, null);
-            const target = nextMatch || latestCompletedMatch || state.schedule[0];
-            if (!target) return;
-            const homeLogo = getTeamLogo(target.h);
-            const awayLogo = getTeamLogo(target.a);
-            const isPlayed = target.hs !== null && target.as !== null;
-            const scoreText = isPlayed ? `${target.hs} - ${target.as}` : 'VS';
-
-            wrap.innerHTML = `
-                <div class="match-card-top"><span class="match-sec-badge">MATCHWEEK ${target.mw}</span><span class="match-status-badge ${isPlayed ? 'is-finished' : ''}">${isPlayed ? '試合終了' : '次の試合'}</span></div>
+                .filter(isMatchCompleted)
+                .reduce((latest, match) => !latest || Number(match.mw) >= Number(latest.mw) ? match : latest, null);
+            const matchCard = (match, isResult) => `
+                <div class="match-card-top"><span class="match-sec-badge">MATCHWEEK ${match.mw}</span><span class="match-status-badge ${isResult ? 'is-finished' : ''}">${isResult ? '試合終了' : '試合予定'}</span></div>
                 <div class="match-main-row">
                     <div class="match-teams-center">
-                        <div class="match-team-box home"><span>${escapeHtml(target.h)}</span><img src="${homeLogo}" class="team-logo-img"></div>
-                        <span class="match-score-pill ${isPlayed ? 'played' : ''}">${scoreText}</span>
-                        <div class="match-team-box away"><img src="${awayLogo}" class="team-logo-img"><span>${escapeHtml(target.a)}</span></div>
+                        <div class="match-team-box home"><span>${escapeHtml(match.h)}</span><img src="${getTeamLogo(match.h)}" class="team-logo-img" alt=""></div>
+                        <span class="match-score-pill ${isResult ? 'played' : ''}">${isResult ? `${match.hs} - ${match.as}` : 'VS'}</span>
+                        <div class="match-team-box away"><img src="${getTeamLogo(match.a)}" class="team-logo-img" alt=""><span>${escapeHtml(match.a)}</span></div>
                     </div>
                 </div>
-                <button class="edit-score-btn" onclick="openScoreInputSheet('${target.id}')">MATCH CENTERを開く</button>
+                <button class="edit-score-btn" onclick="openScoreInputSheet('${match.id}')">MATCH CENTERを開く</button>
             `;
+            nextWrap.innerHTML = nextMatch ? matchCard(nextMatch, false) : '<div class="home-match-empty">全日程終了</div>';
+            latestWrap.innerHTML = latestCompletedMatch ? matchCard(latestCompletedMatch, true) : '<div class="home-match-empty">まだ試合結果はありません</div>';
         }
 
         function renderTeams() {
