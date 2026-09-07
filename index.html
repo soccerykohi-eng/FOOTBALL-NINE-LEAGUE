@@ -377,15 +377,6 @@
         }
 
         .nav-svg-icon { width: 18px; height: 18px; fill: currentColor; }
-        .more-menu-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.65rem; }
-        .more-menu-button {
-            min-width:0; padding:1rem 0.35rem; border:1px solid var(--border-color); border-radius:12px;
-            background:var(--bg-elevated); color:var(--text-main); cursor:pointer;
-            display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.45rem;
-            font:700 0.75rem 'Noto Sans JP',sans-serif;
-        }
-        .more-menu-button.active { color:var(--accent-gold-light); border-color:var(--accent-gold); background:rgba(198,166,100,0.12); }
-        .more-menu-button .nav-svg-icon { width:24px; height:24px; }
 
         .save-status-time { display:block; margin-top:.05rem; color:var(--text-muted); font-size:.52rem; line-height:1; }
         .sync-badge[data-state="dirty"] .sync-dot { background:#d6a84b; }
@@ -542,7 +533,7 @@
         /* FNL visual system: information-first football UI */
         .page.active { animation: page-fade-in .2s ease-out; }
         @keyframes page-fade-in { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
-        button, .chip, .card, .match-card-mobile, .nav-item, .more-menu-button, .roster-team-card { transition: transform .2s ease, border-color .2s ease, background-color .2s ease, color .2s ease; }
+        button, .chip, .card, .match-card-mobile, .nav-item, .roster-team-card { transition: transform .2s ease, border-color .2s ease, background-color .2s ease, color .2s ease; }
         button:active, .card[onclick]:active, .match-card-mobile:active, .roster-team-card:active { transform:scale(.985); }
         .card, .match-card-mobile, .metric-card, .roster-team-card { box-shadow:none; }
         .metric-card { border-radius:12px; background:var(--bg-card); padding:.8rem .5rem; }
@@ -550,7 +541,6 @@
         .tab-bar { border-radius:12px; padding:4px; gap:4px; background:var(--bg-elevated); }
         .tab-button { border-radius:8px; min-height:36px; font-size:.74rem; }
         .tab-button.active { background:var(--accent-gold); box-shadow:none; }
-        .more-menu-button:active { border-color:var(--accent-gold); }
         .roster-team-card { box-shadow:none; }
         .player-directory-intro { margin:-.2rem 0 .75rem; color:var(--text-muted); font-size:.7rem; line-height:1.5; }
         /* 一覧上のエンブレムは、元画像のサイズにかかわらず必ず収まる */
@@ -559,7 +549,6 @@
         .nav-item { min-width:56px; font-size:.61rem; gap:4px; }
         .nav-svg-icon { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
         .nav-item.active::before { width:32px; background:var(--accent-gold); border-radius:0 0 999px 999px; }
-        .more-menu-button { border-radius:12px; background:var(--bg-card); }
         .match-card-mobile { gap:12px; }
         .match-card-top { display:flex; align-items:center; justify-content:space-between; }
         .match-status-badge { padding:3px 8px; border-radius:999px; border:1px solid var(--border-color); color:var(--text-muted); font-size:.62rem; font-weight:800; letter-spacing:.04em; }
@@ -828,8 +817,6 @@
         .nav-item.active { color:var(--text-main); }
         .nav-item.active .nav-svg-icon { color:var(--accent-gold); }
         .nav-item.active::before { top:0; width:24px; height:2px; background:var(--accent-gold); }
-        .more-menu-grid { gap:10px; }
-        .more-menu-button { min-height:88px; border-radius:13px; background:var(--bg-card); }
 
         .sheet-overlay { background:rgba(0,0,0,.7); backdrop-filter:blur(4px); }
         .sheet-content { border-top:1px solid var(--border-color); border-radius:20px 20px 0 0; background:#0e141b; }
@@ -982,9 +969,9 @@
             <i data-lucide="shield" class="nav-svg-icon" aria-hidden="true"></i>
             <span>チーム</span>
         </button>
-        <button type="button" class="nav-item" data-nav-more onclick="openMoreNavigationSheet()" aria-label="その他のページを開く">
-            <i data-lucide="ellipsis" class="nav-svg-icon" aria-hidden="true"></i>
-            <span>その他</span>
+        <button type="button" class="nav-item" data-page="transfer" onclick="navigateTo('transfer', '選手名簿', this)">
+            <i data-lucide="users-round" class="nav-svg-icon" aria-hidden="true"></i>
+            <span>選手名簿</span>
         </button>
     </nav>
 
@@ -1419,10 +1406,6 @@
                 if (matchedNav) {
                     matchedNav.classList.add('active');
                     matchedNav.setAttribute('aria-current', 'page');
-                } else if (['transfer'].includes(pageId)) {
-                    const moreNav = document.querySelector('#bottom-nav-element .nav-item[data-nav-more]');
-                    moreNav?.classList.add('active');
-                    moreNav?.setAttribute('aria-current', 'page');
                 }
             }
             if (pageId === 'matches') {
@@ -1436,24 +1419,6 @@
             if (pageId === 'transfer') renderPlayerDirectory();
             // ページ切替後に高さが変わっても、Safariのスクロール位置を確実に先頭へ戻す
             requestAnimationFrame(() => window.scrollTo(0, 0));
-        };
-
-        window.openMoreNavigationSheet = function() {
-            const activePageId = document.querySelector('.page.active')?.id?.replace('page-', '') || '';
-            const menuItems = [
-                { page: 'transfer', title: '選手名簿', icon: '<path d="M7 7h8.17l-2.59 2.59L14 11l5-5-5-5 1.41 1.41L12.83 6H7v1zm10 10H8.83l2.59-2.59L10 13l-5 5 5 5-1.41-1.41L11.17 18H17v-1z"/>' },
-            ];
-            document.getElementById('sheet-body').innerHTML = `
-                <div style="text-align:center;margin-bottom:1rem;"><h3>その他のページ</h3></div>
-                <div class="more-menu-grid">
-                    ${menuItems.map(item => `<button class="more-menu-button ${activePageId === item.page ? 'active' : ''}" onclick="navigateFromMoreMenu('${item.page}','${item.title}')"><svg class="nav-svg-icon" viewBox="0 0 24 24">${item.icon}</svg><span>${item.title}</span></button>`).join('')}
-                </div>`;
-            document.getElementById('sheet-overlay').classList.add('active');
-        };
-
-        window.navigateFromMoreMenu = function(pageId, titleText) {
-            document.getElementById('sheet-overlay').classList.remove('active');
-            navigateTo(pageId, titleText);
         };
 
         // --- LINE 共有 ---
