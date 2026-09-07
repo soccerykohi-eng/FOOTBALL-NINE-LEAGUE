@@ -1656,7 +1656,29 @@
             document.getElementById('sheet-overlay').classList.remove('active');
         };
 
-        window.refreshLeagueParticipantOptions = function(mId) { const match = state.schedule.find(item => item.id === mId); if (!match) return; const draft = captureLeagueMatchDraft(match); if (draft.motm && !allowedMatchPlayers(match, draft.motmTeam, draft).includes(draft.motm)) draft.motm = ''; renderLeagueMatchCenter(match); };
+        window.refreshLeagueParticipantOptions = function(mId) {
+            const match = state.schedule.find(item => item.id === mId);
+            if (!match) return;
+            const goalPlayerSelect = document.getElementById('league-goal-player');
+            const goalAssistSelect = document.getElementById('league-goal-assist');
+            const selectedGoalPlayer = goalPlayerSelect?.value || '';
+            const selectedGoalAssist = goalAssistSelect?.value || '';
+            const draft = captureLeagueMatchDraft(match);
+            const motmPlayers = allowedMatchPlayers(match, draft.motmTeam, draft);
+            if (draft.motm && !motmPlayers.includes(draft.motm)) draft.motm = '';
+            leagueMatchDrafts.set(mId, draft);
+
+            const motmSelect = document.getElementById('input-motm');
+            if (motmSelect) motmSelect.innerHTML = matchEventPlayerOptions(draft.motmTeam, 'MOMを選択', draft.motm, motmPlayers);
+
+            const goalTeam = draft.goalTeam === match.a ? match.a : match.h;
+            const goalPlayers = allowedMatchPlayers(match, goalTeam, draft);
+            const nextGoalPlayer = selectedGoalPlayer === OWN_GOAL_VALUE || goalPlayers.includes(selectedGoalPlayer) ? selectedGoalPlayer : '';
+            const nextGoalAssist = goalPlayers.includes(selectedGoalAssist) && selectedGoalAssist !== nextGoalPlayer ? selectedGoalAssist : '';
+            if (goalPlayerSelect) goalPlayerSelect.innerHTML = goalScorerOptions(goalTeam, goalPlayers, nextGoalPlayer);
+            if (goalAssistSelect) goalAssistSelect.innerHTML = matchEventPlayerOptions(goalTeam, 'アシストなし', nextGoalAssist, goalPlayers);
+            updateGoalAssistAvailability('league-goal-player', 'league-goal-assist');
+        };
         window.updateLeagueGoalOptions = function(mId) { const match = state.schedule.find(item => item.id === mId); if (!match) return; const selectedTeam = document.getElementById('league-goal-team')?.value; const draft = captureLeagueMatchDraft(match); if (selectedTeam) draft.goalTeam = selectedTeam; leagueMatchDrafts.set(mId, draft); renderLeagueMatchCenter(match); };
         window.addLeagueGoal = function(mId) { if (!requireEditMode('得点記録の追加')) return; const match = state.schedule.find(item => item.id === mId), selectedPlayer = document.getElementById('league-goal-player')?.value; if (!match || !selectedPlayer) return alert('得点者を選択してください。'); const draft = captureLeagueMatchDraft(match), team = document.getElementById('league-goal-team').value, allowed = allowedMatchPlayers(match, team, draft), ownGoal = selectedPlayer === OWN_GOAL_VALUE, assist = ownGoal ? '' : (document.getElementById('league-goal-assist').value || ''); if (!ownGoal && !allowed.includes(selectedPlayer)) return alert('得点者は出場選手から選択してください。'); if (assist && (!allowed.includes(assist) || assist === selectedPlayer)) return alert('アシストは同じチームの別の出場選手を選択してください。'); const targetScore = Number(team === match.h ? draft.hs : draft.as); const recorded = draft.events.filter(event => event.type === 'goal' && event.team === team).length; if (!Number.isFinite(targetScore) || String(team === match.h ? draft.hs : draft.as).trim() === '') return alert('先にスコアを入力してください。'); if (recorded >= targetScore) return alert('これ以上追加すると得点記録がスコアを超えます。'); draft.events.push({ id: `e_${Date.now()}_${Math.random().toString(16).slice(2)}`, type: 'goal', team, player: ownGoal ? 'オウンゴール' : selectedPlayer, ownGoal, assist, minute: 0 }); leagueMatchDrafts.set(mId, draft); renderLeagueMatchCenter(match); };
         window.clearScoreInCloud = function(mId) {
