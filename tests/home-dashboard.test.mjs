@@ -11,9 +11,9 @@ test('HOME presents the current league status metrics', () => {
   assert.match(html, /id="home-status-title">リーグ状況/);
   assert.match(dashboardBody, /現在の首位/);
   assert.match(dashboardBody, /得点王/);
-  assert.match(dashboardBody, /リーグ進行/);
-  assert.match(dashboardBody, /消化試合 \$\{played\} \/ \$\{total\}/);
-  assert.match(dashboardBody, /home-progress-track/);
+  assert.match(dashboardBody, /<div class="metric-label">消化試合<\/div>/);
+  assert.match(dashboardBody, /\$\{played\} \/ \$\{state\.schedule\.length\}/);
+  assert.doesNotMatch(dashboardBody, /home-progress-track/);
   assert.match(dashboardBody, /\$\{topScorer\.goals\} 得点/);
 });
 
@@ -31,7 +31,7 @@ test('HOME handles pre-season, in-progress, completed, and empty schedules', () 
   assert.match(matchesBody, /filter\(isMatchCompleted\)/);
   assert.match(matchesBody, /nextMatch \? matchCard\(nextMatch, false\) : '<div class="home-match-empty">全日程終了/);
   assert.match(matchesBody, /latestCompletedMatch \? matchCard\(latestCompletedMatch, true\) : '<div class="home-match-empty">まだ試合結果はありません/);
-  assert.match(dashboardBody, /total \? Math\.round\(\(played \/ total\) \* 100\) : 0/);
+  assert.match(dashboardBody, /state\.schedule\.filter\(isMatchCompleted\)\.length/);
 });
 
 test('HOME redesign does not restore the retired content UI', () => {
