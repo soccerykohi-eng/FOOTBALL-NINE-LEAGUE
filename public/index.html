@@ -415,8 +415,25 @@
             display:block; width:68px!important; height:68px!important;
             max-width:68px!important; max-height:68px!important; object-fit:contain;
         }
-        #page-transfer.active { display:grid; grid-template-rows:auto auto minmax(0,1fr); height:calc(100dvh - var(--header-height) - var(--nav-height) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 48px); overflow:hidden; }
+        #page-transfer.active { display:grid; grid-template-rows:auto auto auto minmax(0,1fr); height:calc(100dvh - var(--header-height) - var(--nav-height) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 48px); overflow:hidden; }
         #page-transfer #roster-club-list { min-height:0; overflow:hidden; border:1px solid var(--border-color); border-radius:14px; background:var(--bg-card); }
+        .player-search { position:relative; margin-bottom:.55rem; }
+        .player-search-input { width:100%; min-height:44px; padding:.65rem 2.75rem .65rem 2.45rem; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); color:var(--text-main); font:700 .78rem 'Noto Sans JP',sans-serif; outline:none; }
+        .player-search-input:focus { border-color:rgba(198,166,100,.65); box-shadow:0 0 0 3px rgba(198,166,100,.1); }
+        .player-search-icon { position:absolute; left:.85rem; top:50%; width:17px; height:17px; color:var(--text-muted); transform:translateY(-50%); pointer-events:none; }
+        .player-search-clear { position:absolute; right:.4rem; top:50%; display:grid; width:36px; height:36px; padding:0; place-items:center; border:0; border-radius:10px; background:transparent; color:var(--text-muted); font-size:1.25rem; transform:translateY(-50%); }
+        .player-search-clear[hidden] { display:none; }
+        .player-search-results { height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+        .player-search-result { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.4rem .65rem; width:100%; padding:.7rem .8rem; border:0; border-bottom:1px solid var(--border-color); background:transparent; color:var(--text-main); text-align:left; }
+        .player-search-result:last-child { border-bottom:0; }
+        .player-search-result:active { background:rgba(198,166,100,.08); }
+        .player-search-name { overflow:hidden; font-size:.78rem; font-weight:900; text-overflow:ellipsis; white-space:nowrap; }
+        .player-search-team { overflow:hidden; color:var(--text-muted); font-size:.62rem; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }
+        .player-search-meta { display:flex; grid-column:1 / -1; flex-wrap:wrap; gap:.28rem; }
+        .player-search-meta span { padding:.14rem .36rem; border-radius:999px; background:rgba(255,255,255,.05); color:var(--text-muted); font-size:.56rem; font-weight:800; }
+        .player-search-meta .position { color:var(--accent-gold-light); background:rgba(198,166,100,.1); }
+        .player-search-meta .protection-ready { color:var(--accent-gold-light)!important; }
+        .player-search-chevron { grid-column:2; grid-row:1 / span 2; align-self:center; color:var(--accent-gold); font-size:1.25rem; }
         .roster-team-grid { display:grid; grid-template-rows:repeat(9,minmax(0,1fr)); height:100%; min-height:0; }
         .roster-team-card { display:grid; grid-template-columns:36px minmax(0,1fr) auto 18px; gap:.65rem; min-width:0; min-height:0; margin:0; padding:.38rem .7rem; align-items:center; border:0; border-bottom:1px solid var(--border-color); border-radius:0; background:transparent; color:var(--text-main); text-align:left; cursor:pointer; transition:background-color .15s ease; }
         .roster-team-card:last-child { border-bottom:0; }
@@ -672,6 +689,7 @@
             .sync-badge { padding:6px; }
             .current-page-title { max-width:92px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         }
+        @media (max-width:420px) { .player-search-result { padding:.65rem .7rem; } .player-search-input { font-size:16px; } }
         @media (max-width:340px) {
             #teams-grid { gap:.38rem; }
             .team-directory-card { min-height:122px; padding:.45rem .24rem .55rem; border-radius:13px; }
@@ -959,6 +977,11 @@
         <section id="page-transfer" class="page" hidden>
             <div class="section-header">
                 <div class="section-title">登録選手</div>
+            </div>
+            <div class="player-search" role="search">
+                <i data-lucide="search" class="player-search-icon" aria-hidden="true"></i>
+                <input id="player-directory-search" class="player-search-input" type="search" placeholder="選手名を検索" autocomplete="off" enterkeyhint="search" oninput="filterPlayerDirectory()">
+                <button id="player-directory-search-clear" class="player-search-clear" type="button" onclick="clearPlayerDirectorySearch()" aria-label="検索をクリア" hidden>×</button>
             </div>
             <p class="player-directory-intro">チームを選択すると、登録選手を確認できます。</p>
             <div id="roster-club-list"></div>
@@ -1846,14 +1869,54 @@
             button?.classList.add('active');
         };
 
+        function findRegisteredPlayers(query) {
+            const normalizedQuery = String(query || '').normalize('NFKC').trim().toLocaleLowerCase('ja-JP');
+            if (!normalizedQuery) return [];
+            return RAW_TEAMS.flatMap(team => activeRosterPlayers(team.id)
+                .filter(player => String(player.name || '').normalize('NFKC').toLocaleLowerCase('ja-JP').includes(normalizedQuery))
+                .map(player => ({
+                    ...player,
+                    teamId: team.id,
+                    teamName: team.name,
+                    appearances: getPlayerSeasonAppearances(team.name, player.name)
+                })));
+        }
+
         function renderPlayerDirectory() {
             const rosterList = document.getElementById('roster-club-list');
             if (!rosterList) return;
+            const searchInput = document.getElementById('player-directory-search');
+            const clearButton = document.getElementById('player-directory-search-clear');
+            const query = searchInput?.value.trim() || '';
+            if (clearButton) clearButton.hidden = !query;
+            if (query) {
+                const results = findRegisteredPlayers(query);
+                rosterList.innerHTML = results.length ? `<div class="player-search-results">${results.map(player => `
+                    <button class="player-search-result" type="button" onclick="openRosterSheet('${player.teamId}')" aria-label="${escapeHtml(player.name)}が所属する${escapeHtml(player.teamName)}の選手名簿を開く">
+                        <span class="player-search-name">${escapeHtml(player.name)}</span>
+                        <span class="player-search-team">${escapeHtml(player.teamName)}</span>
+                        <span class="player-search-meta"><span class="position">${escapeHtml(player.position || '未登録')}</span><span>${player.cardType === 'special' ? '特別' : '通常'}</span><span>出場 ${player.appearances}</span>${player.appearances >= 10 ? '<span class="protection-ready">プロテクト可</span>' : '<span>プロテクト対象外</span>'}</span>
+                        <span class="player-search-chevron" aria-hidden="true">›</span>
+                    </button>`).join('')}</div>` : '<div class="empty-state">該当する登録選手はいません</div>';
+                return;
+            }
             rosterList.innerHTML = `<div class="roster-team-grid">${RAW_TEAMS.map(team => {
                 const counts = getRosterCounts(team.id);
                 return `<button class="roster-team-card" onclick="openRosterSheet('${team.id}')" aria-label="${escapeHtml(team.name)}の登録選手を見る"><span class="roster-team-crest"><img src="${team.logo}" alt=""></span><span class="roster-team-copy"><strong class="roster-team-name">${escapeHtml(team.name)}</strong><small class="roster-team-breakdown">特別 ${counts.special} ・ 通常 ${counts.normal}</small></span><span class="roster-team-count"><strong>${counts.total}</strong><small>名</small></span><span class="roster-team-chevron" aria-hidden="true">›</span></button>`;
             }).join('')}</div>`;
         }
+
+        window.filterPlayerDirectory = function() {
+            renderPlayerDirectory();
+        };
+
+        window.clearPlayerDirectorySearch = function() {
+            const input = document.getElementById('player-directory-search');
+            if (!input) return;
+            input.value = '';
+            renderPlayerDirectory();
+            input.focus();
+        };
 
         function renderSeasonArchive() {
             const wrap = document.getElementById('season-archive-list');
