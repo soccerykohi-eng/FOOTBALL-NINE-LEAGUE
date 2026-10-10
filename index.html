@@ -2284,8 +2284,7 @@
             const player = getRoster(teamId).find(item => item.id === playerId);
             if (!player || !confirm(`${player.name}を名簿から削除しますか？`)) return;
             const proposed = getRoster(teamId).filter(item => item.id !== playerId);
-            const validation = validateRoster(teamId, proposed, true);
-            if (!validation.valid) return alert(validation.errors.join('\n'));
+            // 削除は人数超過や重複を悪化させないため、保存済みの不整合を整理できるよう一般検証では止めない。
             const previous = cloneRosterData(state.rosters);
             state.rosters[teamId] = proposed;
             addActivity('選手削除', `${player.name} を名簿から削除`);
