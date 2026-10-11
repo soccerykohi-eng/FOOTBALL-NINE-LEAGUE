@@ -18,7 +18,7 @@ assert.doesNotMatch(firebaseSync, /他の端末で同じクラブの名簿が更
 
 assert.match(html, /function getRoster\(teamId\)/);
 assert.match(html, /function activeRosterPlayers\(teamId\)/);
-assert.match(html, /appearances >= 10 \? '<span class="protection-ready"/);
+assert.match(html, /appearances >= 8 \? '<span class="protection-ready"/);
 assert.match(html, /プロテクト可/);
 assert.doesNotMatch(html, /window\.removePlayer[\s\S]*?validateRoster\(teamId, proposed, true\)/);
 
