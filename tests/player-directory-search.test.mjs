@@ -50,7 +50,7 @@ test('search results reuse roster metadata, appearances, and protection rule', (
   assert.match(html, /placeholder="選手名を検索"/);
   assert.match(html, /getPlayerSeasonAppearances\(team\.name, player\.name\)/);
   assert.match(html, /player\.cardType === 'special' \? '特別' : '通常'/);
-  assert.match(html, /player\.appearances >= 10 \? '<span class="protection-ready">プロテクト可/);
+  assert.match(html, /player\.appearances >= 8 \? '<span class="protection-ready">プロテクト可/);
   assert.match(html, /該当する登録選手はいません/);
 });
 
